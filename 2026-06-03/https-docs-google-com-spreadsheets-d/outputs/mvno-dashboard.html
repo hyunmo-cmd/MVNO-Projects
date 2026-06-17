@@ -1,0 +1,3876 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MVNO 고객센터 업무 현황 대시보드</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --ink: #172026;
+      --muted: #66737f;
+      --line: #dce3e9;
+      --teal: #008a8a;
+      --blue: #3867d6;
+      --green: #2e9d5b;
+      --amber: #d18616;
+      --red: #cf4b4b;
+      --violet: #7057c8;
+      --shadow: 0 10px 28px rgba(23, 32, 38, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .app {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      max-width: 460px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select, button {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      padding: 8px 10px;
+    }
+
+    button {
+      align-self: end;
+      cursor: pointer;
+      border-color: var(--teal);
+      background: var(--teal);
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi {
+      min-height: 112px;
+      padding: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      display: grid;
+      align-content: space-between;
+    }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .kpi strong {
+      margin-top: 10px;
+      font-size: clamp(22px, 2.5vw, 31px);
+      line-height: 1.05;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .panel {
+      grid-column: span 6;
+      min-width: 0;
+      min-height: 360px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 10px;
+    }
+
+    .panel.wide { grid-column: span 12; min-height: 390px; }
+    .panel h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .chart-wrap {
+      position: relative;
+      min-height: 280px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .rank-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 8px;
+    }
+
+    .rank-row {
+      display: grid;
+      grid-template-columns: 36px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfd;
+    }
+
+    .rank-row .no {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .rank-row .name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 800;
+    }
+
+    .rank-row .value {
+      color: var(--teal);
+      font-weight: 900;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      color: var(--muted);
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .app { padding: 16px; }
+      header { grid-template-columns: 1fr; }
+      .filters, .kpis { grid-template-columns: 1fr; }
+      .panel, .panel.wide { grid-column: span 12; min-height: 330px; }
+      .rank-row { grid-template-columns: 30px minmax(0, 1fr); }
+      .rank-row .value { grid-column: 2; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>MVNO 고객센터 업무 현황</h1>
+        <div class="subtitle">Google Sheets 원본 데이터 기준, 새로고침 시 최신 데이터 반영</div>
+      </div>
+      <div class="status" id="status">데이터를 불러오는 중입니다.</div>
+    </header>
+
+    <section class="filters" aria-label="필터">
+      <label>월
+        <select id="monthFilter">
+          <option value="all">전체</option>
+        </select>
+      </label>
+      <label>시작일
+        <input id="startDate" type="date">
+      </label>
+      <label>종료일
+        <input id="endDate" type="date">
+      </label>
+      <label>상담사
+        <select id="counselorFilter">
+          <option value="all">전체</option>
+        </select>
+      </label>
+      <label>업무 대분류
+        <select id="mainFilter">
+          <option value="all">전체</option>
+        </select>
+      </label>
+      <label>업무 소분류
+        <select id="subFilter">
+          <option value="all">전체</option>
+        </select>
+      </label>
+      <label>CSV 파일
+        <input id="csvFile" type="file" accept=".csv,text/csv">
+      </label>
+      <button id="syncBtn" type="button">원본 동기화</button>
+      <button id="resetBtn" type="button">필터 초기화</button>
+    </section>
+
+    <section class="kpis" aria-label="KPI">
+      <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
+      <article class="kpi"><span>총 소요시간</span><strong id="totalMinutes">0분</strong></article>
+      <article class="kpi"><span>건당 평균 처리시간</span><strong id="avgMinutes">0분</strong></article>
+      <article class="kpi"><span>유선상담 건수</span><strong id="phoneCount">0</strong></article>
+      <article class="kpi"><span>채널톡 건수</span><strong id="channelCount">0</strong></article>
+      <article class="kpi"><span>개통 처리건수</span><strong id="activationCount">0</strong></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel wide">
+        <h2>일자별 처리건수 추이</h2>
+        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+      </article>
+      <article class="panel">
+        <h2>업무유형별 처리건수</h2>
+        <div class="chart-wrap"><canvas id="countChart"></canvas></div>
+      </article>
+      <article class="panel">
+        <h2>업무유형별 소요시간</h2>
+        <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
+      </article>
+      <article class="panel">
+        <h2>업무유형 비중</h2>
+        <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
+      </article>
+      <article class="panel">
+        <h2>건당 평균 처리시간 순위</h2>
+        <ol class="rank-list" id="rankList"></ol>
+      </article>
+    </section>
+  </main>
+
+  <script id="saved-data" type="application/json">[
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 43,
+    "minutes": 146
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 40,
+    "minutes": 108
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 18,
+    "minutes": 53
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 57,
+    "minutes": 115
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 47,
+    "minutes": 133
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 51,
+    "minutes": 140
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 44,
+    "minutes": 77
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 38,
+    "minutes": 81
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 53,
+    "minutes": 152
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 41,
+    "minutes": 126
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 41,
+    "minutes": 127
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 41,
+    "minutes": 127
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 30,
+    "minutes": 78
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 15,
+    "minutes": 41
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 7,
+    "minutes": 9
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 29,
+    "minutes": 50
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 29,
+    "minutes": 47
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 56,
+    "minutes": 106
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 67,
+    "minutes": 143
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 16,
+    "minutes": 84
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 11,
+    "minutes": 57
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 5,
+    "minutes": 11
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 13,
+    "minutes": 62
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 17,
+    "minutes": 65
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 9,
+    "minutes": 62
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 15,
+    "minutes": 70
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 13,
+    "minutes": 88
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 19,
+    "minutes": 115
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 12,
+    "minutes": 101
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 6,
+    "minutes": 19
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 13,
+    "minutes": 47
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 14,
+    "minutes": 97
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 5,
+    "minutes": 33
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 6,
+    "minutes": 34
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 15,
+    "minutes": 51
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 17,
+    "minutes": 88
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 11,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 4,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 7,
+    "minutes": 14
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 4,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 3,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 4,
+    "minutes": 7
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 7,
+    "minutes": 13
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 5,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 43,
+    "minutes": 129
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 40,
+    "minutes": 120
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 18,
+    "minutes": 54
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 59,
+    "minutes": 171
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 47,
+    "minutes": 120
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 51,
+    "minutes": 132
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 44,
+    "minutes": 88
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 38,
+    "minutes": 76
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 53,
+    "minutes": 106
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 41,
+    "minutes": 82
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 41,
+    "minutes": 82
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 41,
+    "minutes": 82
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 30,
+    "minutes": 60
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 15,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 7,
+    "minutes": 14
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 29,
+    "minutes": 58
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 29,
+    "minutes": 58
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 56,
+    "minutes": 112
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 67,
+    "minutes": 134
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 21
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 35
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 4,
+    "minutes": 60
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 24
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 25
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 27
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 34
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 35
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 3,
+    "minutes": 50
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 4,
+    "minutes": 18
+  },
+  {
+    "date": "2026-05-09",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 4,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 2,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 4,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 3,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 3,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 3,
+    "minutes": 13
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 4,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 2,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 4,
+    "minutes": 26
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 3,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 7
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 3,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 4,
+    "minutes": 24
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 1
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 4,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 2,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "가입확인서 발급",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "가입확인서 발급",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 7
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-23",
+    "month": "2026년 5월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 43,
+    "minutes": 192
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 47,
+    "minutes": 160
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 54,
+    "minutes": 161
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 43,
+    "minutes": 190
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 43,
+    "minutes": 188
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 32,
+    "minutes": 89
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 48,
+    "minutes": 179
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 6,
+    "minutes": 13
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 46,
+    "minutes": 137
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 34,
+    "minutes": 130
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 34,
+    "minutes": 133
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 34,
+    "minutes": 130
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 43,
+    "minutes": 64
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 14,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 27,
+    "minutes": 61
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 33,
+    "minutes": 112
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 86,
+    "minutes": 143
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 62,
+    "minutes": 149
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 46,
+    "minutes": 67
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 11,
+    "minutes": 104
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 8,
+    "minutes": 50
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 14,
+    "minutes": 53
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 9,
+    "minutes": 27
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 5,
+    "minutes": 65
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 11,
+    "minutes": 89
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 6,
+    "minutes": 19
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 16,
+    "minutes": 91
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 11,
+    "minutes": 100
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 11,
+    "minutes": 50
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 11,
+    "minutes": 51
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 9,
+    "minutes": 52
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 4,
+    "minutes": 22
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 6,
+    "minutes": 44
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 10,
+    "minutes": 60
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 13,
+    "minutes": 54
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 16,
+    "minutes": 81
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 6,
+    "minutes": 12
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 6,
+    "minutes": 12
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 15,
+    "minutes": 77
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 4,
+    "minutes": 7
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 4,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 4,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 5,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 43,
+    "minutes": 129
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 47,
+    "minutes": 141
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 54,
+    "minutes": 123
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 43,
+    "minutes": 129
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 43,
+    "minutes": 87
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 32,
+    "minutes": 64
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 48,
+    "minutes": 96
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 6,
+    "minutes": 12
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 46,
+    "minutes": 92
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 34,
+    "minutes": 68
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 34,
+    "minutes": 68
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 34,
+    "minutes": 68
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 43,
+    "minutes": 76
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 14,
+    "minutes": 28
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 27,
+    "minutes": 54
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 33,
+    "minutes": 66
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 86,
+    "minutes": 172
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 62,
+    "minutes": 124
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 46,
+    "minutes": 92
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 5,
+    "minutes": 50
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 35
+  },
+  {
+    "date": "2026-05-12",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 12
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 4,
+    "minutes": 60
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 3,
+    "minutes": 45
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 6,
+    "minutes": 95
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 33
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 3,
+    "minutes": 40
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 45
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 4,
+    "minutes": 60
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 2,
+    "minutes": 30
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 4,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 10,
+    "minutes": 21
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 5,
+    "minutes": 9
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 6,
+    "minutes": 12
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-07",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 1,
+    "minutes": 1
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 3,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 2,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 2,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 8,
+    "minutes": 16
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-11",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 3,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 3,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-21",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 2,
+    "minutes": 15
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-29",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 2,
+    "minutes": 12
+  },
+  {
+    "date": "2026-05-30",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 7
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 2,
+    "minutes": 8
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-05-14",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 4,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 3,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-22",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-25",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 3,
+    "minutes": 10
+  },
+  {
+    "date": "2026-05-26",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "부가서비스 신청",
+    "count": 2,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-13",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 2,
+    "minutes": 7
+  },
+  {
+    "date": "2026-05-16",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-19",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-27",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "유심 일련번호 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "eSIM 변경",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "eSIM 변경",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "eSIM 변경",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-08",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-15",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 2,
+    "minutes": 6
+  },
+  {
+    "date": "2026-05-18",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 3
+  },
+  {
+    "date": "2026-05-20",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-05-28",
+    "month": "2026년 5월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "확정기변",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 63,
+    "minutes": 123
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 18,
+    "minutes": 82
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 5,
+    "minutes": 10
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 63,
+    "minutes": 126
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "김*옥",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 2,
+    "minutes": 10
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "유선 상담",
+    "count": 50,
+    "minutes": 120
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "채널톡",
+    "count": 12,
+    "minutes": 53
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "1:1문의",
+    "count": 9,
+    "minutes": 18
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 상담 업무",
+    "sub": "후처리(전화 상담)",
+    "count": 50,
+    "minutes": 100
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "온라인 개통",
+    "count": 2,
+    "minutes": 20
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "오프라인 개통",
+    "count": 1,
+    "minutes": 15
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "알뜰폰 접수",
+    "count": 2,
+    "minutes": 4
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "개통 업무",
+    "sub": "너겟 접수",
+    "count": 1,
+    "minutes": 2
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "해지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "정지",
+    "count": 1,
+    "minutes": 5
+  },
+  {
+    "date": "2026-06-01",
+    "month": "2026년 6월",
+    "counselor": "진*진",
+    "main": "고객 지원 업무",
+    "sub": "입금전용계좌 발급",
+    "count": 1,
+    "minutes": 5
+  }
+]</script>
+  <script>
+    const SHEET_ID = "1738TA7s5VPsthZRXG08EY1__XHajya86UESH_gJQNco";
+    const GID = "540455740";
+    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${GID}&tqx=out:json`;
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+    const SHEET_NAMES = ["일일 진행 업무_5월_김*옥", "일일 진행 업무_5월_진*진", "일일 진행 업무_6월_김*옥", "일일 진행 업무_6월_진*진"];
+    const STORAGE_KEY = "mvno-dashboard-rows-v1";
+    const SAVED_ROWS = JSON.parse(document.getElementById("saved-data").textContent || "[]");
+    const colors = ["#008a8a", "#3867d6", "#2e9d5b", "#d18616", "#cf4b4b", "#7057c8", "#607d8b", "#9a6a15"];
+    const state = { rows: [], filtered: [] };
+
+    const $ = (id) => document.getElementById(id);
+    const nf = new Intl.NumberFormat("ko-KR");
+
+    function norm(value) {
+      return String(value ?? "").replace(/\s+/g, " ").trim();
+    }
+
+    function toNumber(value) {
+      if (typeof value === "number") return value;
+      const parsed = Number(String(value ?? "").replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function parseDate(value) {
+      if (value instanceof Date) return value;
+      if (typeof value === "string") {
+        const gvizDate = value.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+        if (gvizDate) return new Date(+gvizDate[1], +gvizDate[2], +gvizDate[3]);
+        const compact = value.match(/^(\d{4})[.\-/년\s]*(\d{1,2})[.\-/월\s]*(\d{1,2})/);
+        if (compact) return new Date(+compact[1], +compact[2] - 1, +compact[3]);
+      }
+      return null;
+    }
+
+    function monthLabel(date) {
+      return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+    }
+
+    function monthFromSheetName(sheetName) {
+      const match = sheetName.match(/_(\d+)월_/);
+      return match ? `2026년 ${Number(match[1])}월` : "";
+    }
+
+    function counselorFromSheetName(sheetName) {
+      return sheetName.split("_").pop() || "";
+    }
+
+    function dateKey(date) {
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function normalizeRecords(records) {
+      const labels = Object.keys(records[0] || {}).map(norm);
+      const index = (name) => labels.findIndex((label) => label === name);
+      const required = ["날짜", "업무대분류", "업무소분류", "처리건수", "소요시간(분)"];
+      const missing = required.filter((name) => index(name) < 0);
+      if (missing.length) throw new Error(`필수 컬럼 누락: ${missing.join(", ")}`);
+      const key = (name) => Object.keys(records[0])[index(name)];
+
+      return records.map((record) => {
+        const rawDate = record[key("날짜")];
+        const date = parseDate(rawDate);
+        return {
+          date,
+          month: date ? monthLabel(date) : "",
+          counselor: norm(record["상담사"]),
+          dateText: date ? dateKey(date) : norm(rawDate),
+          main: norm(record[key("업무대분류")]),
+          sub: norm(record[key("업무소분류")]),
+          count: toNumber(record[key("처리건수")]),
+          minutes: toNumber(record[key("소요시간(분)")])
+        };
+      }).filter((row) => row.date && row.main && row.count >= 0);
+    }
+
+    function tableMatrix(table) {
+      return table.rows.map((row) => {
+        const cells = row.c || [];
+        return table.cols.map((_, i) => cells[i]?.f ?? cells[i]?.v ?? "");
+      });
+    }
+
+    function transformWideTableToRows(table, sheetName) {
+      const matrix = tableMatrix(table);
+      const dateRow = matrix[0] || [];
+      const month = monthFromSheetName(sheetName);
+      const counselor = counselorFromSheetName(sheetName);
+      const rows = [];
+      let main = "";
+      for (let r = 2; r < matrix.length; r++) {
+        const source = matrix[r];
+        if (norm(source[0])) main = norm(source[0]);
+        const sub = norm(source[1]);
+        if (!main || !sub || sub.includes("총")) continue;
+        for (let c = 2; c < source.length; c += 2) {
+          const parsedDate = parseDate(source[0]) || parseDate(dateRow[c]) || parseDate(dateRow[c - 1]);
+          if (!parsedDate) continue;
+          const count = toNumber(source[c]);
+          const minutes = toNumber(source[c + 1]);
+          if (count === 0 && minutes === 0) continue;
+          rows.push({
+            date: parsedDate,
+            dateText: dateKey(parsedDate),
+            month: month || monthLabel(parsedDate),
+            counselor,
+            main,
+            sub,
+            count,
+            minutes
+          });
+        }
+      }
+      return rows;
+    }
+
+    function tableToRows(table) {
+      const labels = table.cols.map((c) => norm(c.label));
+      if (!labels.some(Boolean)) return transformWideTableToRows(table, "");
+      const records = table.rows.map((row) => {
+        const cells = row.c || [];
+        return Object.fromEntries(labels.map((label, i) => [label, cells[i]?.v ?? cells[i]?.f ?? ""]));
+      });
+      return normalizeRecords(records);
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let cell = "";
+      let row = [];
+      let quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"' && quoted && next === '"') {
+          cell += '"';
+          i++;
+        } else if (char === '"') {
+          quoted = !quoted;
+        } else if (char === "," && !quoted) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(cell);
+          if (row.some((value) => norm(value))) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+      row.push(cell);
+      if (row.some((value) => norm(value))) rows.push(row);
+      const headers = rows.shift()?.map(norm) || [];
+      return rows.map((values) => Object.fromEntries(headers.map((header, i) => [header, values[i] ?? ""])));
+    }
+
+    async function loadCsvUrl() {
+      const response = await fetch(`${CSV_URL}&cacheBust=${Date.now()}`);
+      if (!response.ok) throw new Error("CSV 데이터를 불러오지 못했습니다.");
+      return normalizeRecords(parseCsv(await response.text()));
+    }
+
+    function loadGviz(sheetName) {
+      return new Promise((resolve, reject) => {
+        const oldGoogle = window.google;
+        const script = document.createElement("script");
+        const timer = setTimeout(() => reject(new Error("데이터 요청 시간이 초과되었습니다.")), 15000);
+        window.google = {
+          visualization: {
+            Query: {
+              setResponse(payload) {
+                clearTimeout(timer);
+                window.google = oldGoogle;
+                script.remove();
+                if (payload.status !== "ok") {
+                reject(new Error(payload.errors?.[0]?.detailed_message || "시트 데이터를 불러오지 못했습니다."));
+              } else {
+                  resolve(sheetName ? transformWideTableToRows(payload.table, sheetName) : tableToRows(payload.table));
+              }
+            }
+          }
+          }
+        };
+        script.onerror = () => {
+          clearTimeout(timer);
+          window.google = oldGoogle;
+          reject(new Error("시트 접근 권한 또는 네트워크 상태를 확인해주세요."));
+        };
+        const source = sheetName
+          ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(sheetName)}&tqx=out:json`
+          : GVIZ_URL;
+        script.src = `${source}&cacheBust=${Date.now()}`;
+        document.head.appendChild(script);
+      });
+    }
+
+    function restoreSavedRows() {
+      try {
+        const localRows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return localRows.length ? localRows : SAVED_ROWS;
+      } catch {
+        return SAVED_ROWS;
+      }
+    }
+
+    async function loadSheet() {
+      const errors = [];
+      try {
+        return await loadFreshSheet();
+      } catch (error) {
+        errors.push(error.message);
+      }
+      try {
+        return await loadCsvUrl();
+      } catch (error) {
+        errors.push(error.message);
+      }
+      const savedRows = restoreSavedRows();
+      if (savedRows.length) return savedRows.map((row) => ({ ...row, date: parseDate(row.date), dateText: row.dateText || row.date }));
+      const privateSheet = errors.find((message) => message.includes("not publicly viewable") || message.includes("OAuth"));
+      throw new Error(privateSheet ? "원본 시트가 공개 보기 상태가 아니어서 자동 연결할 수 없습니다." : (errors.find(Boolean) || "시트 데이터를 불러오지 못했습니다."));
+    }
+
+    async function loadFreshSheet() {
+      const rows = (await Promise.all(SHEET_NAMES.map((sheetName) => loadGviz(sheetName)))).flat();
+      if (!rows.length) throw new Error("원본 시트에서 불러온 데이터가 없습니다.");
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+      return rows;
+    }
+
+    function groupBy(rows, keyFn) {
+      const map = new Map();
+      rows.forEach((row) => {
+        const key = keyFn(row);
+        const item = map.get(key) || { key, count: 0, minutes: 0 };
+        item.count += row.count;
+        item.minutes += row.minutes;
+        map.set(key, item);
+      });
+      return [...map.values()];
+    }
+
+    function setStatus(text) {
+      $("status").textContent = text;
+    }
+
+    function setFilters(rows) {
+      if (!rows.length) {
+        $("startDate").value = "";
+        $("endDate").value = "";
+        $("monthFilter").innerHTML = '<option value="all">전체</option>';
+        $("counselorFilter").innerHTML = '<option value="all">전체</option>';
+        $("mainFilter").innerHTML = '<option value="all">전체</option>';
+        $("subFilter").innerHTML = '<option value="all">전체</option>';
+        return;
+      }
+      const dates = rows.map((row) => row.date).sort((a, b) => a - b);
+      $("startDate").value = dateKey(dates[0]);
+      $("endDate").value = dateKey(dates[dates.length - 1]);
+      setSelectOptions("monthFilter", [...new Set(rows.map((row) => row.month))]);
+      setSelectOptions("counselorFilter", [...new Set(rows.map((row) => row.counselor))]);
+      setSelectOptions("mainFilter", [...new Set(rows.map((row) => row.main))]);
+      updateSubFilter();
+    }
+
+    function setSelectOptions(id, values, selected = "all") {
+      const unique = values.filter(Boolean).sort((a, b) => a.localeCompare(b, "ko"));
+      $(id).innerHTML = '<option value="all">전체</option>' + unique.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
+      $(id).value = unique.includes(selected) ? selected : "all";
+    }
+
+    function rowsForSubFilter() {
+      const month = $("monthFilter").value;
+      const counselor = $("counselorFilter").value;
+      const main = $("mainFilter").value;
+      return state.rows.filter((row) => {
+        if (month !== "all" && row.month !== month) return false;
+        if (counselor !== "all" && row.counselor !== counselor) return false;
+        if (main !== "all" && row.main !== main) return false;
+        return true;
+      });
+    }
+
+    function updateDateRangeForMonth() {
+      const month = $("monthFilter").value;
+      const scoped = month === "all" ? state.rows : state.rows.filter((row) => row.month === month);
+      if (!scoped.length) return;
+      const dates = scoped.map((row) => row.date).sort((a, b) => a - b);
+      $("startDate").value = dateKey(dates[0]);
+      $("endDate").value = dateKey(dates[dates.length - 1]);
+    }
+
+    function updateSubFilter() {
+      const previous = $("subFilter").value;
+      setSelectOptions("subFilter", [...new Set(rowsForSubFilter().map((row) => row.sub))], previous);
+    }
+
+    function escapeHtml(text) {
+      return String(text).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
+    }
+
+    function applyFilters() {
+      const start = $("startDate").value ? new Date($("startDate").value) : null;
+      const end = $("endDate").value ? new Date($("endDate").value) : null;
+      const month = $("monthFilter").value;
+      const counselor = $("counselorFilter").value;
+      const main = $("mainFilter").value;
+      const sub = $("subFilter").value;
+      state.filtered = state.rows.filter((row) => {
+        if (month !== "all" && row.month !== month) return false;
+        if (start && row.date < start) return false;
+        if (end && row.date > end) return false;
+        if (counselor !== "all" && row.counselor !== counselor) return false;
+        if (main !== "all" && row.main !== main) return false;
+        if (sub !== "all" && row.sub !== sub) return false;
+        return true;
+      });
+      render();
+    }
+
+    function contains(row, text) {
+      return `${row.main} ${row.sub}`.includes(text);
+    }
+
+    function renderKpis(rows) {
+      const totalCount = rows.reduce((sum, row) => sum + row.count, 0);
+      const totalMinutes = rows.reduce((sum, row) => sum + row.minutes, 0);
+      $("totalCount").textContent = nf.format(totalCount);
+      $("totalMinutes").textContent = `${nf.format(Math.round(totalMinutes))}분`;
+      $("avgMinutes").textContent = totalCount ? `${(totalMinutes / totalCount).toFixed(1)}분` : "0분";
+      $("phoneCount").textContent = nf.format(rows.filter((row) => contains(row, "유선상담")).reduce((sum, row) => sum + row.count, 0));
+      $("channelCount").textContent = nf.format(rows.filter((row) => contains(row, "채널톡")).reduce((sum, row) => sum + row.count, 0));
+      $("activationCount").textContent = nf.format(rows.filter((row) => contains(row, "개통")).reduce((sum, row) => sum + row.count, 0));
+    }
+
+    function render() {
+      const rows = state.filtered;
+      renderKpis(rows);
+      const byDate = groupBy(rows, (row) => row.dateText).sort((a, b) => a.key.localeCompare(b.key));
+      const byType = groupBy(rows, (row) => row.main).sort((a, b) => b.count - a.count);
+      const barKey = $("mainFilter").value === "all" ? (row) => row.main : (row) => row.sub;
+      const byBarType = groupBy(rows, barKey).sort((a, b) => b.count - a.count);
+      drawLineChart($("trendChart"), byDate.map((d) => d.key), byDate.map((d) => d.count), "처리건수");
+      drawBarChart($("countChart"), byBarType.map((d) => d.key), byBarType.map((d) => d.count), "처리건수", colors[1]);
+      drawBarChart($("timeChart"), byBarType.map((d) => d.key), byBarType.map((d) => d.minutes), "소요시간", colors[3]);
+      drawPieChart($("shareChart"), byType.map((d) => d.key), byType.map((d) => d.count));
+      renderRanking(rows);
+      setStatus(`${nf.format(rows.length)}개 행 표시 중 · ${new Date().toLocaleString("ko-KR")} 갱신`);
+    }
+
+    function canvasSetup(canvas) {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+      canvas.height = Math.max(240, Math.floor(rect.height * ratio));
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      return { ctx, width: canvas.width / ratio, height: canvas.height / ratio };
+    }
+
+    function drawEmpty(ctx, width, height) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#66737f";
+      ctx.textAlign = "center";
+      ctx.font = "14px Segoe UI, sans-serif";
+      ctx.fillText("표시할 데이터가 없습니다.", width / 2, height / 2);
+    }
+
+    function drawAxes(ctx, left, top, right, bottom) {
+      ctx.strokeStyle = "#dce3e9";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, bottom);
+      ctx.lineTo(right, bottom);
+      ctx.stroke();
+    }
+
+    function drawLineChart(canvas, labels, values) {
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!values.length) return drawEmpty(ctx, width, height);
+      const left = 54, right = width - 20, top = 20, bottom = height - 46;
+      const max = Math.max(...values, 1);
+      drawAxes(ctx, left, top, right, bottom);
+      ctx.strokeStyle = "rgba(56, 103, 214, 0.18)";
+      for (let i = 1; i <= 4; i++) {
+        const y = bottom - ((bottom - top) * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(right, y);
+        ctx.stroke();
+      }
+      const step = labels.length === 1 ? 0 : (right - left) / (labels.length - 1);
+      ctx.strokeStyle = "#3867d6";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      values.forEach((value, i) => {
+        const x = labels.length === 1 ? (left + right) / 2 : left + step * i;
+        const y = bottom - (value / max) * (bottom - top);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      values.forEach((value, i) => {
+        const x = labels.length === 1 ? (left + right) / 2 : left + step * i;
+        const y = bottom - (value / max) * (bottom - top);
+        ctx.fillStyle = "#ffffff";
+        ctx.strokeStyle = "#3867d6";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+      drawLabels(ctx, labels, left, right, bottom, width);
+      drawScale(ctx, max, left, top, bottom);
+    }
+
+    function drawBarChart(canvas, labels, values, unit, fill) {
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!values.length) return drawEmpty(ctx, width, height);
+      const left = 56, right = width - 18, top = 20, bottom = height - 56;
+      const max = Math.max(...values, 1);
+      drawAxes(ctx, left, top, right, bottom);
+      const gap = 10;
+      const barW = Math.max(16, ((right - left) - gap * (labels.length - 1)) / labels.length);
+      values.forEach((value, i) => {
+        const x = left + i * (barW + gap);
+        const barH = (value / max) * (bottom - top);
+        ctx.fillStyle = fill;
+        ctx.fillRect(x, bottom - barH, barW, barH);
+        ctx.fillStyle = "#172026";
+        ctx.textAlign = "center";
+        ctx.font = "11px Segoe UI, sans-serif";
+        ctx.fillText(unit === "소요시간" ? nf.format(Math.round(value)) : nf.format(value), x + barW / 2, bottom - barH - 6);
+      });
+      drawLabels(ctx, labels, left + barW / 2, right - barW / 2, bottom, width);
+      drawScale(ctx, max, left, top, bottom);
+    }
+
+    function drawPieChart(canvas, labels, values) {
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      const total = values.reduce((sum, v) => sum + v, 0);
+      if (!total) return drawEmpty(ctx, width, height);
+      const radius = Math.min(width * 0.28, height * 0.38, 120);
+      const cx = Math.min(width * 0.36, 220);
+      const cy = height / 2;
+      let start = -Math.PI / 2;
+      values.forEach((value, i) => {
+        const end = start + (value / total) * Math.PI * 2;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius, start, end);
+        ctx.closePath();
+        ctx.fill();
+        start = end;
+      });
+      const legendX = Math.min(width - 210, cx + radius + 30);
+      labels.slice(0, 8).forEach((label, i) => {
+        const y = 38 + i * 26;
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fillRect(legendX, y - 10, 12, 12);
+        ctx.fillStyle = "#172026";
+        ctx.font = "12px Segoe UI, sans-serif";
+        ctx.textAlign = "left";
+        const pct = `${((values[i] / total) * 100).toFixed(1)}%`;
+        ctx.fillText(`${shorten(label, 16)} ${pct}`, legendX + 20, y);
+      });
+    }
+
+    function drawScale(ctx, max, left, top, bottom) {
+      ctx.fillStyle = "#66737f";
+      ctx.font = "11px Segoe UI, sans-serif";
+      ctx.textAlign = "right";
+      for (let i = 0; i <= 4; i++) {
+        const value = Math.round((max * i) / 4);
+        const y = bottom - ((bottom - top) * i) / 4 + 4;
+        ctx.fillText(nf.format(value), left - 8, y);
+      }
+    }
+
+    function drawLabels(ctx, labels, startX, endX, bottom, width) {
+      const maxLabels = width < 520 ? 5 : 9;
+      const skip = Math.max(1, Math.ceil(labels.length / maxLabels));
+      ctx.fillStyle = "#66737f";
+      ctx.font = "11px Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      labels.forEach((label, i) => {
+        if (i % skip !== 0 && i !== labels.length - 1) return;
+        const x = labels.length === 1 ? (startX + endX) / 2 : startX + ((endX - startX) * i) / (labels.length - 1);
+        ctx.fillText(shorten(label, 11), x, bottom + 24);
+      });
+    }
+
+    function shorten(text, max) {
+      return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+    }
+
+    function renderRanking(rows) {
+      const ranked = groupBy(rows, (row) => `${row.main} / ${row.sub || "미분류"}`)
+        .filter((item) => item.count > 0)
+        .map((item) => ({ ...item, avg: item.minutes / item.count }))
+        .sort((a, b) => b.avg - a.avg)
+        .slice(0, 12);
+      $("rankList").innerHTML = ranked.length ? ranked.map((item, i) => `
+        <li class="rank-row">
+          <span class="no">${i + 1}</span>
+          <span class="name" title="${escapeHtml(item.key)}">${escapeHtml(item.key)}</span>
+          <span class="value">${item.avg.toFixed(1)}분/건</span>
+        </li>
+      `).join("") : '<li class="empty">표시할 데이터가 없습니다.</li>';
+    }
+
+    function loadRows(rows, sourceLabel) {
+      state.rows = rows;
+      if (!state.rows.length) throw new Error("시트에 표시할 데이터가 없습니다.");
+      document.getElementById("loadErrorPanel")?.remove();
+      setFilters(state.rows);
+      applyFilters();
+      setStatus(`${sourceLabel} · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
+    }
+
+    function dataRangeText(rows) {
+      const dates = rows.map((row) => row.date).filter(Boolean).sort((a, b) => a - b);
+      if (!dates.length) return "날짜 없음";
+      return `${dateKey(dates[0])} ~ ${dateKey(dates[dates.length - 1])}`;
+    }
+
+    async function init() {
+      try {
+        loadRows(await loadSheet(), "Google Sheets 연결");
+      } catch (error) {
+        setStatus(error.message);
+        document.getElementById("loadErrorPanel")?.remove();
+        document.querySelector(".grid").insertAdjacentHTML("afterbegin", `<article class="panel wide" id="loadErrorPanel"><div class="empty">Google Sheets 공유 설정이 '링크가 있는 모든 사용자 보기 가능'인지 확인해주세요.<br>${escapeHtml(error.message)}</div></article>`);
+      }
+    }
+
+    $("monthFilter").addEventListener("change", () => {
+      updateDateRangeForMonth();
+      updateSubFilter();
+      applyFilters();
+    });
+    $("startDate").addEventListener("change", applyFilters);
+    $("endDate").addEventListener("change", applyFilters);
+    $("counselorFilter").addEventListener("change", () => {
+      updateSubFilter();
+      applyFilters();
+    });
+    $("mainFilter").addEventListener("change", () => {
+      updateSubFilter();
+      applyFilters();
+    });
+    $("subFilter").addEventListener("change", applyFilters);
+    $("resetBtn").addEventListener("click", () => setFilters(state.rows) || applyFilters());
+    $("syncBtn").addEventListener("click", async () => {
+      try {
+        setStatus("원본 시트에서 최신 데이터를 동기화하는 중입니다.");
+        loadRows(await loadFreshSheet(), "Google Sheets 최신 동기화");
+      } catch (error) {
+        setStatus(`동기화 실패: ${error.message}`);
+      }
+    });
+    $("csvFile").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        loadRows(normalizeRecords(parseCsv(await file.text())), `CSV 파일: ${file.name}`);
+      } catch (error) {
+        setStatus(error.message);
+      }
+    });
+    window.addEventListener("resize", () => render());
+    init();
+  </script>
+</body>
+</html>

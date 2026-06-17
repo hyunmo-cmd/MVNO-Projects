@@ -1,0 +1,1784 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LG 요금제 혜택 발송 대시보드</title>
+  <style>
+    :root {
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --panel: #ffffff;
+      --bg: #f3f4f6;
+      --blue: #2563eb;
+      --blue2: #eff6ff;
+      --teal: #0d9488;
+      --green: #def7ec;
+      --amber: #fff4cc;
+      --rose: #ffe4dc;
+      --gray: #eef2f6;
+      --shadow: 0 1px 2px rgba(17, 24, 39, .05);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      background: #111827;
+      border-bottom: 1px solid var(--line);
+      padding: 18px 28px 14px;
+      color: #fff;
+    }
+    h1 { margin: 0; font-size: 22px; letter-spacing: 0; }
+    .sub { margin-top: 6px; color: #cbd5e1; font-size: 13px; }
+    main {
+      padding: 14px 28px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 16px;
+    }
+    .toolbar, .panel, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .toolbar {
+      grid-column: 1 / -1;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1.35fr 150px 210px 210px 130px;
+      gap: 12px;
+      align-items: end;
+      position: relative;
+    }
+    .toolbar::before {
+      content: "개통내역";
+      position: absolute;
+      top: -10px;
+      left: 12px;
+      padding: 2px 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #334155;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    input, select, button {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 0 10px;
+      font: inherit;
+      background: #fff;
+      color: var(--ink);
+    }
+    input[type="file"] { padding: 7px 10px; }
+    input:focus, select:focus {
+      outline: 2px solid #93c5fd;
+      outline-offset: 1px;
+    }
+    button {
+      cursor: pointer;
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+      font-weight: 700;
+    }
+    button.secondary { background: #fff; color: var(--blue); }
+    button.danger { background: #9f1239; border-color: #9f1239; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .notice {
+      grid-column: 1 / -1;
+      padding: 9px 12px;
+      border: 1px solid #dbeafe;
+      background: #eff6ff;
+      border-radius: 6px;
+      color: #1e3a8a;
+      font-size: 13px;
+    }
+    .tabs {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: #e5e7eb;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .tab-btn {
+      width: auto;
+      min-width: 128px;
+      min-height: 36px;
+      background: transparent;
+      color: #374151;
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: #111827;
+      border-color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .tab-panel {
+      display: none;
+      grid-column: 1 / -1;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 16px;
+      align-items: start;
+    }
+    .tab-panel.active {
+      display: grid;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .card { padding: 14px; min-height: 90px; }
+    .card .k { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .card .v { margin-top: 8px; font-size: 30px; font-weight: 800; line-height: 1; }
+    .card .note { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .panel { overflow: hidden; }
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 44px;
+      padding: 12px 14px;
+      background: #fff;
+      color: #111827;
+      border-bottom: 1px solid var(--line);
+      font-weight: 800;
+    }
+    .panel-body { padding: 14px; }
+    .main-col { min-width: 0; }
+    .table-tools {
+      display: grid;
+      grid-template-columns: 1fr 180px 170px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 390px);
+      border-top: 1px solid var(--line);
+    }
+    .table-more {
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+      display: flex;
+      justify-content: center;
+    }
+    .table-more button {
+      width: auto;
+      min-width: 180px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+    }
+    th, td {
+      border-bottom: 1px solid #e5eaf0;
+      padding: 9px 10px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f9fafb;
+      color: #334155;
+      font-size: 12px;
+    }
+    tr:hover td { background: #f9fafb; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      background: var(--green);
+      color: #166534;
+    }
+    .badge.other { background: var(--rose); color: #9a3412; }
+    .side {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .benefit-line {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f9fafb;
+      margin-bottom: 10px;
+    }
+    .benefit-line .name { font-weight: 800; margin-bottom: 4px; }
+    .muted { color: var(--muted); font-size: 12px; }
+    .bars { display: grid; gap: 9px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 104px 1fr 42px;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .track {
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar { height: 100%; background: var(--teal); }
+    .empty {
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .privacy {
+      display: grid;
+      gap: 7px;
+      font-size: 13px;
+      color: #334155;
+    }
+    .privacy strong { color: #172033; }
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .mapping-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .category-list {
+      display: grid;
+      gap: 8px;
+      max-height: calc(100vh - 250px);
+      overflow: auto;
+    }
+    .category-item {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 12px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .category-item.active {
+      border-color: var(--blue);
+      background: var(--blue2);
+    }
+    .category-item .title {
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .category-head {
+      display: grid;
+      grid-template-columns: minmax(220px, .9fr) minmax(0, 1.8fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .category-label {
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .category-meta {
+      display: grid;
+      gap: 4px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font: inherit;
+      resize: vertical;
+    }
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; padding: 12px; }
+      header { padding: 14px 16px; }
+      .tabs { position: static; overflow-x: auto; }
+      .tab-btn { min-width: 112px; }
+      .toolbar { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .table-tools { grid-template-columns: 1fr; }
+      .tab-panel.active { grid-template-columns: 1fr; }
+      .category-head { grid-template-columns: 1fr; }
+      .table-wrap { max-height: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>LG 요금제 혜택 발송 대시보드</h1>
+    <div class="sub">업로드한 개통내역 파일을 이 브라우저 안에서만 읽어 월별 혜택 발송 대상자를 취합합니다.</div>
+  </header>
+  <main>
+    <section class="toolbar">
+      <div>
+        <label for="fileInput">개통내역 엑셀 업로드</label>
+        <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xls" />
+      </div>
+      <div>
+        <label for="passwordInput">파일 암호</label>
+        <input id="passwordInput" type="password" autocomplete="off" placeholder="예: 12345678" />
+      </div>
+      <div>
+        <label for="benefitSelect">대분류 · 혜택</label>
+        <select id="benefitSelect" disabled></select>
+      </div>
+      <div>
+        <label for="planCode">소분류 · 요금제코드</label>
+        <select id="planCode" disabled></select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button id="doneBtn" class="danger" disabled>완료</button>
+      </div>
+      <div class="notice" id="statusBox">고객정보는 저장되어 있지 않습니다. 파일을 업로드하면 화면에서만 조회되고, 완료 버튼을 누르면 즉시 사라집니다.</div>
+    </section>
+
+    <section class="main-col">
+      <div class="cards">
+        <div class="card"><div class="k">조회 고객수</div><div id="totalCount" class="v">0</div><div class="note">선택 요금제 기준</div></div>
+        <div class="card"><div class="k">정상 고객수</div><div id="normalCount" class="v">0</div><div class="note">상태 = 정상</div></div>
+        <div class="card"><div class="k">정상 외</div><div id="otherCount" class="v">0</div><div class="note">정지 등 포함</div></div>
+        <div class="card"><div class="k">전체 요금제</div><div id="planCount" class="v">0</div><div class="note">업로드 파일 기준</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>고객 명단</span>
+          <span id="rangeLabel" class="muted"></span>
+        </div>
+        <div class="panel-body">
+          <div class="table-tools">
+            <input id="customerSearch" placeholder="고객명, 연락처, 상태 검색" disabled />
+            <select id="statusFilter" disabled>
+              <option value="all">전체 상태</option>
+              <option value="정상">정상</option>
+              <option value="other">정상 외</option>
+            </select>
+            <button id="downloadBtn" disabled>발송 CSV 다운로드</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>연락처</th>
+                <th>고객명</th>
+                <th>요금제코드</th>
+                <th>요금제명</th>
+                <th>개통일</th>
+                <th>상태</th>
+                <th>개통구분</th>
+                <th>대리점</th>
+                <th>총판</th>
+              </tr>
+            </thead>
+            <tbody id="customerRows">
+              <tr><td colspan="9" class="empty">아직 업로드된 고객정보가 없습니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-more">
+          <button id="loadMoreRowsBtn" class="secondary" disabled>더보기</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="panel">
+        <div class="panel-title">선택 요금제</div>
+        <div class="panel-body" id="planBox">
+          <div class="benefit-line">
+            <div class="name">요금제 미선택</div>
+            <div class="muted">파일 업로드 후 요금제코드를 선택하세요.</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">선택 혜택</div>
+        <div class="panel-body" id="benefitBox"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">혜택 카테고리</div>
+        <div class="panel-body">
+          <div class="mapping-grid">
+            <button id="syncMappingBtn" class="secondary">구글시트 불러오기</button>
+            <button id="editMappingBtn" class="secondary">매칭 수정</button>
+          </div>
+          <input id="mappingFileInput" type="file" accept=".csv,.txt" style="margin-bottom:10px;" />
+          <div id="mappingStatus" class="muted" style="margin-bottom:10px;">저장된 혜택-요금제 매칭 데이터를 표시합니다. 기본 데이터는 전달받은 구글시트 기준으로 저장되어 있으며, 필요하면 매칭 수정에서 바꿀 수 있습니다.</div>
+          <div id="categoryList" class="category-list"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">대상자 취합</div>
+        <div class="panel-body">
+          <div class="benefit-line">
+            <div class="muted">선택 혜택 대상자</div>
+            <strong id="targetCount">0명</strong>
+            <div class="muted" id="downloadHint">개통내역 업로드 후 대상자가 있으면 다운로드할 수 있습니다.</div>
+          </div>
+          <button id="downloadTargetBtn" disabled>선택 혜택 엑셀 다운로드</button>
+          <button id="downloadAllTargetsBtn" class="secondary" style="margin-top:8px;" disabled>전체 혜택 대상자 엑셀 다운로드</button>
+          <a id="downloadFallbackLink" class="secondary" style="display:none; margin-top:8px; width:100%; min-height:36px; align-items:center; justify-content:center; border:1px solid var(--blue); border-radius:6px; color:var(--blue); text-decoration:none; font-weight:700;" download>다운로드 다시 시도</a>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">요금제 고객수 Top 10</div>
+        <div class="panel-body bars" id="topBars">
+          <div class="muted">파일 업로드 후 표시됩니다.</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">휘발 처리</div>
+        <div class="panel-body privacy">
+          <div><strong>저장 안 함:</strong> 고객정보는 이 파일 안에 내장되어 있지 않습니다.</div>
+          <div><strong>업로드만:</strong> 선택한 엑셀은 브라우저 메모리에서만 읽습니다.</div>
+          <div><strong>완료:</strong> 완료 버튼을 누르면 고객 목록, 필터, 혜택 선택, 파일 선택값이 모두 삭제됩니다.</div>
+        </div>
+      </div>
+    </aside>
+  </main>
+  <dialog id="mappingDialog" style="width:min(920px, calc(100vw - 32px)); border:1px solid var(--line); border-radius:8px; padding:0;">
+    <div class="panel-title">혜택-요금제 매칭 수정</div>
+    <div class="panel-body">
+      <div class="muted" style="margin-bottom:8px;">CSV 형식으로 붙여넣어 수정할 수 있습니다. 권장 컬럼: 혜택명, 상품코드, 상품명, 요금제코드</div>
+      <textarea id="mappingEditor"></textarea>
+      <div class="mapping-actions">
+        <button id="saveMappingBtn">저장</button>
+        <button id="closeMappingBtn" class="secondary">닫기</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const BENEFITS = [
+      { brand: "네이버페이포인트", code: "G00000760670", name: "네이버페이 포인트 5,000원", validDays: "30일", price: 5000, discount: 0.18 },
+      { brand: "네이버페이포인트", code: "G00000760671", name: "네이버페이 포인트 10,000원", validDays: "30일", price: 10000, discount: 0.12 },
+      { brand: "다이소", code: "G00001403898", name: "다이소 모바일 금액권 5,000원", validDays: "30일", price: 5000, discount: 0.10 },
+      { brand: "배달의민족", code: "G00003471028", name: "[배달의민족] 모바일상품권 5천원", validDays: "30일", price: 5000, discount: 0.18 },
+      { brand: "스타벅스", code: "G00002391568", name: "스타벅스 e카드 1만원 교환권", validDays: "30일", price: 10000, discount: 0.10 },
+      { brand: "이마트24", code: "G00001590936", name: "이마트24 5천원권", validDays: "30일", price: 5000, discount: 0.27 }
+    ];
+    const DEFAULT_MAPPING_CSV_TEMPLATE = "A열,혜택,C열,요금제코드\\n예시,네이버페이 5천원,,LPZ1005795";
+    const DEFAULT_MAPPING_VERSION = "google-sheet-2026-06-10-2";
+    const DEFAULT_BENEFIT_PLAN_MAPPINGS = [
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ1006422",
+            "planName": "N포인트 15GB + 3Mbps [통화/문자 100, 매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ1006418",
+            "planName": "N포인트 15GB + 3Mbps [통화/문자 300, 매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ1005795",
+            "planName": "N포인트 71GB +3Mbps [매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ7101303",
+            "planName": "N포인트 100GB + 5Mbps [매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ1006424",
+            "planName": "N포인트 150GB + 5Mbps [매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ7100439",
+            "planName": "[힐링페이퍼 임직원 전용] 7GB+1Mbps [매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ7100471",
+            "planName": "[힐링페이퍼 임직원 전용] 71GB+3Mbps [매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "네이버페이 포인트 5,000원 X 24개월",
+            "productCode": "G00000760670",
+            "productName": "네이버페이 포인트 5,000원 X 24개월",
+            "planCode": "LPZ7100487",
+            "planName": "[힐링페이퍼 임직원 전용] 100GB+5Mbps [매월 네이버 5,000포인트]"
+      },
+      {
+            "category": "배달의민족 5,000원 X 24개월",
+            "productCode": "G00003471028",
+            "productName": "배달의민족 5,000원 X 24개월",
+            "planCode": "LPZ1006426",
+            "planName": "배민 무제한 71GB + 3Mbps [매월 배달의민족 5,000원]"
+      },
+      {
+            "category": "배달의민족 5,000원 X 24개월",
+            "productCode": "G00003471028",
+            "productName": "배달의민족 5,000원 X 24개월",
+            "planCode": "LPZ7101305",
+            "planName": "배민 무제한 100GB + 5Mbps [매월 배달의 민족 5,000포인트]"
+      },
+      {
+            "category": "배달의민족 5,000원 X 24개월",
+            "productCode": "G00003471028",
+            "productName": "배달의민족 5,000원 X 24개월",
+            "planCode": "LPZ1005413",
+            "planName": "배민 무제한 150GB + 5Mbps [매월 배달의민족 5,000원]"
+      },
+      {
+            "category": "다이소 상품권 5,000원 X 24개월",
+            "productCode": "G00001403898",
+            "productName": "다이소 상품권 5,000원 X 24개월",
+            "planCode": "LPZ1005416",
+            "planName": "다있소 71GB +3Mbps [매월 다이소 5천원]"
+      },
+      {
+            "category": "다이소 상품권 5,000원 X 24개월",
+            "productCode": "G00001403898",
+            "productName": "다이소 상품권 5,000원 X 24개월",
+            "planCode": "LPZ7101306",
+            "planName": "다있소 100GB +5Mbps [매월 다이소 5천원]"
+      },
+      {
+            "category": "다이소 상품권 5,000원 X 24개월",
+            "productCode": "G00001403898",
+            "productName": "다이소 상품권 5,000원 X 24개월",
+            "planCode": "LPZ7101314",
+            "planName": "다있소 150GB + 5Mbps [매월 다이소 5천원]"
+      },
+      {
+            "category": "이마트24 5,000원 X 24개월",
+            "productCode": "G00001590936",
+            "productName": "이마트24 5,000원 X 24개월",
+            "planCode": "LPZ1006421",
+            "planName": "E마트24 10GB + 1Mbps [매월 E마트 5,000포인트]"
+      },
+      {
+            "category": "이마트24 5,000원 X 24개월",
+            "productCode": "G00001590936",
+            "productName": "이마트24 5,000원 X 24개월",
+            "planCode": "LPZ1005411",
+            "planName": "E마트24 15GB + 3Mbps [통화/문자 100, 매월 E마트24 5,000포인트]"
+      },
+      {
+            "category": "이마트24 5,000원 X 24개월",
+            "productCode": "G00001590936",
+            "productName": "이마트24 5,000원 X 24개월",
+            "planCode": "LPZ1005405",
+            "planName": "E마트24 15GB + 3Mbps [통화/문자 300, 매월 E마트24 5,000포인트]"
+      },
+      {
+            "category": "이마트24 5,000원 X 24개월",
+            "productCode": "G00001590936",
+            "productName": "이마트24 5,000원 X 24개월",
+            "planCode": "LPZ7101297",
+            "planName": "E마트24 71GB + 3Mbps [매월 E마트 5,000포인트]"
+      },
+      {
+            "category": "이마트24 5,000원 X 24개월",
+            "productCode": "G00001590936",
+            "productName": "이마트24 5,000원 X 24개월",
+            "planCode": "LPZ7101313",
+            "planName": "E마트24 100GB + 5Mbps [매월 E마트24 5,000포인트]"
+      },
+      {
+            "category": "이마트24 5,000원 X 24개월",
+            "productCode": "G00001590936",
+            "productName": "이마트24 5,000원 X 24개월",
+            "planCode": "LPZ7101304",
+            "planName": "E마트24 150GB + 5Mbps [매월 E마트24 5,000포인트]"
+      },
+      {
+            "category": "스타벅스 e카드 10,000원 X 24개월",
+            "productCode": "G00002391568",
+            "productName": "스타벅스 e카드 10,000원 X 24개월",
+            "planCode": "LPZ1006423",
+            "planName": "별다방 15GB + 3Mbps [통화/문자 100, 매월 스타벅스 10,000원]"
+      },
+      {
+            "category": "스타벅스 e카드 10,000원 X 24개월",
+            "productCode": "G00002391568",
+            "productName": "스타벅스 e카드 10,000원 X 24개월",
+            "planCode": "LPZ1006419",
+            "planName": "별다방 15GB + 3Mbps [통화/문자 300, 매월 스타벅스 10,000원]"
+      },
+      {
+            "category": "스타벅스 e카드 10,000원 X 24개월",
+            "productCode": "G00002391568",
+            "productName": "스타벅스 e카드 10,000원 X 24개월",
+            "planCode": "LPZ1006427",
+            "planName": "별다방 71GB +3Mbps [매월 스타벅스 10,000원]"
+      },
+      {
+            "category": "스타벅스 e카드 10,000원 X 24개월",
+            "productCode": "G00002391568",
+            "productName": "스타벅스 e카드 10,000원 X 24개월",
+            "planCode": "LPZ7101307",
+            "planName": "별다방 무제한 100GB + 5Mbps [매월 스타벅스 10,000원]"
+      },
+      {
+            "category": "스타벅스 e카드 10,000원 X 24개월",
+            "productCode": "G00002391568",
+            "productName": "스타벅스 e카드 10,000원 X 24개월",
+            "planCode": "LPZ1006425",
+            "planName": "별다방 150GB + 5Mbps [매월 스타벅스 10,000원]"
+      },
+      {
+            "category": "네이버페이 포인트 20,000원",
+            "productCode": "",
+            "productName": "네이버페이 포인트 20,000원",
+            "planCode": "LPZ1006416",
+            "planName": "[네이버포인트 20,000원 프로모션]통화,문자 무제한, 데이터 7GB+1Mbps"
+      },
+      {
+            "category": "네이버페이 포인트 1만원 X 6개월",
+            "productCode": "G00000760671",
+            "productName": "네이버페이 포인트 1만원 X 6개월",
+            "planCode": "LPZ1006340",
+            "planName": "모든게 끝판왕 100GB + 5Mbps"
+      },
+      {
+            "category": "네이버페이 포인트 1만원",
+            "productCode": "G00000760671",
+            "productName": "네이버페이 포인트 1만원",
+            "planCode": "LPZ7100494",
+            "planName": "평생 무제한 100GB + 5Mbps [네이버페이 10,000원]"
+      }
+];
+    const state = {
+      customers: [],
+      plans: [],
+      planCode: "",
+      search: "",
+      status: "all",
+      benefitCode: "",
+      mappings: [],
+      selectedCategoryId: "",
+      visibleRows: 10,
+      downloadUrl: ""
+    };
+
+    const enc = new TextDecoder("utf-8");
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
+    }
+    function number(value) {
+      return new Intl.NumberFormat("ko-KR").format(value || 0);
+    }
+    function money(value) {
+      return new Intl.NumberFormat("ko-KR").format(value || 0) + "원";
+    }
+    function normalizeText(value) {
+      return String(value ?? "").trim();
+    }
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const next = text[i + 1];
+        if (quoted) {
+          if (ch === '"' && next === '"') {
+            cell += '"';
+            i++;
+          } else if (ch === '"') {
+            quoted = false;
+          } else {
+            cell += ch;
+          }
+        } else if (ch === '"') {
+          quoted = true;
+        } else if (ch === ",") {
+          row.push(cell);
+          cell = "";
+        } else if (ch === "\n") {
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+        } else if (ch !== "\r") {
+          cell += ch;
+        }
+      }
+      row.push(cell);
+      rows.push(row);
+      return rows.filter((r) => r.some((v) => normalizeText(v)));
+    }
+    function findHeader(headers, candidates) {
+      const normalized = headers.map((h) => normalizeText(h).replace(/\s/g, ""));
+      for (const candidate of candidates) {
+        const key = candidate.replace(/\s/g, "");
+        const index = normalized.findIndex((h) => h.includes(key));
+        if (index >= 0) return index;
+      }
+      return -1;
+    }
+    function splitPlanCodes(value) {
+      return normalizeText(value)
+        .split(/[\s,;|/，、]+/)
+        .map((v) => v.trim())
+        .filter((v) => /^LP[A-Z0-9]+/i.test(v));
+    }
+    function mappingRowsToItems(rows) {
+      if (!rows.length) return [];
+      const headers = rows[0];
+      const benefitIdx = 1;
+      const productCodeIdx = findHeader(headers, ["상품코드", "기프티쇼코드"]);
+      const productNameIdx = findHeader(headers, ["상품명", "혜택상품명"]);
+      const detectedPlanCodeIdx = findHeader(headers, ["요금제코드", "요금제 코드", "소분류"]);
+      const planCodeIdx = detectedPlanCodeIdx >= 0 ? detectedPlanCodeIdx : 3;
+      const planNameIdx = findHeader(headers, ["요금제명", "요금제 이름"]);
+      if (planCodeIdx < 0) throw new Error("매칭표에서 요금제코드 컬럼을 찾지 못했습니다.");
+      const items = [];
+      for (const row of rows.slice(1)) {
+        const productCode = productCodeIdx >= 0 ? normalizeText(row[productCodeIdx]) : "";
+        const fallbackBenefit = productNameIdx >= 0 ? normalizeText(row[productNameIdx]) : "";
+        const category = benefitIdx >= 0 ? normalizeText(row[benefitIdx]) : fallbackBenefit;
+        const productName = productNameIdx >= 0 ? normalizeText(row[productNameIdx]) : category;
+        const planName = planNameIdx >= 0 ? normalizeText(row[planNameIdx]) : "";
+        for (const planCode of splitPlanCodes(row[planCodeIdx])) {
+          items.push({
+            category: category || productName || productCode || "미분류 혜택",
+            productCode,
+            productName,
+            planCode,
+            planName
+          });
+        }
+      }
+      return dedupeMappings(items);
+    }
+    function dedupeMappings(items) {
+      const seen = new Set();
+      return items.filter((item) => {
+        const key = [item.category, item.productCode, item.productName, item.planCode].join("|");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+    function saveMappings() {
+      localStorage.setItem("benefitPlanMappings", JSON.stringify(state.mappings));
+      localStorage.setItem("benefitPlanMappingVersion", DEFAULT_MAPPING_VERSION);
+    }
+    function loadSavedMappings() {
+      let saved = null;
+      let usedDefaultMappings = false;
+      try {
+        saved = localStorage.getItem("benefitPlanMappings");
+        const savedVersion = localStorage.getItem("benefitPlanMappingVersion");
+        if (saved && savedVersion === DEFAULT_MAPPING_VERSION) {
+          state.mappings = JSON.parse(saved);
+        } else {
+          state.mappings = DEFAULT_BENEFIT_PLAN_MAPPINGS;
+          usedDefaultMappings = true;
+        }
+      } catch {
+        state.mappings = DEFAULT_BENEFIT_PLAN_MAPPINGS;
+        usedDefaultMappings = true;
+      }
+      if (!Array.isArray(state.mappings)) state.mappings = [];
+      state.mappings = dedupeMappings(state.mappings);
+      if (!state.mappings.length && DEFAULT_BENEFIT_PLAN_MAPPINGS.length) {
+        state.mappings = dedupeMappings(DEFAULT_BENEFIT_PLAN_MAPPINGS);
+        usedDefaultMappings = true;
+      }
+      if (usedDefaultMappings && state.mappings.length) saveMappings();
+      if (!state.selectedCategoryId && state.mappings.length) state.selectedCategoryId = categoryGroups()[0]?.id || "";
+    }
+    function categoryGroups() {
+      const map = new Map();
+      for (const item of state.mappings) {
+        const id = item.category || item.productName || item.productCode || "미분류 혜택";
+        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, plans: [] });
+        const group = map.get(id);
+        if (!group.productCode && item.productCode) group.productCode = item.productCode;
+        if (!group.productName && item.productName) group.productName = item.productName;
+        if (!group.plans.some((p) => p.planCode === item.planCode)) group.plans.push({ planCode: item.planCode, planName: item.planName });
+      }
+      return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label, "ko"));
+    }
+    function selectedCategory() {
+      return categoryGroups().find((group) => group.id === state.selectedCategoryId) || null;
+    }
+    function targetRowsForCategory(group = selectedCategory()) {
+      if (!group) return [];
+      const codes = new Set(group.plans.map((plan) => plan.planCode));
+      return state.customers.filter((customer) => codes.has(customer.planCode));
+    }
+    function targetRowsForAllCategories() {
+      const out = [];
+      for (const group of categoryGroups()) {
+        for (const row of targetRowsForCategory(group)) out.push({ group, row });
+      }
+      return out;
+    }
+    function selectedPlanCodes() {
+      const group = selectedCategory();
+      if (group) {
+        if (state.planCode) return [state.planCode];
+        return group.plans.map((plan) => plan.planCode);
+      }
+      return state.planCode ? [state.planCode] : [];
+    }
+    function planByCode(code) {
+      return state.plans.find((item) => item.code === code) || null;
+    }
+    function mappingItemsToCsv(items = state.mappings) {
+      const rows = [["혜택명", "상품코드", "상품명", "요금제코드", "요금제명"]];
+      for (const item of items) rows.push([item.category, item.productCode, item.productName, item.planCode, item.planName]);
+      return rows.map((cols) => cols.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+    }
+    function excelXml(value) {
+      return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+    }
+    function sheetName(name, index = 1) {
+      const cleaned = String(name || `Sheet${index}`).replace(/[\\/?*:[\]]/g, " ").replace(/\s+/g, " ").trim();
+      return (cleaned || `Sheet${index}`).slice(0, 31);
+    }
+    function safeFileName(name) {
+      return String(name || "download").replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim().slice(0, 120) || "download";
+    }
+    function downloadBlob(filename, blob) {
+      if (state.downloadUrl) URL.revokeObjectURL(state.downloadUrl);
+      const url = URL.createObjectURL(blob);
+      state.downloadUrl = url;
+      const safeName = safeFileName(filename);
+      const fallback = $("downloadFallbackLink");
+      if (fallback) {
+        fallback.href = url;
+        fallback.download = safeName;
+        fallback.textContent = `${safeName} 다시 다운로드`;
+        fallback.style.display = "flex";
+      }
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = safeName;
+      a.rel = "noopener";
+      a.style.position = "fixed";
+      a.style.left = "-9999px";
+      a.style.top = "-9999px";
+      document.body.appendChild(a);
+      a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
+      setStatus(`${safeName} 다운로드를 시작했습니다. 파일이 보이지 않으면 [대상자 취합] 탭의 다시 다운로드 링크를 눌러 주세요.`);
+      setTimeout(() => a.remove(), 3000);
+    }
+    function htmlWorkbookDownload(filename, sheets) {
+      const worksheets = sheets.map((sheet, index) => {
+        const rows = [sheet.headers, ...sheet.rows].map((row) => `
+          <Row>${row.map((value) => `<Cell><Data ss:Type="String">${excelXml(value)}</Data></Cell>`).join("")}</Row>`).join("");
+        return `<Worksheet ss:Name="${excelXml(sheetName(sheet.name, index + 1))}"><Table>${rows}</Table></Worksheet>`;
+      }).join("");
+      const workbook = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles>
+  <Style ss:ID="header"><Font ss:Bold="1"/><Interior ss:Color="#DDEBFF" ss:Pattern="Solid"/></Style>
+ </Styles>
+ ${worksheets}
+</Workbook>`;
+      downloadBlob(filename, new Blob(["\ufeff" + workbook], { type: "application/vnd.ms-excel;charset=utf-8" }));
+    }
+    function setStatus(text) {
+      $("statusBox").textContent = text;
+    }
+    function enableLoadedControls(enabled) {
+      ["planCode", "benefitSelect", "customerSearch", "statusFilter", "downloadBtn", "doneBtn"].forEach((id) => $(id).disabled = !enabled);
+    }
+
+    function readUint16(data, offset) { return data[offset] | (data[offset + 1] << 8); }
+    function readUint32(data, offset) { return (data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24)) >>> 0; }
+    function readInt32(data, offset) { const v = readUint32(data, offset); return v > 0x7fffffff ? v - 0x100000000 : v; }
+    function bytesToTextUtf16(data) {
+      let out = "";
+      for (let i = 0; i + 1 < data.length; i += 2) {
+        const code = data[i] | (data[i + 1] << 8);
+        if (code === 0) break;
+        out += String.fromCharCode(code);
+      }
+      return out;
+    }
+    function utf16le(text) {
+      const out = new Uint8Array(text.length * 2);
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        out[i * 2] = code & 255;
+        out[i * 2 + 1] = code >>> 8;
+      }
+      return out;
+    }
+    function concatBytes(...arrays) {
+      const total = arrays.reduce((sum, arr) => sum + arr.length, 0);
+      const out = new Uint8Array(total);
+      let offset = 0;
+      for (const arr of arrays) {
+        out.set(arr, offset);
+        offset += arr.length;
+      }
+      return out;
+    }
+    function le32(value) {
+      return new Uint8Array([value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255]);
+    }
+    function base64Bytes(value) {
+      const bin = atob(value || "");
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out;
+    }
+    async function digest(name, bytes) {
+      const normalized = name.toUpperCase().replace("SHA512", "SHA-512").replace("SHA384", "SHA-384").replace("SHA256", "SHA-256").replace("SHA1", "SHA-1");
+      return new Uint8Array(await crypto.subtle.digest(normalized, bytes));
+    }
+    function padTo(bytes, size, fill = 0x36) {
+      if (bytes.length === size) return bytes;
+      const out = new Uint8Array(size);
+      out.fill(fill);
+      out.set(bytes.slice(0, size));
+      return out;
+    }
+    async function aesCbcDecrypt(keyBytes, ivBytes, dataBytes) {
+      const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
+      return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-CBC", iv: ivBytes }, key, dataBytes));
+    }
+    async function agileHashPassword(password, salt, spinCount, hashName) {
+      let hash = await digest(hashName, concatBytes(salt, utf16le(password)));
+      for (let i = 0; i < spinCount; i++) hash = await digest(hashName, concatBytes(le32(i), hash));
+      return hash;
+    }
+    async function agileDeriveKey(baseHash, blockKey, hashName, keyBytes) {
+      return padTo(await digest(hashName, concatBytes(baseHash, blockKey)), keyBytes);
+    }
+    async function agileIv(salt, blockKey, hashName, blockSize) {
+      if (!blockKey) return padTo(salt, blockSize, 0);
+      return padTo(await digest(hashName, concatBytes(salt, blockKey)), blockSize, 0);
+    }
+    function parseCfb(buffer) {
+      const data = new Uint8Array(buffer);
+      if (!(data[0] === 0xd0 && data[1] === 0xcf && data[2] === 0x11 && data[3] === 0xe0)) throw new Error("Office 암호화 파일 형식이 아닙니다.");
+      const sectorSize = 1 << readUint16(data, 30);
+      const miniSectorSize = 1 << readUint16(data, 32);
+      const firstDir = readInt32(data, 48);
+      const miniCutoff = readUint32(data, 56);
+      const firstMiniFat = readInt32(data, 60);
+      const miniFatCount = readUint32(data, 64);
+      const firstDifat = readInt32(data, 68);
+      const difatCount = readUint32(data, 72);
+      const sec = (sid) => data.slice((sid + 1) * sectorSize, (sid + 2) * sectorSize);
+      const difat = [];
+      for (let i = 0; i < 109; i++) {
+        const sid = readInt32(data, 76 + i * 4);
+        if (sid >= 0) difat.push(sid);
+      }
+      let difatSid = firstDifat;
+      for (let d = 0; d < difatCount && difatSid >= 0; d++) {
+        const s = sec(difatSid);
+        for (let i = 0; i < sectorSize / 4 - 1; i++) {
+          const sid = readInt32(s, i * 4);
+          if (sid >= 0) difat.push(sid);
+        }
+        difatSid = readInt32(s, sectorSize - 4);
+      }
+      const fat = [];
+      for (const sid of difat) {
+        const s = sec(sid);
+        for (let i = 0; i < sectorSize / 4; i++) fat.push(readInt32(s, i * 4));
+      }
+      function chain(start) {
+        const out = [];
+        let sid = start;
+        const seen = new Set();
+        while (sid >= 0 && sid !== 0xfffffffe && !seen.has(sid)) {
+          seen.add(sid);
+          out.push(sid);
+          sid = fat[sid];
+        }
+        return out;
+      }
+      function readRegular(start, size) {
+        const chunks = chain(start).map(sec);
+        const total = concatBytes(...chunks);
+        return total.slice(0, Number(size));
+      }
+      const dirBytes = concatBytes(...chain(firstDir).map(sec));
+      const entries = [];
+      for (let off = 0; off + 128 <= dirBytes.length; off += 128) {
+        const nameLen = readUint16(dirBytes, off + 64);
+        if (!nameLen) continue;
+        entries.push({
+          name: bytesToTextUtf16(dirBytes.slice(off, off + Math.max(0, nameLen - 2))),
+          type: dirBytes[off + 66],
+          start: readInt32(dirBytes, off + 116),
+          size: readUint32(dirBytes, off + 120)
+        });
+      }
+      const root = entries.find((e) => e.type === 5);
+      const miniStream = root ? readRegular(root.start, root.size) : new Uint8Array();
+      const miniFat = [];
+      if (firstMiniFat >= 0 && miniFatCount) {
+        for (const sid of chain(firstMiniFat).slice(0, miniFatCount)) {
+          const s = sec(sid);
+          for (let i = 0; i < sectorSize / 4; i++) miniFat.push(readInt32(s, i * 4));
+        }
+      }
+      function readMini(start, size) {
+        const chunks = [];
+        let sid = start;
+        const seen = new Set();
+        while (sid >= 0 && sid !== 0xfffffffe && !seen.has(sid)) {
+          seen.add(sid);
+          chunks.push(miniStream.slice(sid * miniSectorSize, (sid + 1) * miniSectorSize));
+          sid = miniFat[sid];
+        }
+        return concatBytes(...chunks).slice(0, Number(size));
+      }
+      const streams = {};
+      for (const entry of entries) {
+        if (entry.type !== 2) continue;
+        streams[entry.name] = entry.size < miniCutoff ? readMini(entry.start, entry.size) : readRegular(entry.start, entry.size);
+      }
+      return streams;
+    }
+    async function decryptOfficeFile(buffer, password) {
+      const streams = parseCfb(buffer);
+      const info = streams.EncryptionInfo;
+      const encryptedPackage = streams.EncryptedPackage;
+      if (!info || !encryptedPackage) throw new Error("암호화 정보를 찾지 못했습니다.");
+      const xmlStart = info[0] === 4 && info[4] === 0x40 ? 8 : 4;
+      const xml = new TextDecoder("utf-8").decode(info.slice(xmlStart)).replace(/\0+$/g, "");
+      const doc = new DOMParser().parseFromString(xml, "application/xml");
+      const keyData = doc.getElementsByTagName("keyData")[0];
+      const encryptedKey = doc.getElementsByTagName("encryptedKey")[0];
+      if (!keyData || !encryptedKey) throw new Error("지원하지 않는 Excel 암호화 방식입니다.");
+      const hashName = encryptedKey.getAttribute("hashAlgorithm") || keyData.getAttribute("hashAlgorithm") || "SHA512";
+      const blockSize = Number(encryptedKey.getAttribute("blockSize") || keyData.getAttribute("blockSize") || 16);
+      const keyBytes = Number(encryptedKey.getAttribute("keyBits") || keyData.getAttribute("keyBits") || 256) / 8;
+      const spinCount = Number(encryptedKey.getAttribute("spinCount") || 100000);
+      const salt = base64Bytes(encryptedKey.getAttribute("saltValue"));
+      const packageSalt = base64Bytes(keyData.getAttribute("saltValue"));
+      const baseHash = await agileHashPassword(password, salt, spinCount, hashName);
+      const secretKey = await aesCbcDecrypt(
+        await agileDeriveKey(baseHash, new Uint8Array([0x14,0x6e,0x0b,0xe7,0xab,0xac,0xd0,0xd6]), hashName, keyBytes),
+        await agileIv(salt, null, hashName, blockSize),
+        base64Bytes(encryptedKey.getAttribute("encryptedKeyValue"))
+      );
+      const size = Number(BigInt(readUint32(encryptedPackage, 0)) + (BigInt(readUint32(encryptedPackage, 4)) << 32n));
+      const encrypted = encryptedPackage.slice(8);
+      const chunks = [];
+      for (let offset = 0, block = 0; offset < encrypted.length; offset += 4096, block++) {
+        const part = encrypted.slice(offset, Math.min(offset + 4096, encrypted.length));
+        const iv = await agileIv(packageSalt, le32(block), hashName, blockSize);
+        chunks.push(await aesCbcDecrypt(secretKey.slice(0, keyBytes), iv, part));
+      }
+      return concatBytes(...chunks).slice(0, size).buffer;
+    }
+
+    async function inflateRaw(bytes) {
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+
+    async function unzipEntries(buffer) {
+      const data = new Uint8Array(buffer);
+      if (data[0] !== 0x50 || data[1] !== 0x4b) {
+        const password = $("passwordInput").value.trim();
+        throw new Error(password
+          ? "암호 입력은 저장하지 않았습니다. 다만 현재 브라우저 단독 페이지에서는 암호화된 Excel 해제가 제한됩니다. 엑셀에서 암호를 해제해 새 .xlsx로 저장한 뒤 업로드하세요."
+          : "암호화되었거나 일반 xlsx 형식이 아닙니다. 파일 암호를 입력했는지 확인하거나, 엑셀에서 암호를 해제해 새 .xlsx로 저장한 뒤 업로드하세요.");
+      }
+      let eocd = -1;
+      for (let i = data.length - 22; i >= Math.max(0, data.length - 66000); i--) {
+        if (readUint32(data, i) === 0x06054b50) { eocd = i; break; }
+      }
+      if (eocd < 0) throw new Error("xlsx 압축 구조를 찾지 못했습니다.");
+      const total = readUint16(data, eocd + 10);
+      let ptr = readUint32(data, eocd + 16);
+      const entries = {};
+      for (let i = 0; i < total; i++) {
+        if (readUint32(data, ptr) !== 0x02014b50) throw new Error("xlsx 중앙 디렉터리를 읽지 못했습니다.");
+        const method = readUint16(data, ptr + 10);
+        const compressedSize = readUint32(data, ptr + 20);
+        const nameLen = readUint16(data, ptr + 28);
+        const extraLen = readUint16(data, ptr + 30);
+        const commentLen = readUint16(data, ptr + 32);
+        const localOffset = readUint32(data, ptr + 42);
+        const name = enc.decode(data.slice(ptr + 46, ptr + 46 + nameLen));
+        const localNameLen = readUint16(data, localOffset + 26);
+        const localExtraLen = readUint16(data, localOffset + 28);
+        const start = localOffset + 30 + localNameLen + localExtraLen;
+        const compressed = data.slice(start, start + compressedSize);
+        let bytes;
+        if (method === 0) bytes = compressed;
+        else if (method === 8) bytes = await inflateRaw(compressed);
+        else throw new Error("지원하지 않는 xlsx 압축 방식입니다.");
+        entries[name] = bytes;
+        ptr += 46 + nameLen + extraLen + commentLen;
+      }
+      return entries;
+    }
+
+    function xmlDoc(text) {
+      return new DOMParser().parseFromString(text, "application/xml");
+    }
+    function childText(node, tag) {
+      const child = node.getElementsByTagName(tag)[0];
+      return child ? child.textContent : "";
+    }
+    function colIndex(ref) {
+      const letters = String(ref || "").match(/[A-Z]+/i)?.[0] || "";
+      let n = 0;
+      for (const ch of letters.toUpperCase()) n = n * 26 + ch.charCodeAt(0) - 64;
+      return n - 1;
+    }
+    function parseSharedStrings(entries) {
+      const raw = entries["xl/sharedStrings.xml"];
+      if (!raw) return [];
+      const doc = xmlDoc(enc.decode(raw));
+      return Array.from(doc.getElementsByTagName("si")).map((si) => Array.from(si.getElementsByTagName("t")).map((t) => t.textContent).join(""));
+    }
+    function resolveFirstSheet(entries) {
+      if (!entries["xl/workbook.xml"]) return "xl/worksheets/sheet1.xml";
+      const workbook = xmlDoc(enc.decode(entries["xl/workbook.xml"]));
+      const firstSheet = workbook.getElementsByTagName("sheet")[0];
+      const relId = firstSheet?.getAttribute("r:id");
+      if (!relId || !entries["xl/_rels/workbook.xml.rels"]) return "xl/worksheets/sheet1.xml";
+      const rels = xmlDoc(enc.decode(entries["xl/_rels/workbook.xml.rels"]));
+      for (const rel of rels.getElementsByTagName("Relationship")) {
+        if (rel.getAttribute("Id") === relId) {
+          const target = rel.getAttribute("Target") || "worksheets/sheet1.xml";
+          return "xl/" + target.replace(/^\/?xl\//, "");
+        }
+      }
+      return "xl/worksheets/sheet1.xml";
+    }
+    function parseSheet(entries, sheetPath, shared) {
+      const raw = entries[sheetPath];
+      if (!raw) throw new Error("첫 번째 시트를 찾지 못했습니다.");
+      const doc = xmlDoc(enc.decode(raw));
+      const rows = [];
+      for (const rowNode of doc.getElementsByTagName("row")) {
+        const row = [];
+        for (const cell of rowNode.getElementsByTagName("c")) {
+          const idx = colIndex(cell.getAttribute("r"));
+          const type = cell.getAttribute("t");
+          let value = "";
+          if (type === "s") {
+            const n = Number(childText(cell, "v"));
+            value = shared[n] || "";
+          } else if (type === "inlineStr") {
+            value = Array.from(cell.getElementsByTagName("t")).map((t) => t.textContent).join("");
+          } else {
+            value = childText(cell, "v");
+          }
+          row[idx] = value;
+        }
+        rows.push(row.map((v) => v ?? ""));
+      }
+      return rows;
+    }
+    function normalizeDate(value) {
+      if (!value) return "";
+      const text = String(value).trim();
+      if (/^\d{2}\/\d{2}\/\d{2}/.test(text)) return "20" + text.replace(/\//g, "-").slice(0, 14);
+      if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 16);
+      return text;
+    }
+    function findIndex(headers, name) {
+      return headers.findIndex((h) => String(h || "").trim() === name);
+    }
+    function loadRows(rows) {
+      const headers = rows[0] || [];
+      const map = {
+        phone: findIndex(headers, "개통번호"),
+        name: findIndex(headers, "고객명"),
+        planCode: findIndex(headers, "요금제코드"),
+        planName: findIndex(headers, "요금제명"),
+        openedAt: findIndex(headers, "개통일"),
+        status: findIndex(headers, "상태"),
+        joinType: findIndex(headers, "개통구분"),
+        agency: findIndex(headers, "대리점"),
+        channel: findIndex(headers, "총판")
+      };
+      if (map.planCode < 0 || map.phone < 0 || map.name < 0) {
+        throw new Error("필수 컬럼을 찾지 못했습니다. 개통번호, 고객명, 요금제코드가 첫 행에 있어야 합니다.");
+      }
+      state.customers = rows.slice(1).filter((row) => row.some(Boolean)).map((row) => ({
+        phone: row[map.phone] || "",
+        name: row[map.name] || "",
+        planCode: row[map.planCode] || "",
+        planName: row[map.planName] || "",
+        openedAt: normalizeDate(row[map.openedAt]),
+        status: row[map.status] || "",
+        joinType: row[map.joinType] || "",
+        agency: row[map.agency] || "",
+        channel: row[map.channel] || ""
+      })).filter((row) => row.planCode);
+      buildPlansFromCustomers();
+      state.planCode = state.plans[0]?.code || "";
+      state.search = "";
+      state.status = "all";
+      state.benefitCode = "";
+    }
+    function buildPlansFromCustomers() {
+      const grouped = new Map();
+      for (const row of state.customers) {
+        if (!grouped.has(row.planCode)) grouped.set(row.planCode, []);
+        grouped.get(row.planCode).push(row);
+      }
+      state.plans = Array.from(grouped, ([code, list]) => ({
+        code,
+        name: list[0].planName,
+        total: list.length,
+        normal: list.filter((row) => row.status === "정상").length
+      })).sort((a, b) => b.total - a.total || a.code.localeCompare(b.code));
+    }
+    async function handleFile(file) {
+      const password = $("passwordInput").value.trim();
+      setStatus("파일을 이 브라우저 안에서 읽는 중입니다.");
+      if (location.protocol === "http:" && location.hostname === "127.0.0.1") {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("password", password);
+        const response = await fetch("/api/parse-excel", { method: "POST", body: form, cache: "no-store" });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "파일을 읽지 못했습니다.");
+        state.customers = payload.customers || [];
+        if (!state.customers.length) throw new Error("조회할 고객 데이터가 없습니다.");
+        buildPlansFromCustomers();
+        state.planCode = state.plans[0]?.code || "";
+        state.search = "";
+        state.status = "all";
+        state.benefitCode = "";
+        setStatus(`${file.name} 파일을 로컬에서 불러왔습니다. ${password ? "입력한 암호는 저장하지 않습니다. " : ""}고객정보는 PC 안의 현재 화면에서만 유지되며 완료 버튼을 누르면 삭제됩니다.`);
+        enableLoadedControls(true);
+        renderOptions();
+        render();
+        return;
+      }
+      let buffer = await file.arrayBuffer();
+      const head = new Uint8Array(buffer.slice(0, 8));
+      if (head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0) {
+        if (!password) throw new Error("암호화된 파일입니다. 파일 암호를 입력해 주세요.");
+        setStatus("암호화된 엑셀을 이 브라우저 안에서 해제하는 중입니다.");
+        buffer = await decryptOfficeFile(buffer, password);
+      }
+      const entries = await unzipEntries(buffer);
+      const shared = parseSharedStrings(entries);
+      const sheetPath = resolveFirstSheet(entries);
+      const rows = parseSheet(entries, sheetPath, shared);
+      loadRows(rows);
+      setStatus(`${file.name} 파일을 불러왔습니다. ${password ? "입력한 암호는 저장하지 않습니다. " : ""}고객정보는 브라우저 메모리에만 있으며 완료 버튼을 누르면 삭제됩니다.`);
+      enableLoadedControls(true);
+      renderOptions();
+      render();
+    }
+    function currentRows() {
+      const codes = new Set(selectedPlanCodes());
+      let rows = codes.size ? state.customers.filter((row) => codes.has(row.planCode)) : [];
+      const query = state.search.trim().toLowerCase();
+      if (state.status !== "all") rows = rows.filter((row) => state.status === "other" ? row.status !== "정상" : row.status === state.status);
+      if (query) rows = rows.filter((row) => [row.phone, row.name, row.status, row.joinType, row.agency, row.channel].some((v) => String(v).toLowerCase().includes(query)));
+      return rows;
+    }
+    function renderOptions() {
+      const groups = categoryGroups();
+      if (!state.selectedCategoryId && groups.length) state.selectedCategoryId = groups[0].id;
+      const group = selectedCategory();
+      const planCounts = new Map(state.plans.map((plan) => [plan.code, plan.total]));
+      $("benefitSelect").innerHTML = groups.length
+        ? groups.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)} (${number(item.plans.length)}개 코드)</option>`).join("")
+        : `<option value="">혜택 매칭 없음</option>`;
+      $("benefitSelect").value = state.selectedCategoryId || "";
+      if (group && state.planCode && !group.plans.some((plan) => plan.planCode === state.planCode)) state.planCode = "";
+      $("planCode").innerHTML = group
+        ? `<option value="">전체 요금제코드</option>` + group.plans.map((plan) => `<option value="${escapeHtml(plan.planCode)}">${escapeHtml(plan.planCode)} · ${escapeHtml(plan.planName || "")} (${number(planCounts.get(plan.planCode) || 0)}명)</option>`).join("")
+        : `<option value="">요금제코드 없음</option>`;
+      $("planCode").value = state.planCode;
+      $("customerSearch").value = "";
+      $("statusFilter").value = "all";
+      $("planCount").textContent = number(state.plans.length);
+      renderBars();
+    }
+    function renderPlanBox(plan) {
+      const group = selectedCategory();
+      const rows = currentRows();
+      if (!group) {
+        $("planBox").innerHTML = `<div class="benefit-line"><div class="name">분류 미선택</div><div class="muted">파일 업로드 후 혜택과 요금제코드를 선택하세요.</div></div>`;
+        return;
+      }
+      $("planBox").innerHTML = `
+        <div class="benefit-line"><div class="muted">대분류 · 혜택</div><div class="name">${escapeHtml(group.label)}</div></div>
+        <div class="benefit-line"><div class="muted">소분류 · 요금제코드</div><strong>${escapeHtml(state.planCode || "전체 요금제코드")}</strong><div class="muted">${state.planCode && plan ? escapeHtml(plan.name) : `${number(group.plans.length)}개 코드 전체`}</div></div>
+        <div class="benefit-line"><div class="muted">조회 고객</div><strong>${number(rows.length)}명</strong></div>
+      `;
+    }
+    function renderBenefit() {
+      const group = selectedCategory();
+      $("benefitBox").innerHTML = group ? `
+        <div class="benefit-line"><div class="muted">혜택 종류</div><div class="name">${escapeHtml(group.label)}</div></div>
+        <div class="benefit-line"><div class="muted">상품코드 / 상품명</div><strong>${escapeHtml(group.productCode || "-")}</strong><div class="muted">${escapeHtml(group.productName || "-")}</div></div>
+        <div class="benefit-line"><div class="muted">매칭 요금제코드</div><strong>${number(group.plans.length)}개</strong></div>
+      ` : `<div class="benefit-line"><div class="name">혜택 미선택</div><div class="muted">고객 조회에서 대분류 혜택을 선택하세요.</div></div>`;
+    }
+    function renderBars() {
+      const top = state.plans.slice(0, 10);
+      const max = top[0]?.total || 1;
+      $("topBars").innerHTML = top.length ? top.map((plan) => `
+        <div class="bar-row" title="${escapeHtml(plan.name)}" data-code="${escapeHtml(plan.code)}">
+          <div>${escapeHtml(plan.code)}</div>
+          <div class="track"><div class="bar" style="width:${Math.max(4, Math.round(plan.total / max * 100))}%"></div></div>
+          <div>${number(plan.total)}</div>
+        </div>
+      `).join("") : `<div class="muted">파일 업로드 후 표시됩니다.</div>`;
+      for (const row of $("topBars").querySelectorAll(".bar-row")) {
+        row.addEventListener("click", () => {
+          const group = categoryGroups().find((item) => item.plans.some((plan) => plan.planCode === row.dataset.code));
+          if (group) state.selectedCategoryId = group.id;
+          state.planCode = row.dataset.code;
+          state.visibleRows = 10;
+          renderOptions();
+          render();
+        });
+      }
+    }
+    function renderCategories() {
+      const groups = categoryGroups();
+      if (!groups.length) {
+        $("categoryList").innerHTML = `<div class="muted">저장된 혜택 매칭 데이터가 없습니다. [혜택 대상 요금제] 시트의 B열(혜택)과 D열(요금제코드)을 CSV로 업로드하거나 매칭 수정에 붙여넣어 주세요.</div>`;
+        $("mappingStatus").textContent = "저장된 혜택 매칭 데이터가 없습니다. B열=혜택, D열=요금제코드 기준으로 저장됩니다.";
+        $("targetCount").textContent = "0명";
+        $("downloadHint").textContent = "혜택-요금제 매칭 데이터가 없어 다운로드할 수 없습니다.";
+        $("downloadTargetBtn").disabled = true;
+        $("downloadAllTargetsBtn").disabled = true;
+        return;
+      }
+      if (!state.selectedCategoryId || !groups.some((g) => g.id === state.selectedCategoryId)) state.selectedCategoryId = groups[0].id;
+      $("mappingStatus").textContent = `${number(groups.length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드 매칭 저장됨`;
+      $("categoryList").innerHTML = groups.map((group) => {
+        const codes = group.plans.map((plan) => `<span class="chip" title="${escapeHtml(plan.planName || "")}">${escapeHtml(plan.planCode)}</span>`).join("");
+        return `<div class="category-item ${group.id === state.selectedCategoryId ? "active" : ""}" data-id="${escapeHtml(group.id)}">
+          <div class="category-head">
+            <div class="category-meta">
+              <div class="category-label">혜택 종류</div>
+              <div class="title">${escapeHtml(group.label)}</div>
+            </div>
+            <div>
+              <div class="category-label">요금제 코드</div>
+              <div class="chips">${codes}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+      for (const item of $("categoryList").querySelectorAll(".category-item")) {
+        item.addEventListener("click", () => {
+          state.selectedCategoryId = item.dataset.id;
+          state.planCode = "";
+          state.visibleRows = 10;
+          renderOptions();
+          render();
+        });
+      }
+      const targets = targetRowsForCategory();
+      const allTargets = targetRowsForAllCategories();
+      $("targetCount").textContent = `${number(targets.length)}명`;
+      $("downloadTargetBtn").disabled = !targets.length;
+      $("downloadAllTargetsBtn").disabled = !allTargets.length;
+      $("downloadHint").textContent = state.customers.length
+        ? (allTargets.length ? `전체 혜택 대상자 ${number(allTargets.length)}명을 엑셀로 다운로드할 수 있습니다.` : "업로드된 고객 중 혜택 대상자가 없습니다.")
+        : "개통내역 업로드 후 대상자가 있으면 다운로드할 수 있습니다.";
+    }
+    function renderTable(rows) {
+      const visibleRows = rows.slice(0, state.visibleRows);
+      if (!state.customers.length) {
+        $("customerRows").innerHTML = `<tr><td colspan="9" class="empty">아직 업로드된 고객정보가 없습니다.</td></tr>`;
+        $("loadMoreRowsBtn").disabled = true;
+        $("loadMoreRowsBtn").textContent = "더보기";
+        return;
+      }
+      if (!rows.length) {
+        $("customerRows").innerHTML = `<tr><td colspan="9" class="empty">조회 결과가 없습니다.</td></tr>`;
+        $("loadMoreRowsBtn").disabled = true;
+        $("loadMoreRowsBtn").textContent = "더보기";
+        return;
+      }
+      $("customerRows").innerHTML = visibleRows.map((row) => `
+        <tr>
+          <td>${escapeHtml(row.phone)}</td>
+          <td>${escapeHtml(row.name)}</td>
+          <td>${escapeHtml(row.planCode)}</td>
+          <td>${escapeHtml(row.planName)}</td>
+          <td>${escapeHtml(row.openedAt)}</td>
+          <td><span class="badge ${row.status === "정상" ? "" : "other"}">${escapeHtml(row.status || "-")}</span></td>
+          <td>${escapeHtml(row.joinType)}</td>
+          <td>${escapeHtml(row.agency)}</td>
+          <td>${escapeHtml(row.channel)}</td>
+        </tr>
+      `).join("");
+      const remaining = Math.max(0, rows.length - visibleRows.length);
+      $("loadMoreRowsBtn").disabled = remaining === 0;
+      $("loadMoreRowsBtn").textContent = remaining ? `더보기 (${number(remaining)}명 남음)` : "모두 표시됨";
+    }
+    function render() {
+      const plan = planByCode(state.planCode);
+      const codes = new Set(selectedPlanCodes());
+      const allRows = codes.size ? state.customers.filter((row) => codes.has(row.planCode)) : [];
+      const rows = currentRows();
+      const normal = allRows.filter((row) => row.status === "정상").length;
+      $("totalCount").textContent = number(allRows.length);
+      $("normalCount").textContent = number(normal);
+      $("otherCount").textContent = number(allRows.length - normal);
+      $("rangeLabel").textContent = state.customers.length ? `${number(Math.min(rows.length, state.visibleRows))}건 표시 / ${number(rows.length)}건` : "";
+      renderPlanBox(plan);
+      renderBenefit();
+      renderCategories();
+      renderTable(rows);
+    }
+    function downloadCsv() {
+      const rows = currentRows();
+      const group = selectedCategory();
+      if (!group) return alert("먼저 대분류 혜택을 선택하세요.");
+      if (!rows.length) return alert("선택한 분류의 대상자가 없습니다.");
+      const csvRows = [["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명"]];
+      rows.forEach((row, index) => csvRows.push([index + 1, row.phone, group.productCode || "", group.productName || group.label, 1, row.name, row.planCode, row.planName]));
+      const csv = "\ufeff" + csvRows.map((cols) => cols.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+      downloadBlob(`benefit-send-${group.label}${state.planCode ? "-" + state.planCode : ""}.csv`, new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    }
+    function clearSession(options = {}) {
+      state.customers = [];
+      state.plans = [];
+      state.planCode = "";
+      state.search = "";
+      state.status = "all";
+      state.benefitCode = "";
+      state.visibleRows = 10;
+      if (!options.keepFile) $("fileInput").value = "";
+      if (!options.keepPassword) $("passwordInput").value = "";
+      $("planCode").value = "";
+      $("customerSearch").value = "";
+      $("statusFilter").value = "all";
+      $("benefitSelect").innerHTML = "";
+      $("planCode").innerHTML = "";
+      if (state.downloadUrl) {
+        URL.revokeObjectURL(state.downloadUrl);
+        state.downloadUrl = "";
+      }
+      if ($("downloadFallbackLink")) {
+        $("downloadFallbackLink").removeAttribute("href");
+        $("downloadFallbackLink").style.display = "none";
+        $("downloadFallbackLink").textContent = "다운로드 다시 시도";
+      }
+      $("topBars").innerHTML = `<div class="muted">파일 업로드 후 표시됩니다.</div>`;
+      $("planCount").textContent = "0";
+      enableLoadedControls(false);
+      render();
+    }
+    function completeAndClear() {
+      clearSession();
+      setStatus("완료 처리했습니다. 업로드 파일과 고객정보가 화면에서 모두 삭제되었습니다.");
+    }
+    function applyMappingCsv(text, sourceLabel = "매칭 데이터") {
+      const rows = parseCsv(text);
+      const items = mappingRowsToItems(rows);
+      if (!items.length) throw new Error("요금제코드 매칭 데이터가 없습니다.");
+      state.mappings = items;
+      state.selectedCategoryId = "";
+      saveMappings();
+      render();
+      $("mappingEditor").value = mappingItemsToCsv();
+      $("mappingStatus").textContent = `${sourceLabel} 저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
+    }
+    async function syncMappingFromGoogle() {
+      $("mappingStatus").textContent = "구글시트에서 혜택 매칭 데이터를 불러오는 중입니다.";
+      const response = await fetch("/api/mapping-csv", { cache: "no-store" });
+      if (!response.ok) throw new Error("구글시트를 불러오지 못했습니다. start-dashboard.bat으로 서버를 시작한 뒤 다시 시도하거나, CSV로 내려받아 업로드해 주세요.");
+      applyMappingCsv(await response.text(), "구글시트");
+    }
+    function selectedCategorySheetRows(group = selectedCategory()) {
+      if (!group) return [];
+      return targetRowsForCategory(group).map((row, index) => [
+        index + 1,
+        row.phone,
+        group.productCode || state.benefitCode || "",
+        group.productName || "",
+        1,
+        row.name,
+        row.planCode,
+        row.planName,
+        row.openedAt,
+        row.status,
+        row.joinType
+      ]);
+    }
+    function downloadSelectedCategoryExcel() {
+      const group = selectedCategory();
+      if (!group) return alert("혜택 카테고리를 먼저 선택하세요.");
+      const rows = selectedCategorySheetRows(group);
+      if (!rows.length) return alert("선택 혜택의 대상자가 없습니다.");
+      htmlWorkbookDownload(`benefit-targets-${group.label}.xls`, [{
+        name: group.label,
+        headers: ["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분"],
+        rows
+      }]);
+    }
+    function downloadAllCategoriesExcel() {
+      try {
+        const groups = categoryGroups();
+        const sheets = [];
+        for (const group of groups) {
+          const rows = selectedCategorySheetRows(group);
+          if (!rows.length) continue;
+          sheets.push({
+            name: group.label,
+            headers: ["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분"],
+            rows
+          });
+        }
+        if (!sheets.length) return alert("다운로드할 대상자가 없습니다.");
+        htmlWorkbookDownload("benefit-targets-all.xls", sheets);
+      } catch (error) {
+        setStatus(error.message || "전체 혜택 대상자 엑셀을 만들지 못했습니다.");
+        alert(error.message || "전체 혜택 대상자 엑셀을 만들지 못했습니다.");
+      }
+    }
+    $("syncMappingBtn").addEventListener("click", async () => {
+      try {
+        await syncMappingFromGoogle();
+      } catch (error) {
+        $("mappingStatus").textContent = error.message || "구글시트를 불러오지 못했습니다.";
+      }
+    });
+    $("mappingFileInput").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        applyMappingCsv(await file.text(), file.name);
+        $("mappingFileInput").value = "";
+      } catch (error) {
+        $("mappingStatus").textContent = error.message || "매칭 파일을 읽지 못했습니다.";
+      }
+    });
+    $("editMappingBtn").addEventListener("click", () => {
+      $("mappingEditor").value = state.mappings.length ? mappingItemsToCsv() : DEFAULT_MAPPING_CSV_TEMPLATE;
+      $("mappingDialog").showModal();
+    });
+    $("closeMappingBtn").addEventListener("click", () => $("mappingDialog").close());
+    $("saveMappingBtn").addEventListener("click", () => {
+      try {
+        applyMappingCsv($("mappingEditor").value, "수정 데이터");
+        $("mappingDialog").close();
+      } catch (error) {
+        alert(error.message || "저장하지 못했습니다.");
+      }
+    });
+    $("downloadTargetBtn").addEventListener("click", downloadSelectedCategoryExcel);
+    $("downloadAllTargetsBtn").addEventListener("click", downloadAllCategoriesExcel);
+
+    function setupTabs() {
+      const main = document.querySelector("main");
+      const toolbar = document.querySelector(".toolbar");
+      const customerMain = document.querySelector(".main-col");
+      const originalSide = document.querySelector(".side");
+      if (!main || !toolbar || !customerMain || !originalSide || document.querySelector(".tabs")) return;
+
+      const selectedPlanPanel = $("planBox")?.closest(".panel");
+      const selectedBenefitPanel = $("benefitBox")?.closest(".panel");
+      const categoryPanel = $("categoryList")?.closest(".panel");
+      const targetPanel = $("targetCount")?.closest(".panel");
+      const topPanel = $("topBars")?.closest(".panel");
+      const privacyPanel = document.querySelector(".privacy")?.closest(".panel");
+
+      const tabs = document.createElement("nav");
+      tabs.className = "tabs";
+      tabs.innerHTML = `
+        <button type="button" class="tab-btn active" data-tab="customer">고객 조회</button>
+        <button type="button" class="tab-btn" data-tab="benefit">혜택</button>
+        <button type="button" class="tab-btn" data-tab="target">대상자 취합</button>
+      `;
+
+      const customerPanel = document.createElement("section");
+      customerPanel.className = "tab-panel active";
+      customerPanel.dataset.panel = "customer";
+      const benefitPanel = document.createElement("section");
+      benefitPanel.className = "tab-panel";
+      benefitPanel.dataset.panel = "benefit";
+      const targetTabPanel = document.createElement("section");
+      targetTabPanel.className = "tab-panel";
+      targetTabPanel.dataset.panel = "target";
+
+      const customerSide = document.createElement("aside");
+      customerSide.className = "side";
+      const benefitMain = document.createElement("section");
+      benefitMain.className = "main-col";
+      const benefitSide = document.createElement("aside");
+      benefitSide.className = "side";
+      const targetMain = document.createElement("section");
+      targetMain.className = "main-col";
+
+      customerPanel.append(toolbar, customerMain, customerSide);
+      if (selectedPlanPanel) customerSide.append(selectedPlanPanel);
+      if (topPanel) customerSide.append(topPanel);
+      if (privacyPanel) customerSide.append(privacyPanel);
+
+      benefitPanel.append(benefitMain, benefitSide);
+      if (categoryPanel) benefitMain.append(categoryPanel);
+      if (selectedBenefitPanel) benefitSide.append(selectedBenefitPanel);
+
+      targetTabPanel.append(targetMain);
+      if (targetPanel) targetMain.append(targetPanel);
+
+      originalSide.remove();
+      main.prepend(tabs);
+      tabs.after(customerPanel, benefitPanel, targetTabPanel);
+
+      tabs.addEventListener("click", (event) => {
+        const button = event.target.closest(".tab-btn");
+        if (!button) return;
+        const tab = button.dataset.tab;
+        tabs.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
+        document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === tab));
+      });
+    }
+
+    async function processSelectedFile() {
+      const file = $("fileInput").files?.[0];
+      if (!file) return;
+      try {
+        clearSession({ keepFile: true, keepPassword: true });
+        $("fileInput").disabled = false;
+        await handleFile(file);
+      } catch (error) {
+        clearSession({ keepFile: true, keepPassword: true });
+        $("fileInput").disabled = false;
+        setStatus(error.message || "파일을 읽지 못했습니다.");
+      }
+    }
+    $("fileInput").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      await processSelectedFile();
+    });
+    $("passwordInput").addEventListener("change", async () => {
+      if ($("fileInput").files?.[0] && !state.customers.length) await processSelectedFile();
+    });
+    $("passwordInput").addEventListener("keydown", async (event) => {
+      if (event.key === "Enter" && $("fileInput").files?.[0]) {
+        event.preventDefault();
+        await processSelectedFile();
+      }
+    });
+    $("planCode").addEventListener("change", (event) => {
+      state.planCode = event.target.value;
+      state.visibleRows = 10;
+      render();
+    });
+    $("benefitSelect").addEventListener("change", (event) => {
+      state.selectedCategoryId = event.target.value;
+      state.planCode = "";
+      state.visibleRows = 10;
+      renderOptions();
+      render();
+    });
+    $("customerSearch").addEventListener("input", (event) => {
+      state.search = event.target.value;
+      state.visibleRows = 10;
+      render();
+    });
+    $("statusFilter").addEventListener("change", (event) => {
+      state.status = event.target.value;
+      state.visibleRows = 10;
+      render();
+    });
+    $("loadMoreRowsBtn").addEventListener("click", () => {
+      state.visibleRows += 10;
+      render();
+    });
+    $("downloadBtn").addEventListener("click", downloadCsv);
+    $("doneBtn").addEventListener("click", completeAndClear);
+
+    setupTabs();
+    $("benefitSelect").innerHTML = "";
+    enableLoadedControls(false);
+    loadSavedMappings();
+    renderOptions();
+    render();
+    if (location.protocol === "file:") {
+      setStatus("현재 file:// 주소입니다. 암호화 엑셀 업로드는 http://127.0.0.1:8765/lg-plan-benefit-dashboard.html 링크에서 사용해 주세요.");
+    } else if (!crypto?.subtle || typeof DecompressionStream === "undefined") {
+      setStatus("현재 브라우저에서는 일부 파일 처리 기능이 제한될 수 있습니다. localhost 링크로 다시 열어 주세요.");
+    }
+  </script>
+</body>
+</html>
