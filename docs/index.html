@@ -1292,10 +1292,15 @@
       const xmlStart = info[0] === 4 && info[4] === 0x40 ? 8 : 4;
       const xml = new TextDecoder("utf-8").decode(info.slice(xmlStart)).replace(/\0+$/g, "");
       function xmlAttr(tag, name) {
-        const m = xml.match(new RegExp(`<[^>]*:?${tag}\\b[^>]*>`));
-        if (!m) return "";
-        const a = m[0].match(new RegExp(`${name}="([^"]*)"`));
-        return a ? a[1] : "";
+        const tagRe = new RegExp(`:?${tag}[\\s/>]`);
+        const tm = tagRe.exec(xml);
+        if (!tm) return "";
+        const start = xml.lastIndexOf("<", tm.index);
+        const end = xml.indexOf(">", tm.index);
+        if (start < 0 || end < 0) return "";
+        const tagText = xml.slice(start, end + 1);
+        const am = tagText.match(new RegExp(`\\b${name}="([^"]*)"`));
+        return am ? am[1] : "";
       }
       const hashName = xmlAttr("encryptedKey", "hashAlgorithm") || xmlAttr("keyData", "hashAlgorithm") || "SHA512";
       const blockSize = Number(xmlAttr("encryptedKey", "blockSize") || xmlAttr("keyData", "blockSize") || 16);
@@ -1308,7 +1313,7 @@
       const secretKey = await aesCbcDecrypt(
         await agileDeriveKey(baseHash, new Uint8Array([0x14,0x6e,0x0b,0xe7,0xab,0xac,0xd0,0xd6]), hashName, keyBytes),
         await agileIv(salt, null, hashName, blockSize),
-        base64Bytes(encryptedKey.getAttribute("encryptedKeyValue"))
+        base64Bytes(xmlAttr("encryptedKey", "encryptedKeyValue"))
       );
       const size = Number(BigInt(readUint32(encryptedPackage, 0)) + (BigInt(readUint32(encryptedPackage, 4)) << 32n));
       const encrypted = encryptedPackage.slice(8);
