@@ -377,6 +377,134 @@
       border-color: var(--blue);
       box-shadow: 0 0 0 3px rgba(37,99,235,.12);
     }
+    /* ─── 카드 색상 강조 ─── */
+    .cards .card:nth-child(1) { border-top: 3px solid #3b82f6; }
+    .cards .card:nth-child(1) .v { color: #2563eb; }
+    .cards .card:nth-child(2) { border-top: 3px solid #10b981; }
+    .cards .card:nth-child(2) .v { color: #047857; }
+    .cards .card:nth-child(3) { border-top: 3px solid #f59e0b; }
+    .cards .card:nth-child(3) .v { color: #b45309; }
+    .cards .card:nth-child(4) { border-top: 3px solid #8b5cf6; }
+    .cards .card:nth-child(4) .v { color: #6d28d9; }
+    /* ─── 매핑 에디터 다이얼로그 ─── */
+    dialog#mappingDialog {
+      width: min(900px, calc(100vw - 32px));
+      max-height: 85vh;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      padding: 0;
+    }
+    dialog#mappingDialog[open] {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .editor-dialog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--ink2);
+      flex-shrink: 0;
+    }
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .editor-sidebar {
+      border-right: 1px solid var(--line);
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #editorCategoryList { flex: 1; overflow-y: auto; }
+    .editor-cat-item {
+      padding: 11px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--ink2);
+      transition: background .1s;
+    }
+    .editor-cat-item:hover { background: #e8f1ff; }
+    .editor-cat-item.active {
+      background: var(--blue2);
+      border-right: 3px solid var(--blue);
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .editor-cat-count {
+      font-size: 11px;
+      color: var(--muted);
+      background: #e2e8f0;
+      border-radius: 999px;
+      padding: 1px 7px;
+      flex-shrink: 0;
+    }
+    .editor-cat-item.active .editor-cat-count { background: #bfdbfe; color: #1e40af; }
+    .editor-sidebar-footer {
+      padding: 10px;
+      border-top: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .editor-sidebar-footer button { font-size: 13px; }
+    .editor-main { padding: 20px 22px; overflow-y: auto; }
+    .editor-form-group { margin-bottom: 14px; }
+    .editor-label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .editor-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .editor-plan-list { display: grid; gap: 6px; margin-bottom: 8px; }
+    .editor-plan-row { display: flex; gap: 6px; align-items: center; }
+    .editor-plan-row input { min-height: 34px; font-size: 12.5px; }
+    .editor-plan-row .ef-plan-remove {
+      width: 34px;
+      min-width: 34px;
+      min-height: 34px;
+      padding: 0;
+      font-size: 16px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .editor-footer {
+      padding: 12px 16px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      background: #f8fafc;
+      flex-shrink: 0;
+    }
+    .editor-footer button { width: auto; min-width: 80px; }
+    .editor-delete-zone {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .editor-delete-zone button { width: auto; }
     @media (max-width: 980px) {
       main { grid-template-columns: 1fr; padding: 12px; }
       header { padding: 14px 16px; }
@@ -523,15 +651,24 @@
       </div>
     </aside>
   </main>
-  <dialog id="mappingDialog" style="width:min(920px, calc(100vw - 32px)); border:1px solid var(--line); border-radius:10px; padding:0;">
-    <div class="panel-title">혜택-요금제 매칭 수정</div>
-    <div class="panel-body">
-      <div class="muted" style="margin-bottom:8px;">CSV 형식으로 붙여넣어 수정할 수 있습니다. 권장 컬럼: 혜택명, 상품코드, 상품명, 요금제코드</div>
-      <textarea id="mappingEditor"></textarea>
-      <div class="mapping-actions">
-        <button id="saveMappingBtn">저장</button>
-        <button id="closeMappingBtn" class="secondary">닫기</button>
+  <dialog id="mappingDialog">
+    <div class="editor-dialog-header">
+      <span>혜택-요금제 매칭 수정</span>
+    </div>
+    <div class="editor-layout">
+      <aside class="editor-sidebar">
+        <div id="editorCategoryList"></div>
+        <div class="editor-sidebar-footer">
+          <button id="editorAddCategoryBtn" class="secondary">+ 새 혜택 추가</button>
+        </div>
+      </aside>
+      <div class="editor-main" id="editorForm">
+        <div class="empty">왼쪽에서 혜택을 선택하세요.</div>
       </div>
+    </div>
+    <div class="editor-footer">
+      <button id="saveMappingBtn">저장</button>
+      <button id="closeMappingBtn" class="secondary">취소</button>
     </div>
   </dialog>
 
@@ -759,6 +896,8 @@
     };
 
     const enc = new TextDecoder("utf-8");
+    let editorDraft = [];
+    let editorSelectedIdx = 0;
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -1590,7 +1729,7 @@
       state.selectedCategoryId = "";
       saveMappings();
       render();
-      $("mappingEditor").value = mappingItemsToCsv();
+      if ($("mappingEditor")) $("mappingEditor").value = mappingItemsToCsv();
       $("mappingStatus").textContent = `${sourceLabel} 저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
     }
     function selectedCategorySheetRows(group = selectedCategory()) {
@@ -1650,18 +1789,157 @@
         $("mappingStatus").textContent = error.message || "매칭 파일을 읽지 못했습니다.";
       }
     });
-    $("editMappingBtn").addEventListener("click", () => {
-      $("mappingEditor").value = state.mappings.length ? mappingItemsToCsv() : DEFAULT_MAPPING_CSV_TEMPLATE;
-      $("mappingDialog").showModal();
-    });
-    $("closeMappingBtn").addEventListener("click", () => $("mappingDialog").close());
-    $("saveMappingBtn").addEventListener("click", () => {
-      try {
-        applyMappingCsv($("mappingEditor").value, "수정 데이터");
-        $("mappingDialog").close();
-      } catch (error) {
-        alert(error.message || "저장하지 못했습니다.");
+    function syncFormToDraft() {
+      const g = editorDraft[editorSelectedIdx];
+      if (!g) return;
+      const lEl = $("ef-label"), pcEl = $("ef-product-code"), pnEl = $("ef-product-name");
+      if (lEl) g.label = lEl.value;
+      if (pcEl) g.productCode = pcEl.value;
+      if (pnEl) g.productName = pnEl.value;
+    }
+    function renderEditorList() {
+      const list = $("editorCategoryList");
+      if (!list) return;
+      list.innerHTML = editorDraft.map((g, i) => `
+        <div class="editor-cat-item ${i === editorSelectedIdx ? "active" : ""}" data-i="${i}">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(g.label || "(이름 없음)")}</span>
+          <span class="editor-cat-count">${g.plans.length}</span>
+        </div>
+      `).join("");
+      list.querySelectorAll(".editor-cat-item").forEach(el => {
+        el.addEventListener("click", () => {
+          syncFormToDraft();
+          editorSelectedIdx = Number(el.dataset.i);
+          renderEditorList();
+          renderEditorForm();
+        });
+      });
+    }
+    function renderEditorForm() {
+      const form = $("editorForm");
+      if (!form) return;
+      const g = editorDraft[editorSelectedIdx];
+      if (!g) {
+        form.innerHTML = `<div class="empty">왼쪽에서 혜택을 선택하세요.</div>`;
+        return;
       }
+      form.innerHTML = `
+        <div class="editor-form-group">
+          <label class="editor-label">혜택명</label>
+          <input id="ef-label" value="${escapeHtml(g.label)}" placeholder="예: 네이버페이 포인트 5,000원 X 24개월" />
+        </div>
+        <div class="editor-form-row">
+          <div class="editor-form-group" style="margin-bottom:0;">
+            <label class="editor-label">상품코드</label>
+            <input id="ef-product-code" value="${escapeHtml(g.productCode)}" placeholder="예: G00000760670" />
+          </div>
+          <div class="editor-form-group" style="margin-bottom:0;">
+            <label class="editor-label">상품명</label>
+            <input id="ef-product-name" value="${escapeHtml(g.productName)}" placeholder="예: 네이버페이 포인트 5,000원" />
+          </div>
+        </div>
+        <div class="editor-form-group">
+          <label class="editor-label">요금제 코드 (${g.plans.length}개)</label>
+          <div class="editor-plan-list" id="ef-plan-list">
+            ${g.plans.map((p, pi) => `
+              <div class="editor-plan-row">
+                <input class="ef-plan-code" value="${escapeHtml(p.planCode)}" placeholder="요금제코드" data-pi="${pi}" style="flex:1;" />
+                <input class="ef-plan-name" value="${escapeHtml(p.planName)}" placeholder="요금제명 (선택)" data-pi="${pi}" style="flex:2;" />
+                <button class="ef-plan-remove danger" data-pi="${pi}">×</button>
+              </div>
+            `).join("")}
+          </div>
+          <button id="ef-add-plan" class="secondary">+ 요금제 추가</button>
+        </div>
+        <div class="editor-delete-zone">
+          <button id="ef-delete-cat" class="danger">이 혜택 삭제</button>
+        </div>
+      `;
+      $("ef-label").addEventListener("input", () => { editorDraft[editorSelectedIdx].label = $("ef-label").value; renderEditorList(); });
+      $("ef-product-code").addEventListener("input", () => { editorDraft[editorSelectedIdx].productCode = $("ef-product-code").value; });
+      $("ef-product-name").addEventListener("input", () => { editorDraft[editorSelectedIdx].productName = $("ef-product-name").value; });
+      form.querySelectorAll(".ef-plan-code").forEach(input => {
+        input.addEventListener("input", () => { editorDraft[editorSelectedIdx].plans[Number(input.dataset.pi)].planCode = input.value; });
+      });
+      form.querySelectorAll(".ef-plan-name").forEach(input => {
+        input.addEventListener("input", () => { editorDraft[editorSelectedIdx].plans[Number(input.dataset.pi)].planName = input.value; });
+      });
+      form.querySelectorAll(".ef-plan-remove").forEach(btn => {
+        btn.addEventListener("click", () => {
+          syncFormToDraft();
+          editorDraft[editorSelectedIdx].plans.splice(Number(btn.dataset.pi), 1);
+          renderEditorForm();
+          renderEditorList();
+        });
+      });
+      $("ef-add-plan").addEventListener("click", () => {
+        syncFormToDraft();
+        editorDraft[editorSelectedIdx].plans.push({ planCode: "", planName: "" });
+        renderEditorForm();
+        renderEditorList();
+        const inputs = form.querySelectorAll(".ef-plan-code");
+        if (inputs.length) inputs[inputs.length - 1].focus();
+      });
+      $("ef-delete-cat").addEventListener("click", () => {
+        const label = editorDraft[editorSelectedIdx].label || "이 혜택";
+        if (!confirm(`"${label}"을 삭제할까요?`)) return;
+        editorDraft.splice(editorSelectedIdx, 1);
+        editorSelectedIdx = Math.max(0, editorSelectedIdx - 1);
+        renderEditorList();
+        renderEditorForm();
+      });
+    }
+    function openMappingEditor() {
+      editorDraft = categoryGroups().map(g => ({
+        id: g.id,
+        label: g.label,
+        productCode: g.productCode || "",
+        productName: g.productName || "",
+        plans: g.plans.map(p => ({ planCode: p.planCode, planName: p.planName || "" }))
+      }));
+      if (!editorDraft.length) {
+        editorDraft = [{ id: "_new_1", label: "", productCode: "", productName: "", plans: [] }];
+      }
+      editorSelectedIdx = 0;
+      renderEditorList();
+      renderEditorForm();
+      $("mappingDialog").showModal();
+    }
+    function saveEditorDraft() {
+      syncFormToDraft();
+      const items = [];
+      for (const g of editorDraft) {
+        for (const p of g.plans) {
+          const planCode = p.planCode.trim();
+          if (!planCode) continue;
+          items.push({
+            category: g.label.trim() || "(이름 없음)",
+            productCode: g.productCode.trim(),
+            productName: g.productName.trim(),
+            planCode,
+            planName: p.planName.trim()
+          });
+        }
+      }
+      if (!items.length) { alert("저장할 요금제 코드가 없습니다."); return; }
+      state.mappings = dedupeMappings(items);
+      state.selectedCategoryId = "";
+      saveMappings();
+      renderOptions();
+      render();
+      $("mappingStatus").textContent = `저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
+      $("mappingDialog").close();
+    }
+    $("editMappingBtn").addEventListener("click", openMappingEditor);
+    $("closeMappingBtn").addEventListener("click", () => $("mappingDialog").close());
+    $("saveMappingBtn").addEventListener("click", saveEditorDraft);
+    $("editorAddCategoryBtn").addEventListener("click", () => {
+      syncFormToDraft();
+      editorDraft.push({ id: "_new_" + editorDraft.length, label: "", productCode: "", productName: "", plans: [] });
+      editorSelectedIdx = editorDraft.length - 1;
+      renderEditorList();
+      renderEditorForm();
+      $("ef-label")?.focus();
     });
     $("downloadTargetBtn").addEventListener("click", downloadSelectedCategoryExcel);
     $("downloadAllTargetsBtn").addEventListener("click", downloadAllCategoriesExcel);
