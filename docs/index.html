@@ -2008,6 +2008,7 @@
       } catch (error) {
         clearSession({ keepFile: true, keepPassword: true });
         $("fileInput").disabled = false;
+        console.error("[Dashboard] 파일 처리 오류:", error);
         setStatus(error.message || "파일을 읽지 못했습니다.");
       }
     }
