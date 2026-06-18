@@ -1291,16 +1291,19 @@
       if (!info || !encryptedPackage) throw new Error("암호화 정보를 찾지 못했습니다.");
       const xmlStart = info[0] === 4 && info[4] === 0x40 ? 8 : 4;
       const xml = new TextDecoder("utf-8").decode(info.slice(xmlStart)).replace(/\0+$/g, "");
-      const doc = new DOMParser().parseFromString(xml, "application/xml");
-      const keyData = doc.getElementsByTagName("keyData")[0];
-      const encryptedKey = doc.getElementsByTagName("encryptedKey")[0];
-      if (!keyData || !encryptedKey) throw new Error("지원하지 않는 Excel 암호화 방식입니다.");
-      const hashName = encryptedKey.getAttribute("hashAlgorithm") || keyData.getAttribute("hashAlgorithm") || "SHA512";
-      const blockSize = Number(encryptedKey.getAttribute("blockSize") || keyData.getAttribute("blockSize") || 16);
-      const keyBytes = Number(encryptedKey.getAttribute("keyBits") || keyData.getAttribute("keyBits") || 256) / 8;
-      const spinCount = Number(encryptedKey.getAttribute("spinCount") || 100000);
-      const salt = base64Bytes(encryptedKey.getAttribute("saltValue"));
-      const packageSalt = base64Bytes(keyData.getAttribute("saltValue"));
+      function xmlAttr(tag, name) {
+        const m = xml.match(new RegExp(`<[^>]*:?${tag}\\b[^>]*>`));
+        if (!m) return "";
+        const a = m[0].match(new RegExp(`${name}="([^"]*)"`));
+        return a ? a[1] : "";
+      }
+      const hashName = xmlAttr("encryptedKey", "hashAlgorithm") || xmlAttr("keyData", "hashAlgorithm") || "SHA512";
+      const blockSize = Number(xmlAttr("encryptedKey", "blockSize") || xmlAttr("keyData", "blockSize") || 16);
+      const keyBytes = Number(xmlAttr("encryptedKey", "keyBits") || xmlAttr("keyData", "keyBits") || 256) / 8;
+      const spinCount = Number(xmlAttr("encryptedKey", "spinCount") || 100000);
+      const salt = base64Bytes(xmlAttr("encryptedKey", "saltValue"));
+      const packageSalt = base64Bytes(xmlAttr("keyData", "saltValue"));
+      if (!salt.length || !packageSalt.length) throw new Error("지원하지 않는 Excel 암호화 방식입니다.");
       const baseHash = await agileHashPassword(password, salt, spinCount, hashName);
       const secretKey = await aesCbcDecrypt(
         await agileDeriveKey(baseHash, new Uint8Array([0x14,0x6e,0x0b,0xe7,0xab,0xac,0xd0,0xd6]), hashName, keyBytes),
