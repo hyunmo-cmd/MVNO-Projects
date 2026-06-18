@@ -1480,26 +1480,6 @@
     async function handleFile(file) {
       const password = $("passwordInput").value.trim();
       setStatus("파일을 이 브라우저 안에서 읽는 중입니다.");
-      if (location.protocol === "http:" && location.hostname === "127.0.0.1") {
-        const form = new FormData();
-        form.append("file", file);
-        form.append("password", password);
-        const response = await fetch("/api/parse-excel", { method: "POST", body: form, cache: "no-store" });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || "파일을 읽지 못했습니다.");
-        state.customers = payload.customers || [];
-        if (!state.customers.length) throw new Error("조회할 고객 데이터가 없습니다.");
-        buildPlansFromCustomers();
-        state.planCode = state.plans[0]?.code || "";
-        state.search = "";
-        state.status = "all";
-        state.benefitCode = "";
-        setStatus(`${file.name} 파일을 로컬에서 불러왔습니다. ${password ? "입력한 암호는 저장하지 않습니다. " : ""}고객정보는 PC 안의 현재 화면에서만 유지되며 완료 버튼을 누르면 삭제됩니다.`);
-        enableLoadedControls(true);
-        renderOptions();
-        render();
-        return;
-      }
       let buffer = await file.arrayBuffer();
       const head = new Uint8Array(buffer.slice(0, 8));
       if (head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0) {
