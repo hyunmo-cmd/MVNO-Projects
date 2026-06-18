@@ -488,12 +488,9 @@
       <div class="panel">
         <div class="panel-title">혜택 카테고리</div>
         <div class="panel-body">
-          <div class="mapping-grid">
-            <button id="syncMappingBtn" class="secondary">구글시트 불러오기</button>
-            <button id="editMappingBtn" class="secondary">매칭 수정</button>
-          </div>
+          <button id="editMappingBtn" class="secondary" style="margin-bottom:10px;">매칭 수정</button>
           <input id="mappingFileInput" type="file" accept=".csv,.txt" style="margin-bottom:10px;" />
-          <div id="mappingStatus" class="muted" style="margin-bottom:10px;">저장된 혜택-요금제 매칭 데이터를 표시합니다. 기본 데이터는 전달받은 구글시트 기준으로 저장되어 있으며, 필요하면 매칭 수정에서 바꿀 수 있습니다.</div>
+          <div id="mappingStatus" class="muted" style="margin-bottom:10px;">저장된 혜택-요금제 매칭 데이터입니다. 매칭 수정 버튼으로 직접 수정할 수 있습니다.</div>
           <div id="categoryList" class="category-list"></div>
         </div>
       </div>
@@ -1596,16 +1593,6 @@
       $("mappingEditor").value = mappingItemsToCsv();
       $("mappingStatus").textContent = `${sourceLabel} 저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
     }
-    const MAPPING_CSV_URL = "https://docs.google.com/spreadsheets/d/1JvFX6LNIs5FA79_kPNWYLaY3Jy1WDwoHOhTOusYL2VI/export?format=csv&gid=1865155113";
-    async function syncMappingFromGoogle() {
-      $("mappingStatus").textContent = "구글시트에서 혜택 매칭 데이터를 불러오는 중입니다.";
-      const url = (location.protocol === "http:" && location.hostname === "127.0.0.1")
-        ? "/api/mapping-csv"
-        : MAPPING_CSV_URL;
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) throw new Error("구글시트를 불러오지 못했습니다. CSV로 내려받아 직접 업로드해 주세요.");
-      applyMappingCsv(await response.text(), "구글시트");
-    }
     function selectedCategorySheetRows(group = selectedCategory()) {
       if (!group) return [];
       return targetRowsForCategory(group).map((row, index) => [
@@ -1653,13 +1640,6 @@
         alert(error.message || "전체 혜택 대상자 엑셀을 만들지 못했습니다.");
       }
     }
-    $("syncMappingBtn").addEventListener("click", async () => {
-      try {
-        await syncMappingFromGoogle();
-      } catch (error) {
-        $("mappingStatus").textContent = error.message || "구글시트를 불러오지 못했습니다.";
-      }
-    });
     $("mappingFileInput").addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
