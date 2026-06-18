@@ -1186,6 +1186,19 @@
       const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-CBC" }, false, ["decrypt"]);
       return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-CBC", iv: ivBytes }, key, dataBytes));
     }
+    async function aesCbcDecryptRaw(cryptoKey, ivBytes, dataBytes) {
+      // AES-CBC decrypt without PKCS#7 unpadding (OOXML chunks are zero-padded, not PKCS#7)
+      // Trick: append a fake block that decrypts to 16×0x10 (valid PKCS#7), then strip it
+      const N = dataBytes.length;
+      const lastBlock = dataBytes.slice(N - 16);
+      // fakeBlock = AES_ECB_enc(lastBlock XOR 0x10×16); first 16 bytes of AES-CBC-enc(input, IV=0)
+      const aesInput = lastBlock.map((b) => b ^ 0x10);
+      const fakeBlock = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-CBC", iv: new Uint8Array(16) }, cryptoKey, aesInput)).slice(0, 16);
+      const extended = new Uint8Array(N + 16);
+      extended.set(dataBytes);
+      extended.set(fakeBlock, N);
+      return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-CBC", iv: ivBytes }, cryptoKey, extended)).slice(0, N);
+    }
     async function agileHashPassword(password, salt, spinCount, hashName) {
       let hash = await digest(hashName, concatBytes(salt, utf16le(password)));
       for (let i = 0; i < spinCount; i++) hash = await digest(hashName, concatBytes(le32(i), hash));
@@ -1317,11 +1330,12 @@
       );
       const size = Number(BigInt(readUint32(encryptedPackage, 0)) + (BigInt(readUint32(encryptedPackage, 4)) << 32n));
       const encrypted = encryptedPackage.slice(8);
+      const chunkKey = await crypto.subtle.importKey("raw", secretKey.slice(0, keyBytes), { name: "AES-CBC" }, false, ["encrypt", "decrypt"]);
       const chunks = [];
       for (let offset = 0, block = 0; offset < encrypted.length; offset += 4096, block++) {
         const part = encrypted.slice(offset, Math.min(offset + 4096, encrypted.length));
         const iv = await agileIv(packageSalt, le32(block), hashName, blockSize);
-        chunks.push(await aesCbcDecrypt(secretKey.slice(0, keyBytes), iv, part));
+        chunks.push(await aesCbcDecryptRaw(chunkKey, iv, part));
       }
       return concatBytes(...chunks).slice(0, size).buffer;
     }
