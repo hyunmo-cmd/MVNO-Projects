@@ -1199,9 +1199,15 @@
       extended.set(fakeBlock, N);
       return new Uint8Array(await crypto.subtle.decrypt({ name: "AES-CBC", iv: ivBytes }, cryptoKey, extended)).slice(0, N);
     }
-    async function agileHashPassword(password, salt, spinCount, hashName) {
+    async function agileHashPassword(password, salt, spinCount, hashName, onProgress) {
       let hash = await digest(hashName, concatBytes(salt, utf16le(password)));
-      for (let i = 0; i < spinCount; i++) hash = await digest(hashName, concatBytes(le32(i), hash));
+      const inputBuf = new Uint8Array(4 + hash.length);
+      for (let i = 0; i < spinCount; i++) {
+        inputBuf[0] = i & 255; inputBuf[1] = (i >>> 8) & 255; inputBuf[2] = (i >>> 16) & 255; inputBuf[3] = (i >>> 24) & 255;
+        inputBuf.set(hash, 4);
+        hash = await digest(hashName, inputBuf);
+        if (onProgress && i % 5000 === 4999) onProgress(Math.round((i + 1) / spinCount * 100));
+      }
       return hash;
     }
     async function agileDeriveKey(baseHash, blockKey, hashName, keyBytes) {
@@ -1322,7 +1328,9 @@
       const salt = base64Bytes(xmlAttr("encryptedKey", "saltValue"));
       const packageSalt = base64Bytes(xmlAttr("keyData", "saltValue"));
       if (!salt.length || !packageSalt.length) throw new Error("지원하지 않는 Excel 암호화 방식입니다.");
-      const baseHash = await agileHashPassword(password, salt, spinCount, hashName);
+      const baseHash = await agileHashPassword(password, salt, spinCount, hashName,
+        (pct) => setStatus(`암호화된 엑셀을 이 브라우저 안에서 해제하는 중입니다. (${pct}%)`)
+      );
       const secretKey = await aesCbcDecrypt(
         await agileDeriveKey(baseHash, new Uint8Array([0x14,0x6e,0x0b,0xe7,0xab,0xac,0xd0,0xd6]), hashName, keyBytes),
         await agileIv(salt, null, hashName, blockSize),
@@ -1350,7 +1358,7 @@
       if (data[0] !== 0x50 || data[1] !== 0x4b) {
         const password = $("passwordInput").value.trim();
         throw new Error(password
-          ? "암호 입력은 저장하지 않았습니다. 다만 현재 브라우저 단독 페이지에서는 암호화된 Excel 해제가 제한됩니다. 엑셀에서 암호를 해제해 새 .xlsx로 저장한 뒤 업로드하세요."
+          ? "파일 암호가 올바르지 않거나 복호화에 실패했습니다. 암호를 다시 확인해 주세요."
           : "암호화되었거나 일반 xlsx 형식이 아닙니다. 파일 암호를 입력했는지 확인하거나, 엑셀에서 암호를 해제해 새 .xlsx로 저장한 뒤 업로드하세요.");
       }
       let eocd = -1;
