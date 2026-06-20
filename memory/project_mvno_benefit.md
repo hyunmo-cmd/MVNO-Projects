@@ -53,18 +53,20 @@ OOXML AgileEncryption의 4096바이트 청크는 Zero-padding(PKCS#7 아님).
 - 소스 파일과 docs/index.html 모두 동일하게 업데이트 및 커밋됨
 - GitHub Pages 배포 완료 (200 응답 확인)
 
-## 미해결 이슈 — GitHub Pages에서 파일 못 읽는 문제 (2026-06-19, 미완)
+## 암호화 파일 못 읽는 버그 — 2026-06-20 해결 완료
 
-### 증상
-- https://hyunmo-cmd.github.io/MVNO-Projects/ 접속은 됨
-- 파일 업로드 시 아직 파일을 못 읽는다고 함 (구체적 에러 메시지 미확인)
-- 테스트용 파일: `C:\Users\user\Downloads\LG개통내역_2026-06-19.xlsx`
+### 근본 원인
+`decryptOfficeFile`에서 `encryptedKeyValue`를 복호화할 때 `aesCbcDecrypt`(PKCS#7 자동 제거)를 사용.  
+OOXML AgileEncryption은 zero-padding을 사용 → WebCrypto가 "The operation failed" 에러 발생.
 
-### 다음 세션에서 해야 할 것
-1. `LG개통내역_2026-06-19.xlsx` 파일 헤더 확인 → 암호화(CFB) 파일인지 일반 XLSX인지
-2. 암호화 파일이면 → 실제 복호화 흐름 Node.js로 재검증 (browser vs Node 차이 여부)
-3. 일반 XLSX이면 → `unzipEntries` / `parseSheet` 파싱 단계 디버깅
-4. 브라우저 콘솔 에러 메시지 확인 요청 (F12 → Console 탭)
+### 해결책 (commit `a0333df`, 2026-06-20)
+파생키(derivedKeyBytes)를 `crypto.subtle.importKey`로 CryptoKey 객체로 변환 후  
+`aesCbcDecryptRaw`로 `encryptedKeyValue` 복호화 → 첫 keyBytes(32)바이트가 secretKey.
+
+### 테스트 검증
+- `LG개통내역_2026-03-11.numbers` → AppleScript로 XLSX 변환
+- `msoffcrypto-tool`로 XLSX 암호화 → `test1234` 비밀번호
+- Node.js에서 전체 흐름(CFB → 복호화 → ZIP → 시트 파싱) 통과 확인
 
 ## 기술 스택 및 복호화 구조
 - 단일 HTML 파일 (모든 JS 인라인)
