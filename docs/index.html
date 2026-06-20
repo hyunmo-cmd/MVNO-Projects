@@ -454,6 +454,34 @@
       flex-shrink: 0;
     }
     .editor-cat-item.active .editor-cat-count { background: #bfdbfe; color: #1e40af; }
+    .editor-filter-bar {
+      display: flex;
+      padding: 8px 10px;
+      gap: 5px;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .editor-filter-btn {
+      flex: 1;
+      font-size: 11.5px;
+      padding: 5px 4px;
+      border-radius: 5px;
+      border: 1px solid var(--line);
+      background: white;
+      cursor: pointer;
+      color: var(--ink2);
+      font-weight: 500;
+      transition: background .12s, color .12s;
+    }
+    .editor-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
+    .editor-use-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-left: 2px;
+    }
+    .editor-use-dot.used { background: #22c55e; }
+    .editor-use-dot.unused { background: #cbd5e1; }
     .editor-sidebar-footer {
       padding: 10px;
       border-top: 1px solid var(--line);
@@ -657,6 +685,11 @@
     </div>
     <div class="editor-layout">
       <aside class="editor-sidebar">
+        <div class="editor-filter-bar">
+          <button class="editor-filter-btn on" data-filter="all">전체</button>
+          <button class="editor-filter-btn" data-filter="active">사용 중</button>
+          <button class="editor-filter-btn" data-filter="inactive">미사용</button>
+        </div>
         <div id="editorCategoryList"></div>
         <div class="editor-sidebar-footer">
           <button id="editorAddCategoryBtn" class="secondary">+ 새 혜택 추가</button>
@@ -898,6 +931,7 @@
     const enc = new TextDecoder("utf-8");
     let editorDraft = [];
     let editorSelectedIdx = 0;
+    let editorFilterMode = "all"; // "all" | "active" | "inactive"
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -1812,12 +1846,36 @@
     function renderEditorList() {
       const list = $("editorCategoryList");
       if (!list) return;
-      list.innerHTML = editorDraft.map((g, i) => `
-        <div class="editor-cat-item ${i === editorSelectedIdx ? "active" : ""}" data-i="${i}">
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(g.label || "(이름 없음)")}</span>
+      // Build set of plan codes active in uploaded file
+      const activeCodes = new Set(state.plans.map(p => p.code));
+      const isUsed = (g) => g.plans.some(p => activeCodes.has(p.planCode));
+      // Update filter button states
+      document.querySelectorAll(".editor-filter-btn").forEach(btn => {
+        btn.classList.toggle("on", btn.dataset.filter === editorFilterMode);
+      });
+      // Filter visible items (keep original draft index for selection)
+      const visible = editorDraft.map((g, i) => ({ g, i })).filter(({ g }) => {
+        if (editorFilterMode === "active") return isUsed(g);
+        if (editorFilterMode === "inactive") return !isUsed(g);
+        return true;
+      });
+      // If current selection is hidden by filter, move to first visible
+      if (visible.length && !visible.some(({ i }) => i === editorSelectedIdx)) {
+        editorSelectedIdx = visible[0].i;
+      }
+      if (!visible.length) {
+        const label = editorFilterMode === "active" ? "사용 중인 혜택이 없습니다." : "미사용 혜택이 없습니다.";
+        list.innerHTML = `<div class="muted" style="padding:14px;font-size:12px;">${label}</div>`;
+        return;
+      }
+      list.innerHTML = visible.map(({ g, i }) => {
+        const used = isUsed(g);
+        return `<div class="editor-cat-item ${i === editorSelectedIdx ? "active" : ""}" data-i="${i}">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${escapeHtml(g.label || "(이름 없음)")}</span>
           <span class="editor-cat-count">${g.plans.length}</span>
-        </div>
-      `).join("");
+          <span class="editor-use-dot ${used ? "used" : "unused"}" title="${used ? "사용 중" : "미사용"}"></span>
+        </div>`;
+      }).join("");
       list.querySelectorAll(".editor-cat-item").forEach(el => {
         el.addEventListener("click", () => {
           syncFormToDraft();
@@ -1913,6 +1971,7 @@
         editorDraft = [{ id: "_new_1", label: "", productCode: "", productName: "", plans: [] }];
       }
       editorSelectedIdx = 0;
+      editorFilterMode = "all";
       renderEditorList();
       renderEditorForm();
       $("mappingDialog").showModal();
@@ -1945,6 +2004,13 @@
     $("editMappingBtn").addEventListener("click", openMappingEditor);
     $("closeMappingBtn").addEventListener("click", () => $("mappingDialog").close());
     $("saveMappingBtn").addEventListener("click", saveEditorDraft);
+    document.querySelectorAll(".editor-filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        editorFilterMode = btn.dataset.filter;
+        renderEditorList();
+        renderEditorForm();
+      });
+    });
     $("editorAddCategoryBtn").addEventListener("click", () => {
       syncFormToDraft();
       editorDraft.push({ id: "_new_" + editorDraft.length, label: "", productCode: "", productName: "", plans: [] });
