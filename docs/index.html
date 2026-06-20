@@ -467,8 +467,10 @@
     }
     .editor-filter-btn {
       flex: 1;
-      font-size: 11.5px;
-      padding: 5px 4px;
+      font-size: 11.5px !important;
+      padding: 5px 4px !important;
+      width: auto !important;
+      min-height: 0 !important;
       border-radius: 5px;
       border: 1px solid var(--line);
       background: white;
@@ -479,15 +481,19 @@
     }
     .editor-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
     .ef-status-toggle {
-      font-size: 10px;
-      padding: 1px 6px;
-      border-radius: 999px;
+      font-size: 10px !important;
+      padding: 2px 8px !important;
+      border-radius: 999px !important;
       border: 1px solid;
       cursor: pointer;
       flex-shrink: 0;
       font-weight: 600;
       line-height: 1.5;
       white-space: nowrap;
+      width: auto !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      display: inline-block !important;
     }
     .ef-status-toggle.on  { background: #dcfce7; color: #15803d; border-color: #86efac; }
     .ef-status-toggle.off { background: #f1f5f9; color: #94a3b8; border-color: #cbd5e1; }
