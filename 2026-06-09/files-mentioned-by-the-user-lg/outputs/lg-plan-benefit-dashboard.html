@@ -1331,8 +1331,10 @@
       const baseHash = await agileHashPassword(password, salt, spinCount, hashName,
         (pct) => setStatus(`암호화된 엑셀을 이 브라우저 안에서 해제하는 중입니다. (${pct}%)`)
       );
-      const secretKey = await aesCbcDecrypt(
-        await agileDeriveKey(baseHash, new Uint8Array([0x14,0x6e,0x0b,0xe7,0xab,0xac,0xd0,0xd6]), hashName, keyBytes),
+      const derivedKeyBytes = await agileDeriveKey(baseHash, new Uint8Array([0x14,0x6e,0x0b,0xe7,0xab,0xac,0xd0,0xd6]), hashName, keyBytes);
+      const derivedCryptoKey = await crypto.subtle.importKey("raw", derivedKeyBytes, { name: "AES-CBC" }, false, ["encrypt", "decrypt"]);
+      const secretKey = await aesCbcDecryptRaw(
+        derivedCryptoKey,
         await agileIv(salt, null, hashName, blockSize),
         base64Bytes(xmlAttr("encryptedKey", "encryptedKeyValue"))
       );
