@@ -333,7 +333,11 @@
       border-color: var(--blue);
       background: var(--blue2);
     }
+    .category-item.inactive { opacity: .45; }
     .category-item .title { font-weight: 700; margin-bottom: 5px; font-size: 13.5px; }
+    .cat-status-toggle { font-size:10px !important; padding:2px 8px !important; border-radius:999px !important; cursor:pointer; flex-shrink:0; font-weight:600; line-height:1.6; white-space:nowrap; display:inline-block !important; width:auto !important; min-width:0 !important; min-height:0 !important; }
+    .cat-status-toggle.on  { background:#dcfce7; color:#15803d; border-color:#86efac; }
+    .cat-status-toggle.off { background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1; }
     .category-head {
       display: grid;
       grid-template-columns: minmax(220px, .9fr) minmax(0, 1.8fr);
@@ -1043,6 +1047,17 @@
       localStorage.setItem("benefitPlanMappings", JSON.stringify(state.mappings));
       localStorage.setItem("benefitPlanMappingVersion", DEFAULT_MAPPING_VERSION);
     }
+    function toggleGroupActive(groupId) {
+      const group = categoryGroups().find(g => g.id === groupId);
+      if (!group) return;
+      const newActive = group.active === false;
+      const key = (item) => item.category || item.productName || item.productCode || "미분류 혜택";
+      for (const item of state.mappings) {
+        if (key(item) === groupId) item.active = newActive;
+      }
+      saveMappings();
+      renderCategories();
+    }
     function loadSavedMappings() {
       let saved = null;
       let usedDefaultMappings = false;
@@ -1652,12 +1667,16 @@
       if (!state.selectedCategoryId || !groups.some((g) => g.id === state.selectedCategoryId)) state.selectedCategoryId = groups[0].id;
       $("mappingStatus").textContent = `${number(groups.length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드 매칭 저장됨`;
       $("categoryList").innerHTML = groups.map((group) => {
+        const on = group.active !== false;
         const codes = group.plans.map((plan) => `<span class="chip" title="${escapeHtml(plan.planName || "")}">${escapeHtml(plan.planCode)}</span>`).join("");
-        return `<div class="category-item ${group.id === state.selectedCategoryId ? "active" : ""}" data-id="${escapeHtml(group.id)}">
+        return `<div class="category-item ${group.id === state.selectedCategoryId ? "active" : ""} ${on ? "" : "inactive"}" data-id="${escapeHtml(group.id)}">
           <div class="category-head">
             <div class="category-meta">
               <div class="category-label">혜택 종류</div>
-              <div class="title">${escapeHtml(group.label)}</div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <div class="title" style="margin-bottom:0;">${escapeHtml(group.label)}</div>
+                <button class="cat-status-toggle ${on ? "on" : "off"}" data-gid="${escapeHtml(group.id)}">${on ? "사용" : "종료"}</button>
+              </div>
             </div>
             <div>
               <div class="category-label">요금제 코드</div>
@@ -1673,6 +1692,12 @@
           state.visibleRows = 10;
           renderOptions();
           render();
+        });
+      }
+      for (const btn of $("categoryList").querySelectorAll(".cat-status-toggle")) {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleGroupActive(btn.dataset.gid);
         });
       }
       const targets = targetRowsForCategory();
