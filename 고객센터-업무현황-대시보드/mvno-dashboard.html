@@ -464,6 +464,9 @@
             <label>채널톡 Excel <small>(.xlsx)</small>
               <input id="channelFile" type="file" accept=".xlsx">
             </label>
+            <label>파일 암호 <small>(암호가 걸려 있는 경우)</small>
+              <input id="channelPassword" type="password" placeholder="암호를 입력하세요" autocomplete="off">
+            </label>
             <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
             <div class="preview-wrap" id="channelPreviewWrap">
               <div class="preview-label">미리보기 (최대 5행)</div>
@@ -4048,9 +4051,11 @@
       return [...map.values()];
     }
 
-    function parseChannelTalkXlsx(arrayBuffer) {
+    function parseChannelTalkXlsx(arrayBuffer, password) {
       if (typeof XLSX === "undefined") throw new Error("채널톡 Excel 파싱 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.");
-      const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array" });
+      const readOpts = { type: "array" };
+      if (password) readOpts.password = password;
+      const workbook = XLSX.read(new Uint8Array(arrayBuffer), readOpts);
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const records = XLSX.utils.sheet_to_json(sheet, { defval: "" });
       if (!records.length) throw new Error("채널톡 Excel 파일이 비어 있습니다.");
@@ -4557,7 +4562,8 @@
       if (!file) return;
       $("channelFileName").textContent = file.name;
       try {
-        const newRows = parseChannelTalkXlsx(await file.arrayBuffer());
+        const password = $("channelPassword").value || undefined;
+        const newRows = parseChannelTalkXlsx(await file.arrayBuffer(), password);
         if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. firstAnsweredAt이 비어 있는 행은 제외됩니다.");
         pending.channel = { rows: newRows, name: file.name };
         renderPreview(newRows, "channelPreviewTable", "channelPreviewWrap");
