@@ -68,7 +68,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 16px;
       padding: 14px;
@@ -237,7 +237,185 @@
       .rank-row { grid-template-columns: 30px minmax(0, 1fr); }
       .rank-row .value { grid-column: 2; }
     }
+
+    /* ── 영역 헤더 ──────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .section-header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-input  { background: #e0eef8; color: #1a5a80; }
+    .badge-status { background: #e0f4ea; color: #1a6b3c; }
+
+    /* ── 업무 입력 영역 ─────────────────────────── */
+    .input-section {
+      background: #f0f7fa;
+      border: 1px solid #aed4e8;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .upload-slot {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .upload-slot label {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      gap: 4px;
+    }
+    .upload-slot label small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+    .upload-filename {
+      font-size: 12px;
+      color: var(--teal);
+      font-weight: 600;
+      word-break: break-all;
+      min-height: 18px;
+    }
+    .preview-wrap { display: none; margin-top: 6px; }
+    .preview-wrap.visible { display: block; }
+    .preview-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .preview-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .preview-table th, .preview-table td {
+      padding: 5px 9px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .preview-table th {
+      background: #f4f6f8;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .preview-table tr:last-child td { border-bottom: none; }
+
+    .upload-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .apply-btn {
+      width: auto;
+      min-height: 38px;
+      padding: 8px 22px;
+      background: var(--green);
+      border-color: var(--green);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .upload-msg {
+      font-size: 13px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .upload-msg.success { background: #e0f4ea; color: #1a6b3c; border: 1px solid #a3d4b4; display: block; }
+    .upload-msg.error   { background: #fdf0f0; color: #9b2a2a; border: 1px solid #e8b4b4; display: block; }
+
+    /* ── 업무 현황 영역 ─────────────────────────── */
+    .dashboard-section {
+      background: #f2fbf5;
+      border: 1px solid #aad5bc;
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    /* ── 현황 테이블 그리드 ──────────────────────── */
+    .data-tables {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .data-table-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .data-table-panel h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .data-table-scroll {
+      overflow: auto;
+      max-height: 260px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th, .data-table td {
+      padding: 7px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table th {
+      background: #f4f6f8;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 12px;
+      position: sticky;
+      top: 0;
+    }
+    .data-table td:nth-child(2),
+    .data-table th:nth-child(2),
+    .data-table td:nth-child(3),
+    .data-table th:nth-child(3) { text-align: right; }
+    .data-table tbody tr:hover { background: #f8fafc; }
+
+    @media (max-width: 900px) {
+      .upload-grid  { grid-template-columns: 1fr; }
+      .data-tables  { grid-template-columns: 1fr; }
+    }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <main class="app">
@@ -249,11 +427,10 @@
       <div class="status" id="status">데이터를 불러오는 중입니다.</div>
     </header>
 
-    <section class="filters" aria-label="필터">
+    <!-- 1. 상단 공통 필터 -->
+    <section class="filters" aria-label="공통 필터">
       <label>월
-        <select id="monthFilter">
-          <option value="all">전체</option>
-        </select>
+        <select id="monthFilter"><option value="all">전체</option></select>
       </label>
       <label>시작일
         <input id="startDate" type="date">
@@ -262,57 +439,133 @@
         <input id="endDate" type="date">
       </label>
       <label>상담사
-        <select id="counselorFilter">
-          <option value="all">전체</option>
-        </select>
+        <select id="counselorFilter"><option value="all">전체</option></select>
       </label>
       <label>업무 대분류
-        <select id="mainFilter">
-          <option value="all">전체</option>
-        </select>
+        <select id="mainFilter"><option value="all">전체</option></select>
       </label>
       <label>업무 소분류
-        <select id="subFilter">
-          <option value="all">전체</option>
-        </select>
-      </label>
-      <label>CSV 파일
-        <input id="csvFile" type="file" accept=".csv,text/csv">
+        <select id="subFilter"><option value="all">전체</option></select>
       </label>
       <button id="syncBtn" type="button">원본 동기화</button>
       <button id="resetBtn" type="button">필터 초기화</button>
     </section>
 
-    <section class="kpis" aria-label="KPI">
-      <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
-      <article class="kpi"><span>총 소요시간</span><strong id="totalMinutes">0분</strong></article>
-      <article class="kpi"><span>건당 평균 처리시간</span><strong id="avgMinutes">0분</strong></article>
-      <article class="kpi"><span>유선상담 건수</span><strong id="phoneCount">0</strong></article>
-      <article class="kpi"><span>채널톡 건수</span><strong id="channelCount">0</strong></article>
-      <article class="kpi"><span>개통 처리건수</span><strong id="activationCount">0</strong></article>
+    <!-- 2. 업무 입력 영역 -->
+    <section class="input-section" aria-label="업무 데이터 입력">
+      <div class="section-header">
+        <h2>업무 데이터 입력</h2>
+        <span class="section-badge badge-input">데이터 업로드</span>
+      </div>
+      <div class="upload-grid">
+        <div class="upload-slot">
+          <label>유선 문의 CSV <small>(.csv)</small>
+            <input id="phoneFile" type="file" accept=".csv,text/csv">
+          </label>
+          <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
+          <div class="preview-wrap" id="phonePreviewWrap">
+            <div class="preview-label">미리보기 (최대 5행)</div>
+            <div class="preview-scroll">
+              <table class="preview-table" id="phonePreviewTable"></table>
+            </div>
+          </div>
+        </div>
+        <div class="upload-slot">
+          <label>채널톡 Excel <small>(.xlsx)</small>
+            <input id="channelFile" type="file" accept=".xlsx">
+          </label>
+          <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
+          <div class="preview-wrap" id="channelPreviewWrap">
+            <div class="preview-label">미리보기 (최대 5행)</div>
+            <div class="preview-scroll">
+              <table class="preview-table" id="channelPreviewTable"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="upload-actions">
+        <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
+        <div class="upload-msg" id="uploadMsg"></div>
+      </div>
     </section>
 
-    <section class="grid">
-      <article class="panel wide">
-        <h2>일자별 처리건수 추이</h2>
-        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>업무유형별 처리건수</h2>
-        <div class="chart-wrap"><canvas id="countChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>업무유형별 소요시간</h2>
-        <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>업무유형 비중</h2>
-        <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>건당 평균 처리시간 순위</h2>
-        <ol class="rank-list" id="rankList"></ol>
-      </article>
+    <!-- 3. 업무 현황 영역 -->
+    <section class="dashboard-section" aria-label="업무 현황">
+      <div class="section-header">
+        <h2>업무 현황</h2>
+        <span class="section-badge badge-status">현황 분석</span>
+      </div>
+
+      <section class="kpis" aria-label="KPI">
+        <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
+        <article class="kpi"><span>총 소요시간</span><strong id="totalMinutes">0분</strong></article>
+        <article class="kpi"><span>건당 평균 처리시간</span><strong id="avgMinutes">0분</strong></article>
+        <article class="kpi"><span>유선상담 건수</span><strong id="phoneCount">0</strong></article>
+        <article class="kpi"><span>채널톡 건수</span><strong id="channelCount">0</strong></article>
+        <article class="kpi"><span>개통 처리건수</span><strong id="activationCount">0</strong></article>
+      </section>
+
+      <section class="grid">
+        <article class="panel wide">
+          <h2>일자별 처리건수 추이</h2>
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>업무유형별 처리건수</h2>
+          <div class="chart-wrap"><canvas id="countChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>업무유형별 소요시간</h2>
+          <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>업무유형 비중</h2>
+          <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>건당 평균 처리시간 순위</h2>
+          <ol class="rank-list" id="rankList"></ol>
+        </article>
+      </section>
+
+      <div class="data-tables">
+        <div class="data-table-panel">
+          <h3>상담사별 업무 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="counselorTable">
+              <thead><tr><th>상담사</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="data-table-panel">
+          <h3>업무 대분류별 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="mainTable">
+              <thead><tr><th>대분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="data-table-panel">
+          <h3>업무 소분류별 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="subTable">
+              <thead><tr><th>소분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="data-table-panel">
+          <h3>날짜별 업무 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="dateTable">
+              <thead><tr><th>날짜</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -3286,7 +3539,308 @@
     "sub": "입금전용계좌 발급",
     "count": 1,
     "minutes": 5
-  }
+  },
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":40,"minutes":113},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":13,"minutes":63},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":12,"minutes":24},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":40,"minutes":80},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":2,"minutes":4},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":3,"minutes":6},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"전화번호 변경","count":1,"minutes":10},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"확정기변","count":1,"minutes":5},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":54,"minutes":138},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":19,"minutes":112},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":54,"minutes":108},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":1,"minutes":15},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":2,"minutes":4},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":10},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":1,"minutes":15},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"확정기변","count":3,"minutes":15},
+  {"date":"2026-06-02","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":1,"minutes":2},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":15,"minutes":31},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":7,"minutes":60},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":1,"minutes":2},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":15,"minutes":30},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":5,"minutes":1},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":12,"minutes":50},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":3,"minutes":15},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":12,"minutes":24},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":3,"minutes":6},
+  {"date":"2026-06-03","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":15,"minutes":34},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":19,"minutes":100},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":15,"minutes":30},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":2,"minutes":4},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":3,"minutes":15},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":12,"minutes":51},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":16,"minutes":94},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":2,"minutes":4},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":12,"minutes":24},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":1,"minutes":15},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":3,"minutes":15},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":5,"minutes":22},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"유심 일련번호 변경","count":1,"minutes":5},
+  {"date":"2026-06-04","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"확정기변","count":1,"minutes":5},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":43,"minutes":112},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":10,"minutes":48},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":6,"minutes":12},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":43,"minutes":86},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":1,"minutes":5},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":4,"minutes":13},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"유심 일련번호 변경","count":1,"minutes":5},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"확정기변","count":1,"minutes":5},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":33,"minutes":110},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":13,"minutes":59},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":33,"minutes":66},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-05","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":6,"minutes":18},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":17,"minutes":40},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":17,"minutes":34},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":2,"minutes":4},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-06","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":3,"minutes":9},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":36,"minutes":101},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":21,"minutes":55},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":36,"minutes":72},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":5,"minutes":75},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":2,"minutes":4},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":3,"minutes":9},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":36,"minutes":127},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":14,"minutes":56},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":36,"minutes":72},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":4,"minutes":60},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":5,"minutes":15},
+  {"date":"2026-06-08","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":1,"minutes":2},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":35,"minutes":73},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":13,"minutes":65},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":2,"minutes":4},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":35,"minutes":70},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":1,"minutes":15},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":2,"minutes":10},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":5,"minutes":15},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"확정기변","count":1,"minutes":5},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":53,"minutes":139},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":15,"minutes":53},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":1,"minutes":2},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":53,"minutes":106},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":3,"minutes":30},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":2,"minutes":4},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":2,"minutes":10},
+  {"date":"2026-06-09","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":3,"minutes":8},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":63,"minutes":123},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":21,"minutes":65},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":6,"minutes":12},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":63,"minutes":126},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":2,"minutes":20},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":4},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":55,"minutes":186},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":22,"minutes":70},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":55,"minutes":110},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-10","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":5,"minutes":4},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":42,"minutes":101},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":23,"minutes":77},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":42,"minutes":84},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":2,"minutes":10},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"청구서 재발행","count":1,"minutes":2},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":4},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":38,"minutes":113},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":22,"minutes":70},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":6,"minutes":12},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":38,"minutes":76},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":3,"minutes":6},
+  {"date":"2026-06-11","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":41,"minutes":95},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":12,"minutes":51},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":41,"minutes":82},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":2,"minutes":4},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":3,"minutes":15},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":1,"minutes":3},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":33,"minutes":105},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":12,"minutes":36},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":8,"minutes":16},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":33,"minutes":66},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":1,"minutes":5},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"가입확인서 발급","count":1,"minutes":5},
+  {"date":"2026-06-12","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"청구서 재발행","count":1,"minutes":3},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":5,"minutes":36},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":10,"minutes":20},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":2,"minutes":4},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":5,"minutes":10},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":2,"minutes":6},
+  {"date":"2026-06-13","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"청구서 재발행","count":1,"minutes":2},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":42,"minutes":81},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":16,"minutes":67},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":42,"minutes":88},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":1,"minutes":15},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"유심 일련번호 변경","count":1,"minutes":5},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"청구서 재발행","count":2,"minutes":6},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":43,"minutes":123},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":17,"minutes":51},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":2,"minutes":4},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":43,"minutes":86},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":2,"minutes":10},
+  {"date":"2026-06-15","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":6},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":52,"minutes":154},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":18,"minutes":64},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":8,"minutes":16},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":52,"minutes":104},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":2,"minutes":20},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":2,"minutes":10},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":1,"minutes":5},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":40,"minutes":162},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":16,"minutes":64},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":9,"minutes":18},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":40,"minutes":80},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":2,"minutes":4},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":2,"minutes":10},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"eSIM 변경","count":1,"minutes":10},
+  {"date":"2026-06-16","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":6},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":39,"minutes":143},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":10,"minutes":73},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":39,"minutes":78},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":6},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":45,"minutes":130},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":16,"minutes":37},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":45,"minutes":90},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":4,"minutes":8},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":3,"minutes":6},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"해지","count":4,"minutes":20},
+  {"date":"2026-06-17","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":1,"minutes":5},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":30,"minutes":78},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":2,"minutes":15},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":30,"minutes":60},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":1,"minutes":3},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"유심 일련번호 변경","count":1,"minutes":5},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":4,"minutes":12},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":39,"minutes":143},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":10,"minutes":73},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":39,"minutes":78},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":1,"minutes":10},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-18","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":6},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":63,"minutes":178},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":22,"minutes":151},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":2,"minutes":4},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":63,"minutes":20},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":3,"minutes":30},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":4,"minutes":60},
+  {"date":"2026-06-19","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"부가서비스 신청","count":1,"minutes":3},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":19,"minutes":41},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":6,"minutes":25},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":3,"minutes":6},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":19,"minutes":38},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"온라인 개통","count":2,"minutes":20},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":3,"minutes":6},
+  {"date":"2026-06-20","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":5,"minutes":10},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":44,"minutes":111},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":22,"minutes":102},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":6,"minutes":12},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":44,"minutes":88},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":50,"minutes":166},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":23,"minutes":90},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":2,"minutes":4},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":50,"minutes":100},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":4,"minutes":50},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"알뜰폰 접수","count":3,"minutes":6},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"너겟 접수","count":4,"minutes":8},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"eSIM 변경","count":1,"minutes":5},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"확정기변","count":1,"minutes":5},
+  {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":1,"minutes":2},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":86,"minutes":143},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":25,"minutes":80},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":86,"minutes":172},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"너겟 접수","count":1,"minutes":2},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"해지","count":1,"minutes":5},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"요금제 변경","count":1,"minutes":20},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":59,"minutes":209},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":20,"minutes":62},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":5,"minutes":10},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":59,"minutes":118},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":2,"minutes":20},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"부가서비스 신청","count":1,"minutes":3},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"eSIM 변경","count":1,"minutes":5},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"가입확인서 발급","count":1,"minutes":3},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"확정기변","count":1,"minutes":5},
+  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":2,"minutes":4}
+
 ]</script>
   <script>
     const SHEET_ID = "1738TA7s5VPsthZRXG08EY1__XHajya86UESH_gJQNco";
@@ -3297,6 +3851,8 @@
     const STORAGE_KEY = "mvno-dashboard-rows-v1";
     const SAVED_ROWS = JSON.parse(document.getElementById("saved-data").textContent || "[]");
     const colors = ["#008a8a", "#3867d6", "#2e9d5b", "#d18616", "#cf4b4b", "#7057c8", "#607d8b", "#9a6a15"];
+    const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥" };
+    const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진" };
     const state = { rows: [], filtered: [] };
 
     const $ = (id) => document.getElementById(id);
@@ -3450,6 +4006,79 @@
       return rows.map((values) => Object.fromEntries(headers.map((header, i) => [header, values[i] ?? ""])));
     }
 
+    function parseKoreanShortDate(value) {
+      const match = String(value).match(/^(\d{2})\.\s*(\d{1,2})\.\s*(\d{1,2})/);
+      if (match) return new Date(2000 + Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      return null;
+    }
+
+    function parsePhoneConsultationCsv(text) {
+      const records = parseCsv(text);
+      if (!records.length) throw new Error("CSV 파일이 비어 있습니다.");
+      const firstRec = records[0];
+      const colNames = Object.keys(firstRec).map(norm);
+      if (!colNames.includes("간격 시작") || !colNames.includes("처리") || !colNames.includes("총 대화")) {
+        throw new Error("유선 문의 CSV 형식이 맞지 않습니다. 필수 컬럼: 간격 시작, 처리, 총 대화");
+      }
+      const map = new Map();
+      for (const rec of records) {
+        const dateRaw = norm(rec["간격 시작"]);
+        const counselorRaw = norm(rec["상담원 이름"]);
+        const count = toNumber(rec["처리"]);
+        if (!dateRaw || !counselorRaw || !count) continue;
+        const date = parseKoreanShortDate(dateRaw);
+        if (!date) continue;
+        const minutes = Math.round(toNumber(rec["총 대화"]) / 60000);
+        const counselor = PHONE_COUNSELOR_MAP[counselorRaw] || counselorRaw;
+        const key = `${dateKey(date)}|${counselor}`;
+        const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "유선 상담", count: 0, minutes: 0 };
+        row.count += count;
+        row.minutes += minutes;
+        map.set(key, row);
+      }
+      return [...map.values()];
+    }
+
+    function parseChannelTalkXlsx(arrayBuffer) {
+      if (typeof XLSX === "undefined") throw new Error("채널톡 Excel 파싱 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.");
+      const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const records = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      if (!records.length) throw new Error("채널톡 Excel 파일이 비어 있습니다.");
+      const map = new Map();
+      for (const rec of records) {
+        const firstAnsweredAt = norm(String(rec["firstAnsweredAt"] || ""));
+        if (!firstAnsweredAt) continue;
+        const date = new Date(firstAnsweredAt);
+        if (isNaN(date.getTime())) continue;
+        const managerIdsRaw = norm(String(rec["managerIds"] || ""));
+        if (!managerIdsRaw) continue;
+        const managers = managerIdsRaw.split(",").map((s) => s.trim()).filter(Boolean);
+        const knownManagers = managers.filter((id) => CHANNEL_COUNSELOR_MAP[id]);
+        if (!knownManagers.length) continue;
+        const totalSec = toNumber(rec["totalReplyTime"]);
+        for (const managerId of knownManagers) {
+          const counselor = CHANNEL_COUNSELOR_MAP[managerId];
+          const minutes = Math.round(totalSec / managers.length / 60);
+          const key = `${dateKey(date)}|${counselor}`;
+          const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "채널톡", count: 0, minutes: 0 };
+          row.count += 1;
+          row.minutes += minutes;
+          map.set(key, row);
+        }
+      }
+      return [...map.values()];
+    }
+
+    function mergeUploadedRows(newRows, sub) {
+      const dates = new Set(newRows.map((r) => r.dateText));
+      const counselors = new Set(newRows.map((r) => r.counselor));
+      const filtered = state.rows.filter((row) => !(row.sub === sub && dates.has(row.dateText) && counselors.has(row.counselor)));
+      const merged = [...filtered, ...newRows];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged.map((r) => ({ ...r, date: r.dateText }))));
+      return merged;
+    }
+
     async function loadCsvUrl() {
       const response = await fetch(`${CSV_URL}&cacheBust=${Date.now()}`);
       if (!response.ok) throw new Error("CSV 데이터를 불러오지 못했습니다.");
@@ -3493,7 +4122,10 @@
     function restoreSavedRows() {
       try {
         const localRows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        return localRows.length ? localRows : SAVED_ROWS;
+        if (!localRows.length) return SAVED_ROWS;
+        const localDateSet = new Set(localRows.map((r) => r.date || r.dateText).filter(Boolean));
+        const missing = SAVED_ROWS.filter((r) => !localDateSet.has(r.date));
+        return missing.length ? [...localRows, ...missing] : localRows;
       } catch {
         return SAVED_ROWS;
       }
@@ -3624,7 +4256,7 @@
       $("totalCount").textContent = nf.format(totalCount);
       $("totalMinutes").textContent = `${nf.format(Math.round(totalMinutes))}분`;
       $("avgMinutes").textContent = totalCount ? `${(totalMinutes / totalCount).toFixed(1)}분` : "0분";
-      $("phoneCount").textContent = nf.format(rows.filter((row) => contains(row, "유선상담")).reduce((sum, row) => sum + row.count, 0));
+      $("phoneCount").textContent = nf.format(rows.filter((row) => contains(row, "유선 상담")).reduce((sum, row) => sum + row.count, 0));
       $("channelCount").textContent = nf.format(rows.filter((row) => contains(row, "채널톡")).reduce((sum, row) => sum + row.count, 0));
       $("activationCount").textContent = nf.format(rows.filter((row) => contains(row, "개통")).reduce((sum, row) => sum + row.count, 0));
     }
@@ -3641,7 +4273,23 @@
       drawBarChart($("timeChart"), byBarType.map((d) => d.key), byBarType.map((d) => d.minutes), "소요시간", colors[3]);
       drawPieChart($("shareChart"), byType.map((d) => d.key), byType.map((d) => d.count));
       renderRanking(rows);
+      renderStatusTables(rows);
       setStatus(`${nf.format(rows.length)}개 행 표시 중 · ${new Date().toLocaleString("ko-KR")} 갱신`);
+    }
+
+    function renderStatusTables(rows) {
+      const empty = '<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:16px;">데이터 없음</td></tr>';
+      function fill(id, items) {
+        const tbody = document.querySelector(`#${id} tbody`);
+        if (!tbody) return;
+        tbody.innerHTML = items.length
+          ? items.map((item) => `<tr><td>${escapeHtml(item.key)}</td><td>${nf.format(item.count)}</td><td>${nf.format(Math.round(item.minutes))}</td></tr>`).join("")
+          : empty;
+      }
+      fill("counselorTable", groupBy(rows, (r) => r.counselor).sort((a, b) => b.count - a.count));
+      fill("mainTable",      groupBy(rows, (r) => r.main).sort((a, b) => b.count - a.count));
+      fill("subTable",       groupBy(rows, (r) => r.sub).sort((a, b) => b.count - a.count));
+      fill("dateTable",      groupBy(rows, (r) => r.dateText).sort((a, b) => a.key.localeCompare(b.key)));
     }
 
     function canvasSetup(canvas) {
@@ -3835,6 +4483,25 @@
       }
     }
 
+    const pending = { phone: null, channel: null };
+
+    function showUploadMsg(type, text) {
+      const el = $("uploadMsg");
+      el.className = `upload-msg ${type}`;
+      el.textContent = text;
+    }
+
+    function renderPreview(rows, tableId, wrapId) {
+      const wrap = $(wrapId);
+      if (!rows || !rows.length) { wrap.classList.remove("visible"); return; }
+      const preview = rows.slice(0, 5);
+      const heads = ["날짜", "상담사", "대분류", "소분류", "건수", "시간(분)"];
+      $(tableId).innerHTML =
+        `<thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
+        `<tbody>${preview.map((r) => `<tr><td>${escapeHtml(r.dateText || "")}</td><td>${escapeHtml(r.counselor || "")}</td><td>${escapeHtml(r.main || "")}</td><td>${escapeHtml(r.sub || "")}</td><td>${nf.format(r.count)}</td><td>${nf.format(r.minutes)}</td></tr>`).join("")}</tbody>`;
+      wrap.classList.add("visible");
+    }
+
     $("monthFilter").addEventListener("change", () => {
       updateDateRangeForMonth();
       updateSubFilter();
@@ -3860,13 +4527,61 @@
         setStatus(`동기화 실패: ${error.message}`);
       }
     });
-    $("csvFile").addEventListener("change", async (event) => {
+    $("phoneFile").addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
+      $("phoneFileName").textContent = file.name;
       try {
-        loadRows(normalizeRecords(parseCsv(await file.text())), `CSV 파일: ${file.name}`);
+        const newRows = parsePhoneConsultationCsv(await file.text());
+        if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. 처리건수가 0인 행은 제외됩니다.");
+        pending.phone = { rows: newRows, name: file.name };
+        renderPreview(newRows, "phonePreviewTable", "phonePreviewWrap");
+        showUploadMsg("success", `유선 문의 CSV 로드 완료 (${nf.format(newRows.length)}건) — 반영하기 버튼을 눌러 적용하세요.`);
       } catch (error) {
-        setStatus(error.message);
+        pending.phone = null;
+        renderPreview(null, "phonePreviewTable", "phonePreviewWrap");
+        showUploadMsg("error", `유선 CSV 오류: ${error.message}`);
+      }
+    });
+    $("channelFile").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      $("channelFileName").textContent = file.name;
+      try {
+        const newRows = parseChannelTalkXlsx(await file.arrayBuffer());
+        if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. firstAnsweredAt이 비어 있는 행은 제외됩니다.");
+        pending.channel = { rows: newRows, name: file.name };
+        renderPreview(newRows, "channelPreviewTable", "channelPreviewWrap");
+        showUploadMsg("success", `채널톡 Excel 로드 완료 (${nf.format(newRows.length)}건) — 반영하기 버튼을 눌러 적용하세요.`);
+      } catch (error) {
+        pending.channel = null;
+        renderPreview(null, "channelPreviewTable", "channelPreviewWrap");
+        showUploadMsg("error", `채널톡 Excel 오류: ${error.message}`);
+      }
+    });
+    $("applyBtn").addEventListener("click", () => {
+      if (!pending.phone && !pending.channel) {
+        showUploadMsg("error", "반영할 파일이 없습니다. 파일을 먼저 선택해주세요.");
+        return;
+      }
+      try {
+        const labels = [];
+        if (pending.phone) {
+          state.rows = mergeUploadedRows(pending.phone.rows, "유선 상담");
+          labels.push(`유선 문의: ${pending.phone.name}`);
+          pending.phone = null;
+        }
+        if (pending.channel) {
+          state.rows = mergeUploadedRows(pending.channel.rows, "채널톡");
+          labels.push(`채널톡: ${pending.channel.name}`);
+          pending.channel = null;
+        }
+        setFilters(state.rows);
+        applyFilters();
+        showUploadMsg("success", `반영 완료: ${labels.join(", ")}`);
+        setStatus(`업로드 반영 · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
+      } catch (error) {
+        showUploadMsg("error", `반영 오류: ${error.message}`);
       }
     });
     window.addEventListener("resize", () => render());

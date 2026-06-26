@@ -237,6 +237,183 @@
       .rank-row { grid-template-columns: 30px minmax(0, 1fr); }
       .rank-row .value { grid-column: 2; }
     }
+
+    /* ── 영역 헤더 ──────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .section-header h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-input  { background: #e0eef8; color: #1a5a80; }
+    .badge-status { background: #e0f4ea; color: #1a6b3c; }
+
+    /* ── 업무 입력 영역 ─────────────────────────── */
+    .input-section {
+      background: #f0f7fa;
+      border: 1px solid #aed4e8;
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .upload-slot {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .upload-slot label {
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      gap: 4px;
+    }
+    .upload-slot label small {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+    .upload-filename {
+      font-size: 12px;
+      color: var(--teal);
+      font-weight: 600;
+      word-break: break-all;
+      min-height: 18px;
+    }
+    .preview-wrap { display: none; margin-top: 6px; }
+    .preview-wrap.visible { display: block; }
+    .preview-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .preview-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .preview-table th, .preview-table td {
+      padding: 5px 9px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    .preview-table th {
+      background: #f4f6f8;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .preview-table tr:last-child td { border-bottom: none; }
+
+    .upload-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .apply-btn {
+      width: auto;
+      min-height: 38px;
+      padding: 8px 22px;
+      background: var(--green);
+      border-color: var(--green);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .upload-msg {
+      font-size: 13px;
+      padding: 7px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .upload-msg.success { background: #e0f4ea; color: #1a6b3c; border: 1px solid #a3d4b4; display: block; }
+    .upload-msg.error   { background: #fdf0f0; color: #9b2a2a; border: 1px solid #e8b4b4; display: block; }
+
+    /* ── 업무 현황 영역 ─────────────────────────── */
+    .dashboard-section {
+      background: #f2fbf5;
+      border: 1px solid #aad5bc;
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    /* ── 현황 테이블 그리드 ──────────────────────── */
+    .data-tables {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .data-table-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .data-table-panel h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .data-table-scroll {
+      overflow: auto;
+      max-height: 260px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th, .data-table td {
+      padding: 7px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-table th {
+      background: #f4f6f8;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 12px;
+      position: sticky;
+      top: 0;
+    }
+    .data-table td:nth-child(2),
+    .data-table th:nth-child(2),
+    .data-table td:nth-child(3),
+    .data-table th:nth-child(3) { text-align: right; }
+    .data-table tbody tr:hover { background: #f8fafc; }
+
+    @media (max-width: 900px) {
+      .upload-grid  { grid-template-columns: 1fr; }
+      .data-tables  { grid-template-columns: 1fr; }
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -250,11 +427,10 @@
       <div class="status" id="status">데이터를 불러오는 중입니다.</div>
     </header>
 
-    <section class="filters" aria-label="필터">
+    <!-- 1. 상단 공통 필터 -->
+    <section class="filters" aria-label="공통 필터">
       <label>월
-        <select id="monthFilter">
-          <option value="all">전체</option>
-        </select>
+        <select id="monthFilter"><option value="all">전체</option></select>
       </label>
       <label>시작일
         <input id="startDate" type="date">
@@ -263,60 +439,133 @@
         <input id="endDate" type="date">
       </label>
       <label>상담사
-        <select id="counselorFilter">
-          <option value="all">전체</option>
-        </select>
+        <select id="counselorFilter"><option value="all">전체</option></select>
       </label>
       <label>업무 대분류
-        <select id="mainFilter">
-          <option value="all">전체</option>
-        </select>
+        <select id="mainFilter"><option value="all">전체</option></select>
       </label>
       <label>업무 소분류
-        <select id="subFilter">
-          <option value="all">전체</option>
-        </select>
-      </label>
-      <label>유선 문의 CSV
-        <input id="phoneFile" type="file" accept=".csv,text/csv">
-      </label>
-      <label>채널톡 Excel
-        <input id="channelFile" type="file" accept=".xlsx">
+        <select id="subFilter"><option value="all">전체</option></select>
       </label>
       <button id="syncBtn" type="button">원본 동기화</button>
       <button id="resetBtn" type="button">필터 초기화</button>
     </section>
 
-    <section class="kpis" aria-label="KPI">
-      <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
-      <article class="kpi"><span>총 소요시간</span><strong id="totalMinutes">0분</strong></article>
-      <article class="kpi"><span>건당 평균 처리시간</span><strong id="avgMinutes">0분</strong></article>
-      <article class="kpi"><span>유선상담 건수</span><strong id="phoneCount">0</strong></article>
-      <article class="kpi"><span>채널톡 건수</span><strong id="channelCount">0</strong></article>
-      <article class="kpi"><span>개통 처리건수</span><strong id="activationCount">0</strong></article>
+    <!-- 2. 업무 입력 영역 -->
+    <section class="input-section" aria-label="업무 데이터 입력">
+      <div class="section-header">
+        <h2>업무 데이터 입력</h2>
+        <span class="section-badge badge-input">데이터 업로드</span>
+      </div>
+      <div class="upload-grid">
+        <div class="upload-slot">
+          <label>유선 문의 CSV <small>(.csv)</small>
+            <input id="phoneFile" type="file" accept=".csv,text/csv">
+          </label>
+          <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
+          <div class="preview-wrap" id="phonePreviewWrap">
+            <div class="preview-label">미리보기 (최대 5행)</div>
+            <div class="preview-scroll">
+              <table class="preview-table" id="phonePreviewTable"></table>
+            </div>
+          </div>
+        </div>
+        <div class="upload-slot">
+          <label>채널톡 Excel <small>(.xlsx)</small>
+            <input id="channelFile" type="file" accept=".xlsx">
+          </label>
+          <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
+          <div class="preview-wrap" id="channelPreviewWrap">
+            <div class="preview-label">미리보기 (최대 5행)</div>
+            <div class="preview-scroll">
+              <table class="preview-table" id="channelPreviewTable"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="upload-actions">
+        <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
+        <div class="upload-msg" id="uploadMsg"></div>
+      </div>
     </section>
 
-    <section class="grid">
-      <article class="panel wide">
-        <h2>일자별 처리건수 추이</h2>
-        <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>업무유형별 처리건수</h2>
-        <div class="chart-wrap"><canvas id="countChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>업무유형별 소요시간</h2>
-        <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>업무유형 비중</h2>
-        <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
-      </article>
-      <article class="panel">
-        <h2>건당 평균 처리시간 순위</h2>
-        <ol class="rank-list" id="rankList"></ol>
-      </article>
+    <!-- 3. 업무 현황 영역 -->
+    <section class="dashboard-section" aria-label="업무 현황">
+      <div class="section-header">
+        <h2>업무 현황</h2>
+        <span class="section-badge badge-status">현황 분석</span>
+      </div>
+
+      <section class="kpis" aria-label="KPI">
+        <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
+        <article class="kpi"><span>총 소요시간</span><strong id="totalMinutes">0분</strong></article>
+        <article class="kpi"><span>건당 평균 처리시간</span><strong id="avgMinutes">0분</strong></article>
+        <article class="kpi"><span>유선상담 건수</span><strong id="phoneCount">0</strong></article>
+        <article class="kpi"><span>채널톡 건수</span><strong id="channelCount">0</strong></article>
+        <article class="kpi"><span>개통 처리건수</span><strong id="activationCount">0</strong></article>
+      </section>
+
+      <section class="grid">
+        <article class="panel wide">
+          <h2>일자별 처리건수 추이</h2>
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>업무유형별 처리건수</h2>
+          <div class="chart-wrap"><canvas id="countChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>업무유형별 소요시간</h2>
+          <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>업무유형 비중</h2>
+          <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>건당 평균 처리시간 순위</h2>
+          <ol class="rank-list" id="rankList"></ol>
+        </article>
+      </section>
+
+      <div class="data-tables">
+        <div class="data-table-panel">
+          <h3>상담사별 업무 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="counselorTable">
+              <thead><tr><th>상담사</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="data-table-panel">
+          <h3>업무 대분류별 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="mainTable">
+              <thead><tr><th>대분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="data-table-panel">
+          <h3>업무 소분류별 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="subTable">
+              <thead><tr><th>소분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="data-table-panel">
+          <h3>날짜별 업무 현황</h3>
+          <div class="data-table-scroll">
+            <table class="data-table" id="dateTable">
+              <thead><tr><th>날짜</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -4024,7 +4273,23 @@
       drawBarChart($("timeChart"), byBarType.map((d) => d.key), byBarType.map((d) => d.minutes), "소요시간", colors[3]);
       drawPieChart($("shareChart"), byType.map((d) => d.key), byType.map((d) => d.count));
       renderRanking(rows);
+      renderStatusTables(rows);
       setStatus(`${nf.format(rows.length)}개 행 표시 중 · ${new Date().toLocaleString("ko-KR")} 갱신`);
+    }
+
+    function renderStatusTables(rows) {
+      const empty = '<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:16px;">데이터 없음</td></tr>';
+      function fill(id, items) {
+        const tbody = document.querySelector(`#${id} tbody`);
+        if (!tbody) return;
+        tbody.innerHTML = items.length
+          ? items.map((item) => `<tr><td>${escapeHtml(item.key)}</td><td>${nf.format(item.count)}</td><td>${nf.format(Math.round(item.minutes))}</td></tr>`).join("")
+          : empty;
+      }
+      fill("counselorTable", groupBy(rows, (r) => r.counselor).sort((a, b) => b.count - a.count));
+      fill("mainTable",      groupBy(rows, (r) => r.main).sort((a, b) => b.count - a.count));
+      fill("subTable",       groupBy(rows, (r) => r.sub).sort((a, b) => b.count - a.count));
+      fill("dateTable",      groupBy(rows, (r) => r.dateText).sort((a, b) => a.key.localeCompare(b.key)));
     }
 
     function canvasSetup(canvas) {
@@ -4218,6 +4483,25 @@
       }
     }
 
+    const pending = { phone: null, channel: null };
+
+    function showUploadMsg(type, text) {
+      const el = $("uploadMsg");
+      el.className = `upload-msg ${type}`;
+      el.textContent = text;
+    }
+
+    function renderPreview(rows, tableId, wrapId) {
+      const wrap = $(wrapId);
+      if (!rows || !rows.length) { wrap.classList.remove("visible"); return; }
+      const preview = rows.slice(0, 5);
+      const heads = ["날짜", "상담사", "대분류", "소분류", "건수", "시간(분)"];
+      $(tableId).innerHTML =
+        `<thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
+        `<tbody>${preview.map((r) => `<tr><td>${escapeHtml(r.dateText || "")}</td><td>${escapeHtml(r.counselor || "")}</td><td>${escapeHtml(r.main || "")}</td><td>${escapeHtml(r.sub || "")}</td><td>${nf.format(r.count)}</td><td>${nf.format(r.minutes)}</td></tr>`).join("")}</tbody>`;
+      wrap.classList.add("visible");
+    }
+
     $("monthFilter").addEventListener("change", () => {
       updateDateRangeForMonth();
       updateSubFilter();
@@ -4246,23 +4530,58 @@
     $("phoneFile").addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
+      $("phoneFileName").textContent = file.name;
       try {
         const newRows = parsePhoneConsultationCsv(await file.text());
         if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. 처리건수가 0인 행은 제외됩니다.");
-        loadRows(mergeUploadedRows(newRows, "유선 상담"), `유선 문의 추가: ${file.name}`);
+        pending.phone = { rows: newRows, name: file.name };
+        renderPreview(newRows, "phonePreviewTable", "phonePreviewWrap");
+        showUploadMsg("success", `유선 문의 CSV 로드 완료 (${nf.format(newRows.length)}건) — 반영하기 버튼을 눌러 적용하세요.`);
       } catch (error) {
-        setStatus(`유선 CSV 오류: ${error.message}`);
+        pending.phone = null;
+        renderPreview(null, "phonePreviewTable", "phonePreviewWrap");
+        showUploadMsg("error", `유선 CSV 오류: ${error.message}`);
       }
     });
     $("channelFile").addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
+      $("channelFileName").textContent = file.name;
       try {
         const newRows = parseChannelTalkXlsx(await file.arrayBuffer());
         if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. firstAnsweredAt이 비어 있는 행은 제외됩니다.");
-        loadRows(mergeUploadedRows(newRows, "채널톡"), `채널톡 추가: ${file.name}`);
+        pending.channel = { rows: newRows, name: file.name };
+        renderPreview(newRows, "channelPreviewTable", "channelPreviewWrap");
+        showUploadMsg("success", `채널톡 Excel 로드 완료 (${nf.format(newRows.length)}건) — 반영하기 버튼을 눌러 적용하세요.`);
       } catch (error) {
-        setStatus(`채널톡 Excel 오류: ${error.message}`);
+        pending.channel = null;
+        renderPreview(null, "channelPreviewTable", "channelPreviewWrap");
+        showUploadMsg("error", `채널톡 Excel 오류: ${error.message}`);
+      }
+    });
+    $("applyBtn").addEventListener("click", () => {
+      if (!pending.phone && !pending.channel) {
+        showUploadMsg("error", "반영할 파일이 없습니다. 파일을 먼저 선택해주세요.");
+        return;
+      }
+      try {
+        const labels = [];
+        if (pending.phone) {
+          state.rows = mergeUploadedRows(pending.phone.rows, "유선 상담");
+          labels.push(`유선 문의: ${pending.phone.name}`);
+          pending.phone = null;
+        }
+        if (pending.channel) {
+          state.rows = mergeUploadedRows(pending.channel.rows, "채널톡");
+          labels.push(`채널톡: ${pending.channel.name}`);
+          pending.channel = null;
+        }
+        setFilters(state.rows);
+        applyFilters();
+        showUploadMsg("success", `반영 완료: ${labels.join(", ")}`);
+        setStatus(`업로드 반영 · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
+      } catch (error) {
+        showUploadMsg("error", `반영 오류: ${error.message}`);
       }
     });
     window.addEventListener("resize", () => render());
