@@ -238,36 +238,54 @@
       .rank-row .value { grid-column: 2; }
     }
 
-    /* ── 영역 헤더 ──────────────────────────────── */
-    .section-header {
+    /* ── 탭 네비게이션 ──────────────────────────── */
+    .tab-nav {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .section-header h2 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-    }
-    .section-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .badge-input  { background: #e0eef8; color: #1a5a80; }
-    .badge-status { background: #e0f4ea; color: #1a6b3c; }
-
-    /* ── 업무 입력 영역 ─────────────────────────── */
-    .input-section {
-      background: #f0f7fa;
-      border: 1px solid #aed4e8;
-      border-radius: 10px;
-      padding: 18px;
+      border-bottom: 2px solid var(--line);
       margin-bottom: 20px;
+      background: var(--panel);
+      border-radius: 8px 8px 0 0;
+      padding: 0 6px;
+      box-shadow: var(--shadow);
+    }
+    .tab-btn {
+      padding: 13px 28px;
+      background: transparent !important;
+      border: none !important;
+      border-bottom: 3px solid transparent !important;
+      border-radius: 0 !important;
+      color: var(--muted) !important;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      width: auto !important;
+      min-height: auto !important;
+      align-self: auto;
+      margin-bottom: -2px;
+      letter-spacing: -0.01em;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn.active {
+      color: var(--teal) !important;
+      border-bottom-color: var(--teal) !important;
+    }
+    .tab-btn:hover:not(.active) { color: var(--ink) !important; }
+
+    /* ── 탭 패널 ─────────────────────────────────── */
+    .tab-panel { display: block; }
+    .tab-panel.hidden { display: none; }
+
+    /* ── 업무 입력 패널 래퍼 ─────────────────────── */
+    .tab-input-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .tab-input-panel > h2 {
+      margin: 0 0 16px;
+      font-size: 17px;
     }
     .upload-grid {
       display: grid;
@@ -356,14 +374,6 @@
     .upload-msg.success { background: #e0f4ea; color: #1a6b3c; border: 1px solid #a3d4b4; display: block; }
     .upload-msg.error   { background: #fdf0f0; color: #9b2a2a; border: 1px solid #e8b4b4; display: block; }
 
-    /* ── 업무 현황 영역 ─────────────────────────── */
-    .dashboard-section {
-      background: #f2fbf5;
-      border: 1px solid #aad5bc;
-      border-radius: 10px;
-      padding: 18px;
-    }
-
     /* ── 현황 테이블 그리드 ──────────────────────── */
     .data-tables {
       display: grid;
@@ -427,74 +437,73 @@
       <div class="status" id="status">데이터를 불러오는 중입니다.</div>
     </header>
 
-    <!-- 1. 상단 공통 필터 -->
-    <section class="filters" aria-label="공통 필터">
-      <label>월
-        <select id="monthFilter"><option value="all">전체</option></select>
-      </label>
-      <label>시작일
-        <input id="startDate" type="date">
-      </label>
-      <label>종료일
-        <input id="endDate" type="date">
-      </label>
-      <label>상담사
-        <select id="counselorFilter"><option value="all">전체</option></select>
-      </label>
-      <label>업무 대분류
-        <select id="mainFilter"><option value="all">전체</option></select>
-      </label>
-      <label>업무 소분류
-        <select id="subFilter"><option value="all">전체</option></select>
-      </label>
-      <button id="syncBtn" type="button">원본 동기화</button>
-      <button id="resetBtn" type="button">필터 초기화</button>
-    </section>
+    <!-- 탭 네비게이션 -->
+    <nav class="tab-nav" aria-label="탭 메뉴">
+      <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
+      <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
+    </nav>
 
-    <!-- 2. 업무 입력 영역 -->
-    <section class="input-section" aria-label="업무 데이터 입력">
-      <div class="section-header">
+    <!-- 탭 1: 업무 입력 -->
+    <div class="tab-panel" id="tab-input">
+      <div class="tab-input-panel">
         <h2>업무 데이터 입력</h2>
-        <span class="section-badge badge-input">데이터 업로드</span>
-      </div>
-      <div class="upload-grid">
-        <div class="upload-slot">
-          <label>유선 문의 CSV <small>(.csv)</small>
-            <input id="phoneFile" type="file" accept=".csv,text/csv">
-          </label>
-          <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
-          <div class="preview-wrap" id="phonePreviewWrap">
-            <div class="preview-label">미리보기 (최대 5행)</div>
-            <div class="preview-scroll">
-              <table class="preview-table" id="phonePreviewTable"></table>
+        <div class="upload-grid">
+          <div class="upload-slot">
+            <label>유선 문의 CSV <small>(.csv)</small>
+              <input id="phoneFile" type="file" accept=".csv,text/csv">
+            </label>
+            <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
+            <div class="preview-wrap" id="phonePreviewWrap">
+              <div class="preview-label">미리보기 (최대 5행)</div>
+              <div class="preview-scroll">
+                <table class="preview-table" id="phonePreviewTable"></table>
+              </div>
+            </div>
+          </div>
+          <div class="upload-slot">
+            <label>채널톡 Excel <small>(.xlsx)</small>
+              <input id="channelFile" type="file" accept=".xlsx">
+            </label>
+            <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
+            <div class="preview-wrap" id="channelPreviewWrap">
+              <div class="preview-label">미리보기 (최대 5행)</div>
+              <div class="preview-scroll">
+                <table class="preview-table" id="channelPreviewTable"></table>
+              </div>
             </div>
           </div>
         </div>
-        <div class="upload-slot">
-          <label>채널톡 Excel <small>(.xlsx)</small>
-            <input id="channelFile" type="file" accept=".xlsx">
-          </label>
-          <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
-          <div class="preview-wrap" id="channelPreviewWrap">
-            <div class="preview-label">미리보기 (최대 5행)</div>
-            <div class="preview-scroll">
-              <table class="preview-table" id="channelPreviewTable"></table>
-            </div>
-          </div>
+        <div class="upload-actions">
+          <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
+          <div class="upload-msg" id="uploadMsg"></div>
         </div>
       </div>
-      <div class="upload-actions">
-        <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
-        <div class="upload-msg" id="uploadMsg"></div>
-      </div>
-    </section>
+    </div>
 
-    <!-- 3. 업무 현황 영역 -->
-    <section class="dashboard-section" aria-label="업무 현황">
-      <div class="section-header">
-        <h2>업무 현황</h2>
-        <span class="section-badge badge-status">현황 분석</span>
-      </div>
+    <!-- 탭 2: 업무 현황 -->
+    <div class="tab-panel hidden" id="tab-status">
+      <section class="filters" aria-label="필터">
+        <label>월
+          <select id="monthFilter"><option value="all">전체</option></select>
+        </label>
+        <label>시작일
+          <input id="startDate" type="date">
+        </label>
+        <label>종료일
+          <input id="endDate" type="date">
+        </label>
+        <label>상담사
+          <select id="counselorFilter"><option value="all">전체</option></select>
+        </label>
+        <label>업무 대분류
+          <select id="mainFilter"><option value="all">전체</option></select>
+        </label>
+        <label>업무 소분류
+          <select id="subFilter"><option value="all">전체</option></select>
+        </label>
+        <button id="syncBtn" type="button">원본 동기화</button>
+        <button id="resetBtn" type="button">필터 초기화</button>
+      </section>
 
       <section class="kpis" aria-label="KPI">
         <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
@@ -566,7 +575,7 @@
           </div>
         </div>
       </div>
-    </section>
+    </div>
   </main>
 
   <script id="saved-data" type="application/json">[
@@ -4584,6 +4593,15 @@
         showUploadMsg("error", `반영 오류: ${error.message}`);
       }
     });
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
+        if (target === "status") render();
+      });
+    });
+
     window.addEventListener("resize", () => render());
     init();
   </script>
