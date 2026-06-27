@@ -585,7 +585,10 @@
         <p class="input-section-title">수동 입력</p>
         <div class="manual-form">
           <label>날짜
-            <input id="manualDate" type="date">
+            <div style="display:flex;gap:5px">
+              <input id="manualDate" type="date" style="flex:1;min-width:0;width:auto">
+              <button id="datePlusBtn" type="button" title="다음 날로 이동" style="width:auto;flex-shrink:0;min-height:38px;padding:0 9px;font-size:12px;font-weight:800;background:var(--panel);border-color:var(--line);color:var(--ink);white-space:nowrap">+1일</button>
+            </div>
           </label>
           <label>상담사
             <select id="manualCounselor">
@@ -4710,7 +4713,7 @@
         body.innerHTML = '<div class="manual-log-empty">입력된 데이터가 없습니다.</div>';
         return;
       }
-      body.innerHTML = state.manualRows.slice().reverse().map((r) => `
+      body.innerHTML = [...state.manualRows].sort((a, b) => b.dateText.localeCompare(a.dateText) || b._id - a._id).map((r) => `
         <div class="manual-log-row">
           <span>${escapeHtml(r.dateText || "")}</span>
           <span>${escapeHtml(r.counselorDisplay || r.counselor || "")}</span>
@@ -4826,6 +4829,13 @@
         showUploadMsg("error", `반영 오류: ${error.message}`);
       }
     });
+    $("datePlusBtn").addEventListener("click", () => {
+      const cur = $("manualDate").value;
+      const base = cur ? new Date(cur + "T00:00:00") : new Date();
+      base.setDate(base.getDate() + 1);
+      $("manualDate").value = `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, "0")}-${String(base.getDate()).padStart(2, "0")}`;
+    });
+
     $("manualMain").addEventListener("change", function () {
       const subs = MANUAL_CATEGORIES[this.value] || [];
       const subEl = $("manualSub");
@@ -4870,9 +4880,9 @@
       state.manualRows.push(row);
       saveManualRows();
       renderManualLog();
-      $("manualDate").value = "";
       $("manualCount").value = "";
       $("manualMinutes").value = "";
+      $("manualCount").focus();
       setFilters(state.rows);
       applyFilters();
       showUploadMsg("success", `수동 입력 완료: ${escapeHtml(counselorKey)} / ${escapeHtml(main)} / ${escapeHtml(sub)} / ${nf.format(count)}건`);
