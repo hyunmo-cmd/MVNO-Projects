@@ -5,545 +5,478 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MVNO 고객센터 업무 현황 대시보드</title>
   <style>
+    /* ── Design Tokens ─────────────────────────────────── */
     :root {
-      --bg: #f4f6f8;
-      --panel: #ffffff;
-      --ink: #172026;
-      --muted: #66737f;
-      --line: #dce3e9;
-      --teal: #008a8a;
-      --blue: #3867d6;
-      --green: #2e9d5b;
-      --amber: #d18616;
-      --red: #cf4b4b;
-      --violet: #7057c8;
-      --shadow: 0 10px 28px rgba(23, 32, 38, 0.08);
+      --bg: #F7F8FA;
+      --panel: #FFFFFF;
+      --border: #E5E7EB;
+      --border-2: #F3F4F6;
+      --text: #0D1117;
+      --text-2: #374151;
+      --muted: #6B7280;
+      --muted-2: #9CA3AF;
+      --blue: #2563EB;
+      --blue-50: #EFF6FF;
+      --blue-100: #DBEAFE;
+      --green: #059669;
+      --green-50: #ECFDF5;
+      --amber: #D97706;
+      --amber-50: #FFFBEB;
+      --red: #DC2626;
+      --red-50: #FEF2F2;
+      --violet: #7C3AED;
+      --teal: #2563EB;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04);
+      --radius: 8px;
     }
 
-    * { box-sizing: border-box; }
+    /* ── Reset & Base ──────────────────────────────────── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      min-height: 100vh;
       background: var(--bg);
-      color: var(--ink);
-      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-      letter-spacing: 0;
+      color: var(--text);
+      font-family: "Pretendard", "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
+    /* ── App Shell ─────────────────────────────────────── */
     .app {
       width: min(1440px, 100%);
       margin: 0 auto;
-      padding: 24px;
+      padding: 20px 24px 32px;
     }
 
-    header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 16px;
-      align-items: end;
-      margin-bottom: 18px;
-    }
-
-    h1 {
-      margin: 0 0 6px;
-      font-size: clamp(24px, 3vw, 34px);
-      line-height: 1.2;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .status {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      padding: 10px 12px;
-      color: var(--muted);
-      font-size: 13px;
-      box-shadow: var(--shadow);
-      max-width: 460px;
-    }
-
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-      padding: 14px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    input, select, button {
-      width: 100%;
-      min-height: 40px;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #fff;
-      color: var(--ink);
-      font: inherit;
-      padding: 8px 10px;
-    }
-
-    button {
-      align-self: end;
-      cursor: pointer;
-      border-color: var(--teal);
-      background: var(--teal);
-      color: #fff;
-      font-weight: 800;
-    }
-
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .kpi {
-      min-height: 112px;
-      padding: 16px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      display: grid;
-      align-content: space-between;
-    }
-
-    .kpi span {
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .kpi strong {
-      margin-top: 10px;
-      font-size: clamp(22px, 2.5vw, 31px);
-      line-height: 1.05;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 16px;
-    }
-
-    .panel {
-      grid-column: span 6;
-      min-width: 0;
-      min-height: 360px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      padding: 16px;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 10px;
-    }
-
-    .panel.wide { grid-column: span 12; min-height: 390px; }
-    .panel h2 {
-      margin: 0;
-      font-size: 17px;
-      line-height: 1.3;
-    }
-
-    .chart-wrap {
-      position: relative;
-      min-height: 280px;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .rank-list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      overflow: auto;
-      display: grid;
-      align-content: start;
-      gap: 8px;
-    }
-
-    .rank-row {
-      display: grid;
-      grid-template-columns: 36px minmax(0, 1fr) auto;
-      gap: 10px;
+    /* ── Header ────────────────────────────────────────── */
+    .app-header {
+      display: flex;
       align-items: center;
-      padding: 10px;
-      border: 1px solid var(--line);
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 16px;
+    }
+    .app-header-left { display: flex; align-items: center; gap: 12px; }
+    .app-logo {
+      width: 32px; height: 32px;
+      background: var(--blue);
       border-radius: 8px;
-      background: #fbfcfd;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
-
-    .rank-row .no {
-      color: var(--muted);
-      font-weight: 800;
-    }
-
-    .rank-row .name {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .app-logo svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+    .app-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+    .app-subtitle { font-size: 12px; color: var(--muted); margin-top: 1px; }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 12px;
+      font-size: 12px; color: var(--muted);
+      box-shadow: var(--shadow);
       white-space: nowrap;
-      font-weight: 800;
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
     }
 
-    .rank-row .value {
-      color: var(--teal);
-      font-weight: 900;
-    }
-
-    .empty {
-      display: grid;
-      place-items: center;
-      min-height: 220px;
-      color: var(--muted);
-      text-align: center;
-      border: 1px dashed var(--line);
-      border-radius: 8px;
-      padding: 24px;
-    }
-
-    @media (max-width: 1100px) {
-      .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 760px) {
-      .app { padding: 16px; }
-      header { grid-template-columns: 1fr; }
-      .filters, .kpis { grid-template-columns: 1fr; }
-      .panel, .panel.wide { grid-column: span 12; min-height: 330px; }
-      .rank-row { grid-template-columns: 30px minmax(0, 1fr); }
-      .rank-row .value { grid-column: 2; }
-    }
-
-    /* ── 탭 네비게이션 ──────────────────────────── */
+    /* ── Tab Navigation ────────────────────────────────── */
     .tab-nav {
       display: flex;
-      border-bottom: 2px solid var(--line);
-      margin-bottom: 20px;
+      gap: 2px;
+      margin-bottom: 16px;
       background: var(--panel);
-      border-radius: 8px 8px 0 0;
-      padding: 0 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
       box-shadow: var(--shadow);
+      width: fit-content;
     }
     .tab-btn {
-      padding: 13px 28px;
+      padding: 7px 18px;
       background: transparent !important;
       border: none !important;
-      border-bottom: 3px solid transparent !important;
-      border-radius: 0 !important;
+      border-radius: 6px !important;
       color: var(--muted) !important;
-      font-weight: 700;
-      font-size: 15px;
+      font-weight: 600;
+      font-size: 13px;
       cursor: pointer;
       width: auto !important;
       min-height: auto !important;
-      align-self: auto;
-      margin-bottom: -2px;
-      letter-spacing: -0.01em;
-      transition: color 0.15s, border-color 0.15s;
+      transition: all 0.15s ease;
+      white-space: nowrap;
     }
     .tab-btn.active {
-      color: var(--teal) !important;
-      border-bottom-color: var(--teal) !important;
+      background: var(--bg) !important;
+      color: var(--text) !important;
+      box-shadow: var(--shadow) !important;
     }
-    .tab-btn:hover:not(.active) { color: var(--ink) !important; }
+    .tab-btn:hover:not(.active) { color: var(--text-2) !important; }
 
-    /* ── 탭 패널 ─────────────────────────────────── */
+    /* ── Tab Panels ────────────────────────────────────── */
     .tab-panel { display: block; }
     .tab-panel.hidden { display: none; }
 
-    /* ── 업무 입력 패널 래퍼 ─────────────────────── */
-    .tab-input-panel {
+    /* ── Filter Bar ────────────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      padding: 12px 14px;
       background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
-    .tab-input-panel > h2 {
-      margin: 0 0 16px;
-      font-size: 17px;
-    }
-    .upload-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    .upload-slot {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      display: grid;
-      gap: 8px;
-    }
-    .upload-slot label {
-      color: var(--ink);
-      font-size: 13px;
-      font-weight: 700;
-      gap: 4px;
-    }
-    .upload-slot label small {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 400;
-    }
-    .upload-filename {
-      font-size: 12px;
-      color: var(--teal);
-      font-weight: 600;
-      word-break: break-all;
-      min-height: 18px;
-    }
-    .preview-wrap { display: none; margin-top: 6px; }
-    .preview-wrap.visible { display: block; }
-    .preview-label {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-      margin-bottom: 5px;
-    }
-    .preview-scroll {
-      overflow-x: auto;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-    }
-    .preview-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .preview-table th, .preview-table td {
-      padding: 5px 9px;
-      text-align: left;
-      border-bottom: 1px solid var(--line);
-      white-space: nowrap;
-    }
-    .preview-table th {
-      background: #f4f6f8;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .preview-table tr:last-child td { border-bottom: none; }
-
-    .upload-actions {
+    .filter-bar label {
       display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
     }
-    .apply-btn {
-      width: auto;
-      min-height: 38px;
-      padding: 8px 22px;
-      background: var(--green);
-      border-color: var(--green);
-      font-size: 14px;
-      font-weight: 800;
-    }
-    .upload-msg {
-      font-size: 13px;
-      padding: 7px 12px;
+    .filter-bar input,
+    .filter-bar select {
+      height: 34px;
+      min-height: 34px;
+      border: 1px solid var(--border);
       border-radius: 6px;
-      display: none;
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      padding: 0 10px;
+      width: auto;
+      min-width: 100px;
+      outline: none;
+      transition: border-color 0.15s;
     }
-    .upload-msg.success { background: #e0f4ea; color: #1a6b3c; border: 1px solid #a3d4b4; display: block; }
-    .upload-msg.error   { background: #fdf0f0; color: #9b2a2a; border: 1px solid #e8b4b4; display: block; }
+    .filter-bar input:focus,
+    .filter-bar select:focus { border-color: var(--blue); }
+    .filter-bar .filter-actions { display: flex; gap: 6px; align-self: flex-end; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 34px; padding: 0 14px;
+      border-radius: 6px;
+      font: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border);
+      transition: all 0.15s ease; white-space: nowrap;
+      width: auto; min-height: 34px;
+    }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+    .btn-ghost { background: var(--panel); color: var(--text-2); }
+    .btn-ghost:hover { background: var(--bg); }
 
-    /* ── 현황 테이블 그리드 ──────────────────────── */
+    /* ── KPI Cards ─────────────────────────────────────── */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--kpi-color, var(--blue));
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 8px;
+      transition: box-shadow 0.15s ease;
+    }
+    .kpi-card:hover { box-shadow: var(--shadow-md); }
+    .kpi-header { display: flex; align-items: center; justify-content: space-between; }
+    .kpi-icon-wrap {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--kpi-bg, var(--blue-50));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .kpi-icon-wrap svg { width: 16px; height: 16px; stroke: var(--kpi-color, var(--blue)); fill: none; }
+    .kpi-delta {
+      font-size: 11px; font-weight: 600; padding: 2px 7px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .kpi-delta--up { background: var(--green-50); color: var(--green); }
+    .kpi-delta--down { background: var(--red-50); color: var(--red); }
+    .kpi-delta--flat { background: var(--bg); color: var(--muted); }
+    .kpi-body { display: flex; align-items: baseline; gap: 4px; }
+    .kpi-value {
+      font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+      color: var(--text); font-variant-numeric: tabular-nums; line-height: 1;
+    }
+    .kpi-unit { font-size: 13px; font-weight: 500; color: var(--muted); }
+    .kpi-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    /* ── Chart Layout ──────────────────────────────────── */
+    .chart-row {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .chart-row--2col { grid-template-columns: 1fr 1fr; }
+    .chart-row--trend { grid-template-columns: 1fr 1fr 1fr; }
+
+    .chart-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 12px;
+      min-height: 260px;
+    }
+    .chart-card-header { display: flex; flex-direction: column; gap: 2px; }
+    .chart-card-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .chart-card-sub { font-size: 12px; color: var(--muted); }
+    .chart-area { position: relative; flex: 1; min-height: 180px; }
+    .chart-area canvas { width: 100%; height: 100%; display: block; }
+
+    /* Donut Layout */
+    .donut-layout {
+      display: flex; align-items: center; gap: 16px; flex: 1;
+    }
+    .donut-canvas-wrap { flex-shrink: 0; }
+    .donut-legend {
+      flex: 1; list-style: none;
+      display: flex; flex-direction: column; gap: 8px;
+      overflow: hidden;
+    }
+    .donut-legend-item {
+      display: grid;
+      grid-template-columns: 10px 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .donut-dot {
+      width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+    }
+    .donut-name {
+      color: var(--text-2); overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; font-weight: 500;
+    }
+    .donut-val { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .donut-pct { color: var(--muted); font-size: 11px; white-space: nowrap; min-width: 38px; text-align: right; }
+
+    /* Ranking */
+    .rank-list { list-style: none; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; flex: 1; }
+    .rank-item {
+      display: grid; grid-template-columns: 22px 1fr auto;
+      gap: 8px; align-items: center;
+      padding: 8px 10px;
+      border: 1px solid var(--border-2); border-radius: 6px;
+      background: var(--bg);
+    }
+    .rank-no {
+      font-size: 11px; font-weight: 800; color: var(--muted-2);
+      text-align: center; font-variant-numeric: tabular-nums;
+    }
+    .rank-no.top { color: var(--blue); }
+    .rank-name { font-size: 12px; color: var(--text-2); font-weight: 500; overflow: hidden; }
+    .rank-name strong { display: block; color: var(--text); font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rank-name small { color: var(--muted); font-size: 11px; }
+    .rank-val { font-size: 13px; font-weight: 700; color: var(--blue); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    /* Empty State */
+    .empty-state {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 140px; color: var(--muted); font-size: 13px;
+      border: 1px dashed var(--border); border-radius: 6px;
+    }
+
+    /* Error Panel */
+    .error-panel {
+      background: var(--red-50); border: 1px solid #FECACA;
+      border-radius: var(--radius); padding: 20px;
+      color: var(--red); font-size: 13px; margin-bottom: 12px;
+    }
+
+    /* ── Data Tables ───────────────────────────────────── */
     .data-tables {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-top: 20px;
+      gap: 12px;
+      margin-top: 12px;
     }
-    .data-table-panel {
+    .data-table-card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .data-table-card-header {
+      padding: 12px 16px; border-bottom: 1px solid var(--border-2);
+      font-size: 13px; font-weight: 700; color: var(--text);
       background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
     }
-    .data-table-panel h3 {
-      margin: 0 0 10px;
-      font-size: 14px;
-      font-weight: 800;
-    }
-    .data-table-scroll {
-      overflow: auto;
-      max-height: 260px;
-    }
+    .data-table-scroll { overflow: auto; max-height: 220px; }
     .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    .data-table th, .data-table td {
-      padding: 7px 10px;
-      text-align: left;
-      border-bottom: 1px solid var(--line);
+      width: 100%; border-collapse: collapse; font-size: 12px;
     }
     .data-table th {
-      background: #f4f6f8;
-      font-weight: 700;
-      color: var(--muted);
-      font-size: 12px;
-      position: sticky;
-      top: 0;
+      padding: 8px 14px; text-align: left;
+      background: var(--bg); font-weight: 600; color: var(--muted);
+      font-size: 11px; letter-spacing: 0.02em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0;
+    }
+    .data-table td {
+      padding: 8px 14px; border-bottom: 1px solid var(--border-2);
+      color: var(--text-2);
     }
     .data-table td:nth-child(2),
     .data-table th:nth-child(2),
     .data-table td:nth-child(3),
-    .data-table th:nth-child(3) { text-align: right; }
-    .data-table tbody tr:hover { background: #f8fafc; }
+    .data-table th:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .data-table tbody tr:hover td { background: var(--bg); }
 
-    @media (max-width: 900px) {
-      .upload-grid  { grid-template-columns: 1fr; }
-      .data-tables  { grid-template-columns: 1fr; }
-    }
-
-    /* ── 수동 입력 ────────────────────────────── */
-    .section-divider {
-      border: none;
-      border-top: 1px solid var(--line);
-      margin: 24px 0;
+    /* ── Upload / Input Tab ────────────────────────────── */
+    .input-panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
     }
     .input-section-title {
-      margin: 0 0 12px;
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--ink);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      font-size: 13px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
     }
     .input-section-title .badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: var(--teal);
-      color: #fff;
+      font-size: 11px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; background: var(--blue-50); color: var(--blue);
     }
+    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .upload-slot {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; display: grid; gap: 8px;
+    }
+    .upload-slot label { font-size: 12px; font-weight: 700; color: var(--text); display: grid; gap: 4px; }
+    .upload-slot label small { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .upload-slot input[type="file"],
+    .upload-slot input[type="password"] {
+      width: 100%; height: 34px; min-height: 34px;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--panel); color: var(--text); font: inherit; font-size: 12px; padding: 0 10px;
+    }
+    .upload-filename { font-size: 11px; color: var(--blue); font-weight: 500; word-break: break-all; min-height: 16px; }
+    .preview-wrap { display: none; margin-top: 4px; }
+    .preview-wrap.visible { display: block; }
+    .preview-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+    .preview-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+    .preview-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .preview-table th, .preview-table td { padding: 4px 8px; text-align: left; border-bottom: 1px solid var(--border-2); white-space: nowrap; }
+    .preview-table th { background: var(--bg); font-weight: 600; color: var(--muted); }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .upload-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .apply-btn {
+      display: inline-flex; align-items: center;
+      height: 36px; padding: 0 18px;
+      background: var(--green); border: 1px solid var(--green); border-radius: 6px;
+      color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+      width: auto; min-height: 36px; transition: all 0.15s;
+    }
+    .apply-btn:hover { background: #047857; border-color: #047857; }
+    .upload-msg { font-size: 12px; padding: 6px 12px; border-radius: 6px; display: none; }
+    .upload-msg.success { background: var(--green-50); color: #065f46; border: 1px solid #A7F3D0; display: block; }
+    .upload-msg.error { background: var(--red-50); color: #991b1b; border: 1px solid #FECACA; display: block; }
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
     .manual-form {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr) 90px 100px auto;
-      gap: 10px;
-      align-items: end;
-      padding: 14px;
-      background: #f8fafc;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      margin-bottom: 12px;
+      display: grid; grid-template-columns: repeat(4, 1fr) 90px 100px auto;
+      gap: 10px; align-items: end;
+      padding: 14px; background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 12px;
     }
-    .manual-form label { font-size: 12px; gap: 5px; }
-    .manual-form input, .manual-form select { min-height: 38px; font-size: 13px; }
+    .manual-form label { font-size: 11px; font-weight: 600; color: var(--muted); display: grid; gap: 4px; text-transform: uppercase; letter-spacing: 0.02em; }
+    .manual-form input, .manual-form select {
+      height: 34px; min-height: 34px; border: 1px solid var(--border);
+      border-radius: 6px; background: var(--panel); color: var(--text);
+      font: inherit; font-size: 13px; padding: 0 10px; width: 100%;
+    }
     .manual-add-btn {
-      min-height: 38px;
-      width: auto;
-      padding: 0 18px;
-      background: var(--teal);
-      border-color: var(--teal);
-      font-size: 14px;
-      font-weight: 800;
-      white-space: nowrap;
-      align-self: end;
+      height: 34px; min-height: 34px; padding: 0 16px; width: auto;
+      background: var(--blue); border: 1px solid var(--blue); border-radius: 6px;
+      color: #fff; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+      white-space: nowrap; transition: all 0.15s; align-self: end;
     }
-    .manual-log {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+    .manual-add-btn:hover { background: #1d4ed8; border-color: #1d4ed8; }
+    .manual-log { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .manual-log-header {
-      display: grid;
-      grid-template-columns: 90px 70px 1fr 1fr 50px 60px 50px 36px;
-      gap: 8px;
-      background: #f4f6f8;
-      padding: 7px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
+      display: grid; grid-template-columns: 90px 70px 1fr 1fr 50px 60px 50px 36px;
+      gap: 8px; background: var(--bg); padding: 7px 12px;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.02em;
     }
     .manual-log-body { max-height: 260px; overflow-y: auto; }
-    .manual-log-empty {
-      text-align: center;
-      padding: 20px;
-      color: var(--muted);
-      font-size: 13px;
-    }
+    .manual-log-empty { text-align: center; padding: 20px; color: var(--muted); font-size: 12px; }
     .manual-log-row {
-      display: grid;
-      grid-template-columns: 90px 70px 1fr 1fr 50px 60px 50px 36px;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      border-top: 1px solid var(--line);
-      font-size: 13px;
+      display: grid; grid-template-columns: 90px 70px 1fr 1fr 50px 60px 50px 36px;
+      align-items: center; gap: 8px; padding: 8px 12px;
+      border-top: 1px solid var(--border-2); font-size: 12px; color: var(--text-2);
     }
-    .manual-log-row:hover { background: #f8fafc; }
+    .manual-log-row:hover { background: var(--bg); }
     .del-btn {
-      width: 28px;
-      min-height: 28px;
-      padding: 0;
-      background: transparent;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      color: var(--red);
-      font-size: 14px;
-      font-weight: 900;
-      cursor: pointer;
+      width: 28px; height: 28px; min-height: 28px; padding: 0;
+      background: transparent; border: 1px solid var(--border); border-radius: 4px;
+      color: var(--red); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s;
     }
-    .del-btn:hover { background: #fdf0f0; border-color: var(--red); }
+    .del-btn:hover { background: var(--red-50); border-color: var(--red); }
+
+    /* ── Responsive ────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .chart-row--2col { grid-template-columns: 1fr; }
+      .chart-row--trend { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 900px) {
+      .app { padding: 12px; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .chart-row--trend { grid-template-columns: 1fr; }
+      .data-tables { grid-template-columns: 1fr; }
+      .upload-grid { grid-template-columns: 1fr; }
       .manual-form { grid-template-columns: 1fr 1fr; }
-      .manual-log-header, .manual-log-row { grid-template-columns: 80px 60px 1fr 1fr 40px 50px 40px 30px; font-size: 11px; }
+      .manual-log-header, .manual-log-row { grid-template-columns: 80px 60px 1fr 1fr 40px 50px 40px 30px; font-size: 10px; }
+    }
+    @media (max-width: 600px) {
+      .kpis { grid-template-columns: 1fr 1fr; }
+      .kpi-value { font-size: 22px; }
+      .donut-layout { flex-direction: column; align-items: flex-start; }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <main class="app">
-    <header>
-      <div>
-        <h1>MVNO 고객센터 업무 현황</h1>
-        <div class="subtitle">Google Sheets 원본 데이터 기준, 새로고침 시 최신 데이터 반영</div>
+
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="app-header-left">
+        <div class="app-logo">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </div>
+        <div>
+          <div class="app-title">MVNO 고객센터 업무 현황</div>
+          <div class="app-subtitle">실시간 데이터 · 필터 기반 집계</div>
+        </div>
       </div>
-      <div class="status" id="status">데이터를 불러오는 중입니다.</div>
+      <div class="status-badge">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="status">데이터를 불러오는 중입니다.</span>
+      </div>
     </header>
 
-    <!-- 탭 네비게이션 -->
+    <!-- Tab Navigation -->
     <nav class="tab-nav" aria-label="탭 메뉴">
       <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
       <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
     </nav>
 
-    <!-- 탭 1: 업무 입력 -->
+    <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
     <div class="tab-panel" id="tab-input">
-      <div class="tab-input-panel">
-        <!-- 파일 업로드 섹션 -->
+      <div class="input-panel">
         <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡</span></p>
         <div class="upload-grid">
           <div class="upload-slot">
@@ -553,9 +486,7 @@
             <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
             <div class="preview-wrap" id="phonePreviewWrap">
               <div class="preview-label">미리보기 (최대 5행)</div>
-              <div class="preview-scroll">
-                <table class="preview-table" id="phonePreviewTable"></table>
-              </div>
+              <div class="preview-scroll"><table class="preview-table" id="phonePreviewTable"></table></div>
             </div>
           </div>
           <div class="upload-slot">
@@ -568,9 +499,7 @@
             <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
             <div class="preview-wrap" id="channelPreviewWrap">
               <div class="preview-label">미리보기 (최대 5행)</div>
-              <div class="preview-scroll">
-                <table class="preview-table" id="channelPreviewTable"></table>
-              </div>
+              <div class="preview-scroll"><table class="preview-table" id="channelPreviewTable"></table></div>
             </div>
           </div>
         </div>
@@ -581,13 +510,12 @@
 
         <hr class="section-divider">
 
-        <!-- 수동 입력 섹션 -->
         <p class="input-section-title">수동 입력</p>
         <div class="manual-form">
           <label>날짜
             <div style="display:flex;gap:5px">
               <input id="manualDate" type="date" style="flex:1;min-width:0;width:auto">
-              <button id="datePlusBtn" type="button" title="다음 날로 이동" style="width:auto;flex-shrink:0;min-height:38px;padding:0 9px;font-size:12px;font-weight:800;background:var(--panel);border-color:var(--line);color:var(--ink);white-space:nowrap">+1일</button>
+              <button id="datePlusBtn" type="button" title="다음 날로 이동" style="height:34px;min-height:34px;width:auto;flex-shrink:0;padding:0 9px;font-size:12px;font-weight:700;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text-2);cursor:pointer;white-space:nowrap">+1일</button>
             </div>
           </label>
           <label>상담사
@@ -621,14 +549,8 @@
 
         <div class="manual-log">
           <div class="manual-log-header">
-            <span>날짜</span>
-            <span>상담사</span>
-            <span>대분류</span>
-            <span>소분류</span>
-            <span>건수</span>
-            <span>시간(분)</span>
-            <span>출처</span>
-            <span></span>
+            <span>날짜</span><span>상담사</span><span>대분류</span><span>소분류</span>
+            <span>건수</span><span>시간(분)</span><span>출처</span><span></span>
           </div>
           <div class="manual-log-body" id="manualLogBody">
             <div class="manual-log-empty">입력된 데이터가 없습니다.</div>
@@ -637,66 +559,130 @@
       </div>
     </div>
 
-    <!-- 탭 2: 업무 현황 -->
+    <!-- ══ Tab 2: 업무 현황 ══════════════════════════════════ -->
     <div class="tab-panel hidden" id="tab-status">
-      <section class="filters" aria-label="필터">
-        <label>월
-          <select id="monthFilter"><option value="all">전체</option></select>
-        </label>
-        <label>시작일
-          <input id="startDate" type="date">
-        </label>
-        <label>종료일
-          <input id="endDate" type="date">
-        </label>
-        <label>상담사
-          <select id="counselorFilter"><option value="all">전체</option></select>
-        </label>
-        <label>업무 대분류
-          <select id="mainFilter"><option value="all">전체</option></select>
-        </label>
-        <label>업무 소분류
-          <select id="subFilter"><option value="all">전체</option></select>
-        </label>
-        <button id="syncBtn" type="button">원본 동기화</button>
-        <button id="resetBtn" type="button">필터 초기화</button>
+
+      <!-- Filter Bar -->
+      <section class="filter-bar" aria-label="필터">
+        <label>월<select id="monthFilter"><option value="all">전체</option></select></label>
+        <label>시작일<input id="startDate" type="date"></label>
+        <label>종료일<input id="endDate" type="date"></label>
+        <label>상담사<select id="counselorFilter"><option value="all">전체</option></select></label>
+        <label>업무 대분류<select id="mainFilter"><option value="all">전체</option></select></label>
+        <label>업무 소분류<select id="subFilter"><option value="all">전체</option></select></label>
+        <div class="filter-actions">
+          <button id="syncBtn" class="btn btn-primary" type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            동기화
+          </button>
+          <button id="resetBtn" class="btn btn-ghost" type="button">초기화</button>
+        </div>
       </section>
 
+      <!-- Error Panel Placeholder -->
+      <div id="errorPanel"></div>
+
+      <!-- KPIs -->
       <section class="kpis" aria-label="KPI">
-        <article class="kpi"><span>총 처리건수</span><strong id="totalCount">0</strong></article>
-        <article class="kpi"><span>총 소요시간</span><strong id="totalMinutes">0분</strong></article>
-        <article class="kpi"><span>건당 평균 처리시간</span><strong id="avgMinutes">0분</strong></article>
-        <article class="kpi"><span>유선상담 건수</span><strong id="phoneCount">0</strong></article>
-        <article class="kpi"><span>채널톡 건수</span><strong id="channelCount">0</strong></article>
-        <article class="kpi"><span>개통 처리건수</span><strong id="activationCount">0</strong></article>
+        <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="deltaCount">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="totalCount">0</span><span class="kpi-unit">건</span></div>
+          <p class="kpi-label">총 처리건수</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="deltaMinutes">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="totalMinutes">0</span><span class="kpi-unit">분</span></div>
+          <p class="kpi-label">총 소요시간</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="deltaDaily">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="avgDailyCount">0</span><span class="kpi-unit">건/일</span></div>
+          <p class="kpi-label">일 평균 처리건수</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap" style="--kpi-color:var(--violet)">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--violet)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="deltaAvg">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="avgMinutes">0</span><span class="kpi-unit">분/건</span></div>
+          <p class="kpi-label">건당 평균 처리시간</p>
+        </article>
       </section>
 
-      <section class="grid">
-        <article class="panel wide">
-          <h2>일자별 처리건수 추이</h2>
-          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
-        </article>
-        <article class="panel">
-          <h2>업무유형별 처리건수</h2>
-          <div class="chart-wrap"><canvas id="countChart"></canvas></div>
-        </article>
-        <article class="panel">
-          <h2>업무유형별 소요시간</h2>
-          <div class="chart-wrap"><canvas id="timeChart"></canvas></div>
-        </article>
-        <article class="panel">
-          <h2>업무유형 비중</h2>
-          <div class="chart-wrap"><canvas id="shareChart"></canvas></div>
-        </article>
-        <article class="panel">
-          <h2>건당 평균 처리시간 순위</h2>
+      <!-- Row 2: Donut Charts -->
+      <div class="chart-row chart-row--2col">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">처리건수 구성</div>
+            <div class="chart-card-sub">업무 대분류별 비중</div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-canvas-wrap"><canvas id="countChart" width="150" height="150"></canvas></div>
+            <ol class="donut-legend" id="countLegend"></ol>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">소요시간 구성</div>
+            <div class="chart-card-sub">업무 대분류별 총 소요시간</div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-canvas-wrap"><canvas id="timeChart" width="150" height="150"></canvas></div>
+            <ol class="donut-legend" id="timeLegend"></ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Trend + Avg Bar + Ranking -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card" style="grid-column: span 2">
+          <div class="chart-card-header">
+            <div class="chart-card-title">일자별 처리건수 추이</div>
+            <div class="chart-card-sub">필터 기간 기준</div>
+          </div>
+          <div class="chart-area"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">업무별 평균 처리시간</div>
+            <div class="chart-card-sub">분/건 기준 내림차순</div>
+          </div>
+          <div class="chart-area"><canvas id="avgTimeChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Ranking -->
+      <div class="chart-row">
+        <div class="chart-card" style="min-height:auto">
+          <div class="chart-card-header">
+            <div class="chart-card-title">처리시간 순위</div>
+            <div class="chart-card-sub">업무 소분류 기준 평균 처리시간</div>
+          </div>
           <ol class="rank-list" id="rankList"></ol>
-        </article>
-      </section>
+        </div>
+      </div>
 
+      <!-- Data Tables -->
       <div class="data-tables">
-        <div class="data-table-panel">
-          <h3>상담사별 업무 현황</h3>
+        <div class="data-table-card">
+          <div class="data-table-card-header">상담사별 업무 현황</div>
           <div class="data-table-scroll">
             <table class="data-table" id="counselorTable">
               <thead><tr><th>상담사</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
@@ -704,8 +690,8 @@
             </table>
           </div>
         </div>
-        <div class="data-table-panel">
-          <h3>업무 대분류별 현황</h3>
+        <div class="data-table-card">
+          <div class="data-table-card-header">업무 대분류별 현황</div>
           <div class="data-table-scroll">
             <table class="data-table" id="mainTable">
               <thead><tr><th>대분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
@@ -713,8 +699,8 @@
             </table>
           </div>
         </div>
-        <div class="data-table-panel">
-          <h3>업무 소분류별 현황</h3>
+        <div class="data-table-card">
+          <div class="data-table-card-header">업무 소분류별 현황</div>
           <div class="data-table-scroll">
             <table class="data-table" id="subTable">
               <thead><tr><th>소분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
@@ -722,8 +708,8 @@
             </table>
           </div>
         </div>
-        <div class="data-table-panel">
-          <h3>날짜별 업무 현황</h3>
+        <div class="data-table-card">
+          <div class="data-table-card-header">날짜별 업무 현황</div>
           <div class="data-table-scroll">
             <table class="data-table" id="dateTable">
               <thead><tr><th>날짜</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
@@ -732,9 +718,9 @@
           </div>
         </div>
       </div>
-    </div>
-  </main>
 
+    </div><!-- /tab-status -->
+  </main>
   <script id="saved-data" type="application/json">[
   {
     "date": "2026-05-07",
@@ -4016,7 +4002,8 @@
     const SHEET_NAMES = ["일일 진행 업무_5월_김*옥", "일일 진행 업무_5월_진*진", "일일 진행 업무_6월_김*옥", "일일 진행 업무_6월_진*진"];
     const STORAGE_KEY = "mvno-dashboard-rows-v1";
     const SAVED_ROWS = JSON.parse(document.getElementById("saved-data").textContent || "[]");
-    const colors = ["#008a8a", "#3867d6", "#2e9d5b", "#d18616", "#cf4b4b", "#7057c8", "#607d8b", "#9a6a15"];
+    const CHART_COLORS = ["#2563EB","#059669","#D97706","#DC2626","#7C3AED","#EC4899","#0891B2","#84CC16"];
+    const colors = CHART_COLORS;
     const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥" };
     const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진" };
     const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1";
@@ -4429,25 +4416,76 @@
     function renderKpis(rows) {
       const totalCount = rows.reduce((sum, row) => sum + row.count, 0);
       const totalMinutes = rows.reduce((sum, row) => sum + row.minutes, 0);
+      const uniqueDates = new Set(rows.map((r) => r.dateText).filter(Boolean));
+      const avgDaily = uniqueDates.size > 0 ? totalCount / uniqueDates.size : 0;
+      const avgPerJob = totalCount > 0 ? totalMinutes / totalCount : 0;
+
       $("totalCount").textContent = nf.format(totalCount);
-      $("totalMinutes").textContent = `${nf.format(Math.round(totalMinutes))}분`;
-      $("avgMinutes").textContent = totalCount ? `${(totalMinutes / totalCount).toFixed(1)}분` : "0분";
-      $("phoneCount").textContent = nf.format(rows.filter((row) => contains(row, "유선 상담")).reduce((sum, row) => sum + row.count, 0));
-      $("channelCount").textContent = nf.format(rows.filter((row) => contains(row, "채널톡")).reduce((sum, row) => sum + row.count, 0));
-      $("activationCount").textContent = nf.format(rows.filter((row) => contains(row, "개통")).reduce((sum, row) => sum + row.count, 0));
+      $("totalMinutes").textContent = nf.format(Math.round(totalMinutes));
+      $("avgDailyCount").textContent = avgDaily.toFixed(1);
+      $("avgMinutes").textContent = avgPerJob.toFixed(1);
+
+      // Prior period comparison
+      const startVal = $("startDate").value;
+      const endVal = $("endDate").value;
+      function trendHtml(current, prior, id) {
+        const el = $(id);
+        if (!el) return;
+        if (!prior && prior !== 0) { el.className = "kpi-delta kpi-delta--flat"; el.textContent = "—"; return; }
+        const diff = current - prior;
+        const cls = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
+        const arrow = diff > 0 ? "↑" : diff < 0 ? "↓" : "—";
+        const pct = prior > 0 ? Math.abs(((diff / prior) * 100)).toFixed(0) + "%" : "";
+        el.className = `kpi-delta kpi-delta--${cls}`;
+        el.textContent = `${arrow} ${pct || Math.abs(diff)}`;
+      }
+      if (startVal && endVal) {
+        const s = new Date(startVal), e = new Date(endVal);
+        const lenMs = e - s + 86400000;
+        const ps = new Date(s.getTime() - lenMs), pe = new Date(s.getTime() - 86400000);
+        const counselor = $("counselorFilter").value;
+        const main = $("mainFilter").value;
+        const sub = $("subFilter").value;
+        const prior = state.rows.filter((r) => {
+          if (!r.date || r.date < ps || r.date > pe) return false;
+          if (counselor !== "all" && r.counselor !== counselor) return false;
+          if (main !== "all" && r.main !== main) return false;
+          if (sub !== "all" && r.sub !== sub) return false;
+          return true;
+        });
+        const pc = prior.reduce((a, r) => a + r.count, 0);
+        const pm = prior.reduce((a, r) => a + r.minutes, 0);
+        const pd = new Set(prior.map((r) => r.dateText)).size;
+        trendHtml(totalCount, pc, "deltaCount");
+        trendHtml(totalMinutes, pm, "deltaMinutes");
+        trendHtml(avgDaily, pd > 0 ? pc / pd : 0, "deltaDaily");
+        trendHtml(avgPerJob, pc > 0 ? pm / pc : 0, "deltaAvg");
+      } else {
+        ["deltaCount","deltaMinutes","deltaDaily","deltaAvg"].forEach((id) => {
+          const el = $(id); if (el) { el.className = "kpi-delta kpi-delta--flat"; el.textContent = "—"; }
+        });
+      }
     }
 
     function render() {
       const rows = state.filtered;
       renderKpis(rows);
+
       const byDate = groupBy(rows, (row) => row.dateText).sort((a, b) => a.key.localeCompare(b.key));
-      const byType = groupBy(rows, (row) => row.main).sort((a, b) => b.count - a.count);
+      drawLineChart($("trendChart"), byDate.map((d) => d.key), byDate.map((d) => d.count));
+
+      const byMain = groupBy(rows, (row) => row.main).sort((a, b) => b.count - a.count);
+      drawDonutChart($("countChart"), byMain.map((d) => d.key), byMain.map((d) => d.count), "countLegend", "건");
+      drawDonutChart($("timeChart"), byMain.map((d) => d.key), byMain.map((d) => d.minutes), "timeLegend", "분");
+
       const barKey = $("mainFilter").value === "all" ? (row) => row.main : (row) => row.sub;
-      const byBarType = groupBy(rows, barKey).sort((a, b) => b.count - a.count);
-      drawLineChart($("trendChart"), byDate.map((d) => d.key), byDate.map((d) => d.count), "처리건수");
-      drawBarChart($("countChart"), byBarType.map((d) => d.key), byBarType.map((d) => d.count), "처리건수", colors[1]);
-      drawBarChart($("timeChart"), byBarType.map((d) => d.key), byBarType.map((d) => d.minutes), "소요시간", colors[3]);
-      drawPieChart($("shareChart"), byType.map((d) => d.key), byType.map((d) => d.count));
+      const avgData = groupBy(rows, barKey)
+        .filter((d) => d.count > 0)
+        .map((d) => ({ ...d, avg: d.minutes / d.count }))
+        .sort((a, b) => b.avg - a.avg)
+        .slice(0, 8);
+      drawHorizBar($("avgTimeChart"), avgData.map((d) => d.key), avgData.map((d) => d.avg));
+
       renderRanking(rows);
       renderStatusTables(rows);
       setStatus(`${nf.format(rows.length)}개 행 표시 중 · ${new Date().toLocaleString("ko-KR")} 갱신`);
@@ -4480,14 +4518,15 @@
 
     function drawEmpty(ctx, width, height) {
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "#66737f";
+      ctx.fillStyle = "#9CA3AF";
       ctx.textAlign = "center";
-      ctx.font = "14px Segoe UI, sans-serif";
+      ctx.textBaseline = "middle";
+      ctx.font = "13px 'Segoe UI', sans-serif";
       ctx.fillText("표시할 데이터가 없습니다.", width / 2, height / 2);
     }
 
     function drawAxes(ctx, left, top, right, bottom) {
-      ctx.strokeStyle = "#dce3e9";
+      ctx.strokeStyle = "#F3F4F6";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(left, top);
@@ -4500,38 +4539,56 @@
       const { ctx, width, height } = canvasSetup(canvas);
       ctx.clearRect(0, 0, width, height);
       if (!values.length) return drawEmpty(ctx, width, height);
-      const left = 54, right = width - 20, top = 20, bottom = height - 46;
+      const left = 52, right = width - 16, top = 16, bottom = height - 40;
       const max = Math.max(...values, 1);
-      drawAxes(ctx, left, top, right, bottom);
-      ctx.strokeStyle = "rgba(56, 103, 214, 0.18)";
+
+      // Grid lines
+      ctx.strokeStyle = "#F3F4F6";
+      ctx.lineWidth = 1;
       for (let i = 1; i <= 4; i++) {
         const y = bottom - ((bottom - top) * i) / 4;
-        ctx.beginPath();
-        ctx.moveTo(left, y);
-        ctx.lineTo(right, y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
       }
-      const step = labels.length === 1 ? 0 : (right - left) / (labels.length - 1);
-      ctx.strokeStyle = "#3867d6";
-      ctx.lineWidth = 3;
+      drawAxes(ctx, left, top, right, bottom);
+
+      if (labels.length < 2) {
+        const x = (left + right) / 2;
+        const y = bottom - (values[0] / max) * (bottom - top);
+        ctx.fillStyle = "#EFF6FF"; ctx.fillRect(x - 2, y, 4, bottom - y);
+        ctx.fillStyle = "#2563EB"; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+        drawLabels(ctx, labels, left, right, bottom, width);
+        drawScale(ctx, max, left, top, bottom);
+        return;
+      }
+
+      const step = (right - left) / (labels.length - 1);
+      const pts = values.map((v, i) => [left + step * i, bottom - (v / max) * (bottom - top)]);
+
+      // Area fill
+      const grad = ctx.createLinearGradient(0, top, 0, bottom);
+      grad.addColorStop(0, "rgba(37,99,235,0.12)");
+      grad.addColorStop(1, "rgba(37,99,235,0)");
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      values.forEach((value, i) => {
-        const x = labels.length === 1 ? (left + right) / 2 : left + step * i;
-        const y = bottom - (value / max) * (bottom - top);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
+      ctx.moveTo(pts[0][0], bottom);
+      pts.forEach(([x, y]) => ctx.lineTo(x, y));
+      ctx.lineTo(pts[pts.length - 1][0], bottom);
+      ctx.closePath(); ctx.fill();
+
+      // Line
+      ctx.strokeStyle = "#2563EB"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+      ctx.beginPath();
+      pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
       ctx.stroke();
-      values.forEach((value, i) => {
-        const x = labels.length === 1 ? (left + right) / 2 : left + step * i;
-        const y = bottom - (value / max) * (bottom - top);
-        ctx.fillStyle = "#ffffff";
-        ctx.strokeStyle = "#3867d6";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      });
+
+      // Dots (only if few points)
+      if (labels.length <= 20) {
+        pts.forEach(([x, y]) => {
+          ctx.fillStyle = "#fff"; ctx.strokeStyle = "#2563EB"; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        });
+      }
+
       drawLabels(ctx, labels, left, right, bottom, width);
       drawScale(ctx, max, left, top, bottom);
     }
@@ -4560,58 +4617,124 @@
     }
 
     function drawPieChart(canvas, labels, values) {
-      const { ctx, width, height } = canvasSetup(canvas);
-      ctx.clearRect(0, 0, width, height);
-      const total = values.reduce((sum, v) => sum + v, 0);
-      if (!total) return drawEmpty(ctx, width, height);
-      const radius = Math.min(width * 0.28, height * 0.38, 120);
-      const cx = Math.min(width * 0.36, 220);
-      const cy = height / 2;
+      drawDonutChart(canvas, labels, values, null, "건");
+    }
+
+    function drawDonutChart(canvas, labels, values, legendId, unit) {
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const S = 150;
+      canvas.width = S * dpr; canvas.height = S * dpr;
+      canvas.style.width = S + "px"; canvas.style.height = S + "px";
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const total = values.reduce((a, b) => a + b, 0);
+      if (!total) { drawEmpty(ctx, S, S); return; }
+
+      const cx = S / 2, cy = S / 2, R = 62, r = 40;
       let start = -Math.PI / 2;
-      values.forEach((value, i) => {
-        const end = start + (value / total) * Math.PI * 2;
-        ctx.fillStyle = colors[i % colors.length];
+      values.forEach((v, i) => {
+        const end = start + (v / total) * Math.PI * 2;
+        ctx.fillStyle = CHART_COLORS[i % CHART_COLORS.length];
         ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.arc(cx, cy, radius, start, end);
-        ctx.closePath();
-        ctx.fill();
+        ctx.arc(cx, cy, R, start, end);
+        ctx.arc(cx, cy, r, end, start, true);
+        ctx.closePath(); ctx.fill();
+        // Gap
+        ctx.fillStyle = "#FFFFFF";
+        ctx.save(); ctx.translate(cx, cy);
+        ctx.rotate(end); ctx.fillRect(-1, -R, 2, R - r); ctx.restore();
         start = end;
       });
-      const legendX = Math.min(width - 210, cx + radius + 30);
-      labels.slice(0, 8).forEach((label, i) => {
-        const y = 38 + i * 26;
-        ctx.fillStyle = colors[i % colors.length];
-        ctx.fillRect(legendX, y - 10, 12, 12);
-        ctx.fillStyle = "#172026";
-        ctx.font = "12px Segoe UI, sans-serif";
-        ctx.textAlign = "left";
-        const pct = `${((values[i] / total) * 100).toFixed(1)}%`;
-        ctx.fillText(`${shorten(label, 16)} ${pct}`, legendX + 20, y);
+
+      // Center hole + text
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath(); ctx.arc(cx, cy, r - 1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#0D1117";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.font = "bold 17px 'Segoe UI', sans-serif";
+      ctx.fillText(nf.format(total), cx, cy - 7);
+      ctx.font = "10px 'Segoe UI', sans-serif"; ctx.fillStyle = "#6B7280";
+      ctx.fillText(unit, cx, cy + 9);
+
+      // HTML Legend
+      if (!legendId) return;
+      const legendEl = document.getElementById(legendId);
+      if (!legendEl) return;
+      legendEl.innerHTML = labels.map((label, i) => {
+        const pct = ((values[i] / total) * 100).toFixed(1);
+        const color = CHART_COLORS[i % CHART_COLORS.length];
+        return `<li class="donut-legend-item">
+          <span class="donut-dot" style="background:${color}"></span>
+          <span class="donut-name" title="${escapeHtml(label)}">${escapeHtml(shorten(label, 12))}</span>
+          <span class="donut-val">${nf.format(Math.round(values[i]))}</span>
+          <span class="donut-pct">${pct}%</span>
+        </li>`;
+      }).join("");
+    }
+
+    function drawHorizBar(canvas, labels, values) {
+      if (!canvas) return;
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!values.length) return drawEmpty(ctx, width, height);
+      const max = Math.max(...values, 1);
+      const n = values.length;
+      const labelW = Math.min(width * 0.38, 130);
+      const barArea = width - labelW - 50;
+      const rowH = Math.min(26, (height - 8) / n);
+      const gap = Math.max(2, rowH * 0.25);
+      const barH = rowH - gap;
+      const topPad = (height - n * rowH) / 2;
+
+      ctx.font = `11px 'Segoe UI', sans-serif`;
+      values.forEach((v, i) => {
+        const y = topPad + i * rowH;
+        const bw = (v / max) * barArea;
+
+        // Label
+        ctx.fillStyle = "#6B7280"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        ctx.fillText(shorten(labels[i], 14), labelW - 6, y + barH / 2);
+
+        // Bar bg
+        ctx.fillStyle = "#F3F4F6";
+        ctx.fillRect(labelW, y, barArea, barH);
+
+        // Bar fill (fade by rank)
+        const alpha = 1 - (i / n) * 0.55;
+        ctx.fillStyle = `rgba(37,99,235,${alpha})`;
+        ctx.fillRect(labelW, y, Math.max(bw, 2), barH);
+
+        // Value
+        ctx.fillStyle = "#374151"; ctx.textAlign = "left";
+        ctx.fillText(v.toFixed(1) + "분", labelW + bw + 5, y + barH / 2);
       });
     }
 
     function drawScale(ctx, max, left, top, bottom) {
-      ctx.fillStyle = "#66737f";
-      ctx.font = "11px Segoe UI, sans-serif";
+      ctx.fillStyle = "#9CA3AF";
+      ctx.font = "11px 'Segoe UI', sans-serif";
       ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
       for (let i = 0; i <= 4; i++) {
         const value = Math.round((max * i) / 4);
-        const y = bottom - ((bottom - top) * i) / 4 + 4;
-        ctx.fillText(nf.format(value), left - 8, y);
+        const y = bottom - ((bottom - top) * i) / 4;
+        ctx.fillText(nf.format(value), left - 6, y);
       }
     }
 
     function drawLabels(ctx, labels, startX, endX, bottom, width) {
-      const maxLabels = width < 520 ? 5 : 9;
+      const maxLabels = width < 520 ? 5 : 10;
       const skip = Math.max(1, Math.ceil(labels.length / maxLabels));
-      ctx.fillStyle = "#66737f";
-      ctx.font = "11px Segoe UI, sans-serif";
+      ctx.fillStyle = "#9CA3AF";
+      ctx.font = "11px 'Segoe UI', sans-serif";
       ctx.textAlign = "center";
+      ctx.textBaseline = "top";
       labels.forEach((label, i) => {
         if (i % skip !== 0 && i !== labels.length - 1) return;
         const x = labels.length === 1 ? (startX + endX) / 2 : startX + ((endX - startX) * i) / (labels.length - 1);
-        ctx.fillText(shorten(label, 11), x, bottom + 24);
+        ctx.fillText(shorten(label, 10), x, bottom + 8);
       });
     }
 
@@ -4620,18 +4743,30 @@
     }
 
     function renderRanking(rows) {
-      const ranked = groupBy(rows, (row) => `${row.main} / ${row.sub || "미분류"}`)
+      const ranked = groupBy(rows, (row) => row.sub || row.main)
         .filter((item) => item.count > 0)
-        .map((item) => ({ ...item, avg: item.minutes / item.count }))
+        .map((item) => {
+          const mainCat = rows.find((r) => (r.sub || r.main) === item.key)?.main || "";
+          return { ...item, avg: item.minutes / item.count, mainCat };
+        })
         .sort((a, b) => b.avg - a.avg)
-        .slice(0, 12);
-      $("rankList").innerHTML = ranked.length ? ranked.map((item, i) => `
-        <li class="rank-row">
-          <span class="no">${i + 1}</span>
-          <span class="name" title="${escapeHtml(item.key)}">${escapeHtml(item.key)}</span>
-          <span class="value">${item.avg.toFixed(1)}분/건</span>
+        .slice(0, 10);
+      const el = $("rankList");
+      if (!el) return;
+      if (!ranked.length) {
+        el.innerHTML = '<li><div class="empty-state">표시할 데이터가 없습니다.</div></li>';
+        return;
+      }
+      el.innerHTML = ranked.map((item, i) => `
+        <li class="rank-item">
+          <span class="rank-no${i < 3 ? " top" : ""}">${i + 1}</span>
+          <div class="rank-name">
+            <strong title="${escapeHtml(item.key)}">${escapeHtml(shorten(item.key, 18))}</strong>
+            <small>${escapeHtml(shorten(item.mainCat, 14))}</small>
+          </div>
+          <span class="rank-val">${item.avg.toFixed(1)}분/건</span>
         </li>
-      `).join("") : '<li class="empty">표시할 데이터가 없습니다.</li>';
+      `).join("");
     }
 
     function loadRows(rows, sourceLabel) {
@@ -4655,8 +4790,10 @@
         loadRows(await loadSheet(), "Google Sheets 연결");
       } catch (error) {
         setStatus(error.message);
-        document.getElementById("loadErrorPanel")?.remove();
-        document.querySelector(".grid").insertAdjacentHTML("afterbegin", `<article class="panel wide" id="loadErrorPanel"><div class="empty">Google Sheets 공유 설정이 '링크가 있는 모든 사용자 보기 가능'인지 확인해주세요.<br>${escapeHtml(error.message)}</div></article>`);
+        const panel = document.getElementById("errorPanel");
+        if (panel) {
+          panel.innerHTML = `<div class="error-panel">Google Sheets 공유 설정이 '링크가 있는 모든 사용자 보기 가능'인지 확인해주세요.<br>${escapeHtml(error.message)}</div>`;
+        }
       }
     }
 
