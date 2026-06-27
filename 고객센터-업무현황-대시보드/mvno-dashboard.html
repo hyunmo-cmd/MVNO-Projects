@@ -424,6 +424,103 @@
       .upload-grid  { grid-template-columns: 1fr; }
       .data-tables  { grid-template-columns: 1fr; }
     }
+
+    /* ── 수동 입력 ────────────────────────────── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 24px 0;
+    }
+    .input-section-title {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .input-section-title .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--teal);
+      color: #fff;
+    }
+    .manual-form {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) 90px 100px auto;
+      gap: 10px;
+      align-items: end;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .manual-form label { font-size: 12px; gap: 5px; }
+    .manual-form input, .manual-form select { min-height: 38px; font-size: 13px; }
+    .manual-add-btn {
+      min-height: 38px;
+      width: auto;
+      padding: 0 18px;
+      background: var(--teal);
+      border-color: var(--teal);
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+      align-self: end;
+    }
+    .manual-log {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .manual-log-header {
+      display: grid;
+      grid-template-columns: 90px 70px 1fr 1fr 50px 60px 50px 36px;
+      gap: 8px;
+      background: #f4f6f8;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .manual-log-body { max-height: 260px; overflow-y: auto; }
+    .manual-log-empty {
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .manual-log-row {
+      display: grid;
+      grid-template-columns: 90px 70px 1fr 1fr 50px 60px 50px 36px;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .manual-log-row:hover { background: #f8fafc; }
+    .del-btn {
+      width: 28px;
+      min-height: 28px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .del-btn:hover { background: #fdf0f0; border-color: var(--red); }
+    @media (max-width: 900px) {
+      .manual-form { grid-template-columns: 1fr 1fr; }
+      .manual-log-header, .manual-log-row { grid-template-columns: 80px 60px 1fr 1fr 40px 50px 40px 30px; font-size: 11px; }
+    }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -446,7 +543,8 @@
     <!-- 탭 1: 업무 입력 -->
     <div class="tab-panel" id="tab-input">
       <div class="tab-input-panel">
-        <h2>업무 데이터 입력</h2>
+        <!-- 파일 업로드 섹션 -->
+        <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡</span></p>
         <div class="upload-grid">
           <div class="upload-slot">
             <label>유선 문의 CSV <small>(.csv)</small>
@@ -479,6 +577,59 @@
         <div class="upload-actions">
           <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
           <div class="upload-msg" id="uploadMsg"></div>
+        </div>
+
+        <hr class="section-divider">
+
+        <!-- 수동 입력 섹션 -->
+        <p class="input-section-title">수동 입력</p>
+        <div class="manual-form">
+          <label>날짜
+            <input id="manualDate" type="date">
+          </label>
+          <label>상담사
+            <select id="manualCounselor">
+              <option value="">선택</option>
+              <option value="김순옥">김순옥</option>
+              <option value="진수진">진수진</option>
+            </select>
+          </label>
+          <label>업무 대분류
+            <select id="manualMain">
+              <option value="">선택</option>
+              <option value="고객 상담 업무">고객 상담 업무</option>
+              <option value="개통 업무">개통 업무</option>
+              <option value="고객 지원 업무">고객 지원 업무</option>
+            </select>
+          </label>
+          <label>업무 소분류
+            <select id="manualSub" disabled>
+              <option value="">대분류를 먼저 선택하세요</option>
+            </select>
+          </label>
+          <label>처리건수
+            <input id="manualCount" type="number" min="1" placeholder="0">
+          </label>
+          <label>소요시간(분)
+            <input id="manualMinutes" type="number" min="0" placeholder="0">
+          </label>
+          <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
+        </div>
+
+        <div class="manual-log">
+          <div class="manual-log-header">
+            <span>날짜</span>
+            <span>상담사</span>
+            <span>대분류</span>
+            <span>소분류</span>
+            <span>건수</span>
+            <span>시간(분)</span>
+            <span>출처</span>
+            <span></span>
+          </div>
+          <div class="manual-log-body" id="manualLogBody">
+            <div class="manual-log-empty">입력된 데이터가 없습니다.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -3865,7 +4016,15 @@
     const colors = ["#008a8a", "#3867d6", "#2e9d5b", "#d18616", "#cf4b4b", "#7057c8", "#607d8b", "#9a6a15"];
     const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥" };
     const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진" };
-    const state = { rows: [], filtered: [] };
+    const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1";
+    const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진" };
+    const MANUAL_CATEGORIES = {
+      "고객 상담 업무": ["1:1문의"],
+      "개통 업무": ["온라인 개통", "오프라인 개통", "알뜰폰 접수", "너겟 접수"],
+      "고객 지원 업무": ["해지", "정지", "부가서비스 신청", "유심 일련번호 변경", "eSIM 변경", "가입확인서 발급", "전화번호 변경", "요금제 변경", "확정기변", "청구서 재발행", "로밍 영수증 발급", "입금전용계좌 발급", "고객명 변경(개명)", "타사 철회 후 재개통"]
+    };
+    const state = { rows: [], filtered: [], manualRows: [] };
+    let manualIdCounter = 1;
 
     const $ = (id) => document.getElementById(id);
     const nf = new Intl.NumberFormat("ko-KR");
@@ -4043,7 +4202,7 @@
         const minutes = Math.round(toNumber(rec["총 대화"]) / 60000);
         const counselor = PHONE_COUNSELOR_MAP[counselorRaw] || counselorRaw;
         const key = `${dateKey(date)}|${counselor}`;
-        const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "유선 상담", count: 0, minutes: 0 };
+        const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "유선 상담", count: 0, minutes: 0, source: "phone_csv" };
         row.count += count;
         row.minutes += minutes;
         map.set(key, row);
@@ -4075,7 +4234,7 @@
           const counselor = CHANNEL_COUNSELOR_MAP[managerId];
           const minutes = Math.round(totalSec / managers.length / 60);
           const key = `${dateKey(date)}|${counselor}`;
-          const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "채널톡", count: 0, minutes: 0 };
+          const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "채널톡", count: 0, minutes: 0, source: "channeltalk_excel" };
           row.count += 1;
           row.minutes += minutes;
           map.set(key, row);
@@ -4474,6 +4633,7 @@
 
     function loadRows(rows, sourceLabel) {
       state.rows = rows;
+      mergeManualRows();
       if (!state.rows.length) throw new Error("시트에 표시할 데이터가 없습니다.");
       document.getElementById("loadErrorPanel")?.remove();
       setFilters(state.rows);
@@ -4514,6 +4674,66 @@
         `<thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
         `<tbody>${preview.map((r) => `<tr><td>${escapeHtml(r.dateText || "")}</td><td>${escapeHtml(r.counselor || "")}</td><td>${escapeHtml(r.main || "")}</td><td>${escapeHtml(r.sub || "")}</td><td>${nf.format(r.count)}</td><td>${nf.format(r.minutes)}</td></tr>`).join("")}</tbody>`;
       wrap.classList.add("visible");
+    }
+
+    function mergeManualRows() {
+      const existingIds = new Set(state.rows.filter((r) => r._id).map((r) => r._id));
+      state.manualRows.forEach((r) => {
+        if (!existingIds.has(r._id)) {
+          state.rows.push({ ...r, date: r.date instanceof Date ? r.date : parseDate(r.dateText) });
+        }
+      });
+    }
+
+    function saveManualRows() {
+      const toSave = state.manualRows.map((r) => ({ ...r, date: undefined }));
+      localStorage.setItem(MANUAL_STORAGE_KEY, JSON.stringify(toSave));
+    }
+
+    function initManualRows() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(MANUAL_STORAGE_KEY) || "[]");
+        state.manualRows = saved.map((r) => ({ ...r, date: parseDate(r.dateText) }));
+        if (state.manualRows.length) {
+          manualIdCounter = Math.max(...state.manualRows.map((r) => r._id || 0)) + 1;
+        }
+      } catch {
+        state.manualRows = [];
+      }
+      renderManualLog();
+    }
+
+    function renderManualLog() {
+      const body = $("manualLogBody");
+      if (!body) return;
+      if (!state.manualRows.length) {
+        body.innerHTML = '<div class="manual-log-empty">입력된 데이터가 없습니다.</div>';
+        return;
+      }
+      body.innerHTML = state.manualRows.slice().reverse().map((r) => `
+        <div class="manual-log-row">
+          <span>${escapeHtml(r.dateText || "")}</span>
+          <span>${escapeHtml(r.counselorDisplay || r.counselor || "")}</span>
+          <span title="${escapeHtml(r.main || "")}">${escapeHtml(shorten(r.main || "", 8))}</span>
+          <span title="${escapeHtml(r.sub || "")}">${escapeHtml(shorten(r.sub || "", 10))}</span>
+          <span>${nf.format(r.count)}</span>
+          <span>${nf.format(r.minutes)}</span>
+          <span>수동</span>
+          <button class="del-btn" data-id="${r._id}" title="삭제">×</button>
+        </div>
+      `).join("");
+      body.querySelectorAll(".del-btn").forEach((btn) => {
+        btn.addEventListener("click", () => deleteManualRow(Number(btn.dataset.id)));
+      });
+    }
+
+    function deleteManualRow(id) {
+      state.rows = state.rows.filter((r) => r._id !== id);
+      state.manualRows = state.manualRows.filter((r) => r._id !== id);
+      saveManualRows();
+      renderManualLog();
+      setFilters(state.rows);
+      applyFilters();
     }
 
     $("monthFilter").addEventListener("change", () => {
@@ -4583,6 +4803,13 @@
         const labels = [];
         if (pending.phone) {
           state.rows = mergeUploadedRows(pending.phone.rows, "유선 상담");
+          const followupRows = pending.phone.rows.map((r) => ({
+            ...r,
+            sub: "후처리(전화 상담)",
+            minutes: r.count * 2,
+            source: "auto_followup"
+          }));
+          state.rows = mergeUploadedRows(followupRows, "후처리(전화 상담)");
           labels.push(`유선 문의: ${pending.phone.name}`);
           pending.phone = null;
         }
@@ -4599,6 +4826,58 @@
         showUploadMsg("error", `반영 오류: ${error.message}`);
       }
     });
+    $("manualMain").addEventListener("change", function () {
+      const subs = MANUAL_CATEGORIES[this.value] || [];
+      const subEl = $("manualSub");
+      subEl.disabled = !subs.length;
+      subEl.innerHTML = subs.length
+        ? '<option value="">소분류 선택</option>' + subs.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")
+        : '<option value="">대분류를 먼저 선택하세요</option>';
+    });
+
+    $("manualAddBtn").addEventListener("click", () => {
+      const dateVal = $("manualDate").value;
+      const counselorKey = $("manualCounselor").value;
+      const main = $("manualMain").value;
+      const sub = $("manualSub").value;
+      const count = parseInt($("manualCount").value) || 0;
+      const minutes = parseInt($("manualMinutes").value) || 0;
+      if (!dateVal || !counselorKey || !main || !sub) {
+        showUploadMsg("error", "날짜, 상담사, 대분류, 소분류를 모두 입력해주세요.");
+        return;
+      }
+      if (count <= 0) {
+        showUploadMsg("error", "처리건수는 1 이상이어야 합니다.");
+        return;
+      }
+      const date = new Date(dateVal);
+      const counselor = MANUAL_COUNSELORS[counselorKey] || counselorKey;
+      const id = manualIdCounter++;
+      const row = {
+        _id: id,
+        date,
+        dateText: dateVal,
+        month: monthLabel(date),
+        counselor,
+        counselorDisplay: counselorKey,
+        main,
+        sub,
+        count,
+        minutes,
+        source: "manual"
+      };
+      state.rows.push(row);
+      state.manualRows.push(row);
+      saveManualRows();
+      renderManualLog();
+      $("manualDate").value = "";
+      $("manualCount").value = "";
+      $("manualMinutes").value = "";
+      setFilters(state.rows);
+      applyFilters();
+      showUploadMsg("success", `수동 입력 완료: ${escapeHtml(counselorKey)} / ${escapeHtml(main)} / ${escapeHtml(sub)} / ${nf.format(count)}건`);
+    });
+
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = btn.dataset.tab;
@@ -4608,6 +4887,7 @@
       });
     });
 
+    initManualRows();
     window.addEventListener("resize", () => render());
     init();
   </script>
