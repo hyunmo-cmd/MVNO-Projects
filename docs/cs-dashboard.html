@@ -4643,10 +4643,6 @@
         ctx.arc(cx, cy, R, start, end);
         ctx.arc(cx, cy, r, end, start, true);
         ctx.closePath(); ctx.fill();
-        // Gap
-        ctx.fillStyle = "#FFFFFF";
-        ctx.save(); ctx.translate(cx, cy);
-        ctx.rotate(end); ctx.fillRect(-1, -R, 2, R - r); ctx.restore();
         start = end;
       });
 
