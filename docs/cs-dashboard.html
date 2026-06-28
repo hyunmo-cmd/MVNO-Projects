@@ -571,7 +571,10 @@
             <label>유선 문의 CSV <small>(.csv)</small>
               <input id="phoneFile" type="file" accept=".csv,text/csv">
             </label>
-            <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
+            <div style="display:flex;align-items:center;gap:6px;min-height:18px">
+              <div class="upload-filename" id="phoneFileName" style="flex:1">파일을 선택해주세요</div>
+              <button id="phoneClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
+            </div>
             <div class="preview-wrap" id="phonePreviewWrap">
               <div class="preview-label">미리보기 (최대 5행)</div>
               <div class="preview-scroll"><table class="preview-table" id="phonePreviewTable"></table></div>
@@ -584,7 +587,10 @@
             <label>파일 암호 <small>(암호가 걸려 있는 경우)</small>
               <input id="channelPassword" type="password" placeholder="암호를 입력하세요" autocomplete="off">
             </label>
-            <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
+            <div style="display:flex;align-items:center;gap:6px;min-height:18px">
+              <div class="upload-filename" id="channelFileName" style="flex:1">파일을 선택해주세요</div>
+              <button id="channelClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
+            </div>
             <div class="preview-wrap" id="channelPreviewWrap">
               <div class="preview-label">미리보기 (최대 5행)</div>
               <div class="preview-scroll"><table class="preview-table" id="channelPreviewTable"></table></div>
@@ -4593,10 +4599,10 @@
         const managers = managerIdsRaw.split(",").map((s) => s.trim()).filter(Boolean);
         const knownManagers = managers.filter((id) => CHANNEL_COUNSELOR_MAP[id]);
         if (!knownManagers.length) continue;
-        const totalSec = toNumber(rec["totalReplyTime"]);
+        const totalMs = toNumber(rec["totalReplyTime"]);
         for (const managerId of knownManagers) {
           const counselor = CHANNEL_COUNSELOR_MAP[managerId];
-          const minutes = Math.round(totalSec / managers.length / 60);
+          const minutes = Math.round(totalMs / managers.length / 60000);
           const key = `${dateKey(date)}|${counselor}`;
           const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "채널톡", count: 0, minutes: 0, source: "channeltalk_excel" };
           row.count += 1;
@@ -5237,10 +5243,29 @@
         setStatus(`동기화 실패: ${error.message}`);
       }
     });
+    function clearPhoneFile() {
+      $("phoneFile").value = "";
+      $("phoneFileName").textContent = "파일을 선택해주세요";
+      $("phoneClearBtn").style.display = "none";
+      renderPreview(null, "phonePreviewTable", "phonePreviewWrap");
+      pending.phone = null;
+    }
+    function clearChannelFile() {
+      $("channelFile").value = "";
+      $("channelFileName").textContent = "파일을 선택해주세요";
+      $("channelClearBtn").style.display = "none";
+      renderPreview(null, "channelPreviewTable", "channelPreviewWrap");
+      pending.channel = null;
+    }
+
+    $("phoneClearBtn").addEventListener("click", () => { clearPhoneFile(); showUploadMsg("", ""); });
+    $("channelClearBtn").addEventListener("click", () => { clearChannelFile(); showUploadMsg("", ""); });
+
     $("phoneFile").addEventListener("change", async (event) => {
       const file = event.target.files?.[0];
       if (!file) return;
       $("phoneFileName").textContent = file.name;
+      $("phoneClearBtn").style.display = "inline-flex";
       try {
         const newRows = parsePhoneConsultationCsv(await file.text());
         if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. 처리건수가 0인 행은 제외됩니다.");
@@ -5257,6 +5282,7 @@
       const file = event.target.files?.[0];
       if (!file) return;
       $("channelFileName").textContent = file.name;
+      $("channelClearBtn").style.display = "inline-flex";
       try {
         const password = $("channelPassword").value || undefined;
         const newRows = parseChannelTalkXlsx(await file.arrayBuffer(), password);
