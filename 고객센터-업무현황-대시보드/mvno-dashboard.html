@@ -4100,13 +4100,14 @@
     const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥" };
     const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진" };
     const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1";
+    const UPLOAD_STORAGE_KEY = "mvno-upload-rows-v1";
     const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진" };
     const MANUAL_CATEGORIES = {
       "고객 상담 업무": ["1:1문의", "유선 상담", "채널톡"],
       "개통 업무": ["온라인 개통", "오프라인 개통", "알뜰폰 접수", "너겟 접수"],
       "고객 지원 업무": ["해지", "정지", "부가서비스 신청", "유심 일련번호 변경", "eSIM 변경", "가입확인서 발급", "전화번호 변경", "요금제 변경", "확정기변", "청구서 재발행", "로밍 영수증 발급", "입금전용계좌 발급", "고객명 변경(개명)", "타사 철회 후 재개통"]
     };
-    const state = { rows: [], filtered: [], manualRows: [] };
+    const state = { rows: [], filtered: [], manualRows: [], uploadRows: [] };
     let manualIdCounter = 1;
 
     const $ = (id) => document.getElementById(id);
@@ -4613,13 +4614,37 @@
       return [...map.values()];
     }
 
+    function saveUploadRows() {
+      localStorage.setItem(UPLOAD_STORAGE_KEY, JSON.stringify(state.uploadRows.map((r) => ({ ...r, date: undefined }))));
+    }
+    function initUploadRows() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(UPLOAD_STORAGE_KEY) || "[]");
+        state.uploadRows = saved.map((r) => ({ ...r, date: parseDate(r.dateText) }));
+      } catch {
+        state.uploadRows = [];
+      }
+    }
+    function mergeUploadRowsIntoState() {
+      const existingKeys = new Set(state.rows.map((r) => `${r.dateText}|${r.counselor}|${r.sub}`));
+      state.uploadRows.forEach((r) => {
+        const key = `${r.dateText}|${r.counselor}|${r.sub}`;
+        if (!existingKeys.has(key)) {
+          state.rows.push({ ...r, date: r.date instanceof Date ? r.date : parseDate(r.dateText) });
+          existingKeys.add(key);
+        }
+      });
+    }
     function mergeUploadedRows(newRows, sub) {
       const dates = new Set(newRows.map((r) => r.dateText));
       const counselors = new Set(newRows.map((r) => r.counselor));
+      // 업로드 저장소에서 기존 같은 유형 데이터 교체
+      state.uploadRows = state.uploadRows.filter((r) => !(r.sub === sub && dates.has(r.dateText) && counselors.has(r.counselor)));
+      state.uploadRows = [...state.uploadRows, ...newRows];
+      saveUploadRows();
+      // state.rows도 즉시 반영
       const filtered = state.rows.filter((row) => !(row.sub === sub && dates.has(row.dateText) && counselors.has(row.counselor)));
-      const merged = [...filtered, ...newRows];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged.map((r) => ({ ...r, date: r.dateText }))));
-      return merged;
+      return [...filtered, ...newRows];
     }
 
     async function loadCsvUrl() {
@@ -5147,6 +5172,7 @@
 
     function loadRows(rows, sourceLabel) {
       state.rows = rows;
+      mergeUploadRowsIntoState();
       mergeManualRows();
       if (!state.rows.length) throw new Error("시트에 표시할 데이터가 없습니다.");
       document.getElementById("loadErrorPanel")?.remove();
@@ -5357,6 +5383,7 @@
     });
 
     initManualRows();
+    initUploadRows();
     window.addEventListener("resize", () => render());
     init();
   </script>
