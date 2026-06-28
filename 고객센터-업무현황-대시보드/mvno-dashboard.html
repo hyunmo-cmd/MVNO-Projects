@@ -4600,10 +4600,11 @@
         const managers = managerIdsRaw.split(",").map((s) => s.trim()).filter(Boolean);
         const knownManagers = managers.filter((id) => CHANNEL_COUNSELOR_MAP[id]);
         if (!knownManagers.length) continue;
-        const totalMs = toNumber(rec["totalReplyTime"]);
+        const totalSec = toNumber(rec["totalReplyTime"]);
         for (const managerId of knownManagers) {
           const counselor = CHANNEL_COUNSELOR_MAP[managerId];
-          const minutes = Math.round(totalMs / managers.length / 60000);
+          const rawMin = Math.round(totalSec / managers.length / 60);
+          const minutes = Math.min(10, Math.max(5, rawMin || 5));
           const key = `${dateKey(date)}|${counselor}`;
           const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "채널톡", count: 0, minutes: 0, source: "channeltalk_excel" };
           row.count += 1;
