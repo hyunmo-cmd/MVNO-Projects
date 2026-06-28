@@ -632,8 +632,8 @@
         </article>
       </section>
 
-      <!-- Row 2: Donut Charts + Ranking -->
-      <div class="chart-row chart-row--3col">
+      <!-- Row 2: Donut Charts -->
+      <div class="chart-row chart-row--2col">
         <div class="chart-card">
           <div class="chart-card-header">
             <div class="chart-card-title">처리건수 구성</div>
@@ -654,17 +654,10 @@
             <ol class="donut-legend" id="timeLegend"></ol>
           </div>
         </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">처리시간 순위</div>
-            <div class="chart-card-sub">소분류 기준 평균 처리시간 <span style="float:right;color:var(--muted);font-size:11px">단위: 분/건</span></div>
-          </div>
-          <ol class="rank-list" id="rankList"></ol>
-        </div>
       </div>
 
-      <!-- Row 3: Trend + Avg Bar -->
-      <div class="chart-row chart-row--trend">
+      <!-- Row 3: Trend + Avg Bar + Ranking -->
+      <div class="chart-row chart-row--3col">
         <div class="chart-card">
           <div class="chart-card-header">
             <div class="chart-card-title">일자별 처리건수 추이</div>
@@ -678,6 +671,13 @@
             <div class="chart-card-sub">분/건 기준 내림차순</div>
           </div>
           <div class="chart-area"><canvas id="avgTimeChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">처리시간 순위</div>
+            <div class="chart-card-sub">소분류 기준 평균 처리시간 <span style="float:right;color:var(--muted);font-size:11px">단위: 분/건</span></div>
+          </div>
+          <ol class="rank-list" id="rankList"></ol>
         </div>
       </div>
 
