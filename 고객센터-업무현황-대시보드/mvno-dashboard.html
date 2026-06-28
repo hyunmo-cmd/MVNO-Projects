@@ -451,6 +451,88 @@
       .kpi-value { font-size: 22px; }
       .donut-layout { flex-direction: column; align-items: flex-start; }
     }
+
+    /* ── AI Input ──────────────────────────────────────── */
+    .ai-desc { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.7; }
+    .ai-input-wrap { display: grid; gap: 10px; }
+    .ai-textarea {
+      width: 100%; padding: 12px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--bg); color: var(--text);
+      font-family: inherit; font-size: 13px; line-height: 1.8;
+      resize: vertical; min-height: 130px; outline: none;
+      transition: border-color 0.15s;
+    }
+    .ai-textarea:focus { border-color: var(--blue); }
+    .ai-textarea::placeholder { color: var(--muted-2); white-space: pre-line; }
+    .ai-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ai-hint { font-size: 11px; color: var(--muted); }
+    .btn-sm { height: 28px !important; min-height: 28px !important; padding: 0 10px !important; font-size: 12px !important; }
+
+    /* AI Result */
+    .ai-result-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .ai-result-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .ai-stats { font-size: 12px; color: var(--muted); margin-left: 8px; }
+    .ai-result-table-wrap {
+      overflow-x: auto; border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .ai-result-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .ai-result-table th {
+      padding: 8px 10px; background: var(--bg);
+      font-weight: 600; color: var(--muted); font-size: 11px;
+      text-transform: uppercase; letter-spacing: 0.02em;
+      border-bottom: 1px solid var(--border); text-align: left;
+    }
+    .ai-result-table td {
+      padding: 6px 10px; border-bottom: 1px solid var(--border-2);
+      vertical-align: middle;
+    }
+    .ai-result-table tr:last-child td { border-bottom: none; }
+    .ai-result-table tr:hover td { background: var(--bg); }
+
+    /* Status chips */
+    .ai-status {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 18px; height: 18px; border-radius: 50%;
+      font-size: 10px; font-weight: 800; flex-shrink: 0;
+    }
+    .ai-status--ok { background: var(--green-50); color: var(--green); }
+    .ai-status--learned { background: #EDE9FE; color: var(--violet); }
+    .ai-status--ambiguous { background: var(--amber-50); color: var(--amber); }
+    .ai-status--unknown { background: var(--red-50); color: var(--red); }
+
+    /* Inline table inputs */
+    .ai-cell-input {
+      height: 28px; border: 1px solid var(--border); border-radius: 4px;
+      background: var(--bg); color: var(--text);
+      font-family: inherit; font-size: 12px; padding: 0 6px;
+      width: 100%; outline: none; min-width: 0;
+      transition: border-color 0.15s;
+    }
+    .ai-cell-input:focus { border-color: var(--blue); }
+    .ai-cell-select {
+      height: 28px; border: 1px solid var(--border); border-radius: 4px;
+      background: var(--bg); color: var(--text);
+      font-family: inherit; font-size: 12px; padding: 0 4px;
+      width: 100%; outline: none;
+      transition: border-color 0.15s;
+    }
+    .ai-cell-select:focus { border-color: var(--blue); }
+    .ai-cell-select--warn { border-color: var(--amber); background: var(--amber-50); color: #92400e; }
+    .ai-cell-select--err  { border-color: var(--red);   background: var(--red-50);   color: #991b1b; }
+    .ai-cell-text { color: var(--text-2); }
+
+    /* Result footer */
+    .ai-result-footer {
+      display: flex; align-items: center; justify-content: flex-end;
+      gap: 12px; margin-top: 12px;
+    }
+    .ai-warning { font-size: 12px; color: var(--amber); font-weight: 500; }
+    .badge--ai { background: #EDE9FE; color: var(--violet); }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -516,50 +598,53 @@
 
         <hr class="section-divider">
 
-        <p class="input-section-title">수동 입력</p>
-        <div class="manual-form">
-          <label>날짜
-            <div style="display:flex;gap:5px">
-              <input id="manualDate" type="date" style="flex:1;min-width:0;width:auto">
-              <button id="datePlusBtn" type="button" title="다음 날로 이동" style="height:34px;min-height:34px;width:auto;flex-shrink:0;padding:0 9px;font-size:12px;font-weight:700;background:var(--panel);border:1px solid var(--border);border-radius:6px;color:var(--text-2);cursor:pointer;white-space:nowrap">+1일</button>
-            </div>
-          </label>
-          <label>상담사
-            <select id="manualCounselor">
-              <option value="">선택</option>
-              <option value="김순옥">김순옥</option>
-              <option value="진수진">진수진</option>
-            </select>
-          </label>
-          <label>업무 대분류
-            <select id="manualMain">
-              <option value="">선택</option>
-              <option value="고객 상담 업무">고객 상담 업무</option>
-              <option value="개통 업무">개통 업무</option>
-              <option value="고객 지원 업무">고객 지원 업무</option>
-            </select>
-          </label>
-          <label>업무 소분류
-            <select id="manualSub" disabled>
-              <option value="">대분류를 먼저 선택하세요</option>
-            </select>
-          </label>
-          <label>처리건수
-            <input id="manualCount" type="number" min="1" placeholder="0">
-          </label>
-          <label>소요시간(분)
-            <input id="manualMinutes" type="number" min="0" placeholder="0">
-          </label>
-          <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
+        <p class="input-section-title">AI 자연어 분석 <span class="badge badge--ai">자동</span></p>
+        <p class="ai-desc">단톡방 업무 보고를 그대로 붙여넣으면 AI가 자동으로 분석합니다.<br>날짜·상담사명이 포함되어 있으면 자동 인식하고, 애매한 경우에는 확인을 요청합니다.</p>
+
+        <div class="ai-input-wrap">
+          <textarea id="aiTextInput" class="ai-textarea" rows="6" placeholder="예시:
+김순옥 6/27 업무보고
+가입확인서 발급 3건
+유심변경 2건
+해지 1건 30분
+오프라인 개통 2건 60분"></textarea>
+          <div class="ai-actions">
+            <button class="btn btn-primary" id="aiAnalyzeBtn" type="button">분석하기</button>
+            <button class="btn btn-ghost" id="aiClearBtn" type="button">초기화</button>
+            <span class="ai-hint">날짜(예: 6/27)와 상담사 이름이 포함되면 자동으로 인식합니다.</span>
+          </div>
         </div>
 
-        <div class="manual-log">
-          <div class="manual-log-header">
-            <span>날짜</span><span>상담사</span><span>대분류</span><span>소분류</span>
-            <span>건수</span><span>시간(분)</span><span>출처</span><span></span>
+        <div id="aiResultArea" style="display:none;margin-top:16px">
+          <div class="ai-result-header">
+            <div>
+              <span class="ai-result-title">분석 결과</span>
+              <span id="aiResultStats" class="ai-stats"></span>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="aiAddRowBtn" type="button">+ 행 추가</button>
           </div>
-          <div class="manual-log-body" id="manualLogBody">
-            <div class="manual-log-empty">입력된 데이터가 없습니다.</div>
+
+          <div class="ai-result-table-wrap">
+            <table class="ai-result-table">
+              <thead>
+                <tr>
+                  <th style="width:26px"></th>
+                  <th>날짜</th>
+                  <th>상담사</th>
+                  <th>대분류</th>
+                  <th>소분류</th>
+                  <th style="width:60px">건수</th>
+                  <th style="width:70px">시간(분)</th>
+                  <th style="width:32px"></th>
+                </tr>
+              </thead>
+              <tbody id="aiResultBody"></tbody>
+            </table>
+          </div>
+
+          <div class="ai-result-footer">
+            <span id="aiResultWarning" class="ai-warning"></span>
+            <button class="btn btn-primary" id="aiConfirmBtn" type="button">대시보드에 반영</button>
           </div>
         </div>
       </div>
@@ -4011,7 +4096,7 @@
     const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1";
     const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진" };
     const MANUAL_CATEGORIES = {
-      "고객 상담 업무": ["1:1문의"],
+      "고객 상담 업무": ["1:1문의", "유선 상담", "채널톡"],
       "개통 업무": ["온라인 개통", "오프라인 개통", "알뜰폰 접수", "너겟 접수"],
       "고객 지원 업무": ["해지", "정지", "부가서비스 신청", "유심 일련번호 변경", "eSIM 변경", "가입확인서 발급", "전화번호 변경", "요금제 변경", "확정기변", "청구서 재발행", "로밍 영수증 발급", "입금전용계좌 발급", "고객명 변경(개명)", "타사 철회 후 재개통"]
     };
@@ -4020,6 +4105,278 @@
 
     const $ = (id) => document.getElementById(id);
     const nf = new Intl.NumberFormat("ko-KR");
+
+    // ── AI NLP Engine ─────────────────────────────────────────
+    const AI_LEARNING_KEY = "mvno-ai-learning-v1";
+
+    // 키워드 패턴 (긴 것 우선 — 오버매치 방지)
+    const AI_PATTERNS = [
+      // 고객 상담 업무
+      { k: ["1:1문의","1대1문의","1 1문의"], main: "고객 상담 업무", sub: "1:1문의" },
+      { k: ["유선상담","유선 상담","전화상담","전화 상담"], main: "고객 상담 업무", sub: "유선 상담" },
+      { k: ["채널톡","채팅상담","채팅 상담"], main: "고객 상담 업무", sub: "채널톡" },
+      // 개통 업무 (명확)
+      { k: ["온라인개통","온라인 개통"], main: "개통 업무", sub: "온라인 개통" },
+      { k: ["오프라인개통","오프라인 개통"], main: "개통 업무", sub: "오프라인 개통" },
+      { k: ["알뜰폰접수","알뜰폰 접수"], main: "개통 업무", sub: "알뜰폰 접수" },
+      { k: ["너겟접수","너겟 접수","너겟"], main: "개통 업무", sub: "너겟 접수" },
+      // 개통 업무 (애매)
+      { k: ["알뜰개통","알뜰 개통"], main: "개통 업무", sub: null,
+        candidates: ["온라인 개통","오프라인 개통","알뜰폰 접수"] },
+      { k: ["개통"], main: "개통 업무", sub: null,
+        candidates: ["온라인 개통","오프라인 개통","알뜰폰 접수","너겟 접수"] },
+      // 고객 지원 업무
+      { k: ["해지"], main: "고객 지원 업무", sub: "해지" },
+      { k: ["일시정지","정지"], main: "고객 지원 업무", sub: "정지" },
+      { k: ["부가서비스","부가 서비스"], main: "고객 지원 업무", sub: "부가서비스 신청" },
+      { k: ["유심변경","유심 변경","유심일련번호","유심 일련번호","usim변경","유심번호변경"], main: "고객 지원 업무", sub: "유심 일련번호 변경" },
+      { k: ["esim변경","esim 변경","이심변경","이심 변경","e심변경","esim","이심","e심"], main: "고객 지원 업무", sub: "eSIM 변경" },
+      { k: ["가입확인서","가입 확인서"], main: "고객 지원 업무", sub: "가입확인서 발급" },
+      { k: ["전화번호변경","전화번호 변경","번호변경","번호 변경"], main: "고객 지원 업무", sub: "전화번호 변경" },
+      { k: ["요금제변경","요금제 변경","요금제"], main: "고객 지원 업무", sub: "요금제 변경" },
+      { k: ["확정기변","단말기변경","단말기 변경","단말기등록","단말기 등록","기변"], main: "고객 지원 업무", sub: "확정기변" },
+      { k: ["청구서재발행","청구서 재발행","청구서"], main: "고객 지원 업무", sub: "청구서 재발행" },
+      { k: ["로밍영수증","로밍 영수증","로밍"], main: "고객 지원 업무", sub: "로밍 영수증 발급" },
+      { k: ["입금전용계좌","입금 전용 계좌","가상계좌","입금계좌"], main: "고객 지원 업무", sub: "입금전용계좌 발급" },
+      { k: ["개명","고객명변경","고객명 변경"], main: "고객 지원 업무", sub: "고객명 변경(개명)" },
+      { k: ["타사철회","타사 철회","철회재개통","철회 후 재개통"], main: "고객 지원 업무", sub: "타사 철회 후 재개통" },
+    ];
+    // 긴 키워드 우선 정렬
+    AI_PATTERNS.sort((a, b) =>
+      Math.max(...b.k.map(k => k.length)) - Math.max(...a.k.map(k => k.length))
+    );
+
+    function getLearning() {
+      try { return JSON.parse(localStorage.getItem(AI_LEARNING_KEY) || "{}"); }
+      catch { return {}; }
+    }
+    function saveLearning(map) {
+      localStorage.setItem(AI_LEARNING_KEY, JSON.stringify(map));
+    }
+    function cleanForLearning(text) {
+      return text
+        .replace(/\d+건/g,"").replace(/\d+분/g,"").replace(/\d+시간/g,"")
+        .replace(/총|처리|완료|건수/g,"").replace(/[-•·\[\]()\s]+/g," ")
+        .trim().toLowerCase();
+    }
+    function aiDetectDate(text) {
+      let m = text.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+      if (m) return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
+      m = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
+      if (m) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
+      m = text.match(/(?<!\d)(\d{1,2})[\/.](\d{1,2})(?!\d)/);
+      if (m) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
+      return null;
+    }
+    function aiDetectCounselor(text) {
+      if (text.includes("김순옥") || text.includes("김*옥")) return "김순옥";
+      if (text.includes("진수진") || text.includes("진*진")) return "진수진";
+      return null;
+    }
+    function aiDetectCount(text) {
+      const m = text.match(/(\d+)\s*건/);
+      return m ? parseInt(m[1]) : null;
+    }
+    function aiDetectMinutes(text) {
+      let mins = 0;
+      const h = text.match(/(\d+)\s*시간/); if (h) mins += parseInt(h[1]) * 60;
+      const m = text.match(/(\d+)\s*분/);   if (m) mins += parseInt(m[1]);
+      return mins || null;
+    }
+    function aiMatchPattern(text) {
+      const lower = text.toLowerCase().replace(/\s/g,"");
+      for (const pat of AI_PATTERNS) {
+        for (const kw of pat.k) {
+          if (lower.includes(kw.toLowerCase().replace(/\s/g,""))) return pat;
+        }
+      }
+      return null;
+    }
+
+    let aiPendingRows = [];
+    let aiRowIdCounter = 1;
+
+    function analyzeReport(text) {
+      const learning = getLearning();
+      const lines = text.split("\n").map(l => l.replace(/^[-•·*＊\s]+/,"").trim()).filter(Boolean);
+      let globalDate = null, globalCounselor = null;
+      for (const line of lines) {
+        if (!globalDate) globalDate = aiDetectDate(line);
+        if (!globalCounselor) globalCounselor = aiDetectCounselor(line);
+      }
+      if (!globalDate) globalDate = new Date().toISOString().slice(0,10);
+
+      const results = [];
+      for (const line of lines) {
+        const count = aiDetectCount(line);
+        if (!count) continue;
+        const minutes  = aiDetectMinutes(line) || 0;
+        const date     = aiDetectDate(line) || globalDate;
+        const counselor = aiDetectCounselor(line) || globalCounselor || "";
+        const lkey = cleanForLearning(line);
+        if (learning[lkey]) {
+          const lrn = learning[lkey];
+          results.push({ id: aiRowIdCounter++, date, counselor, main: lrn.main, sub: lrn.sub, count, minutes, status: "learned", rawLine: line, lkey });
+          continue;
+        }
+        const match = aiMatchPattern(line);
+        if (match) {
+          if (match.sub) {
+            results.push({ id: aiRowIdCounter++, date, counselor, main: match.main, sub: match.sub, count, minutes, status: "ok", rawLine: line, lkey });
+          } else {
+            results.push({ id: aiRowIdCounter++, date, counselor, main: match.main, sub: "", count, minutes, status: "ambiguous", candidates: match.candidates, rawLine: line, lkey });
+          }
+        } else {
+          results.push({ id: aiRowIdCounter++, date, counselor, main: "", sub: "", count, minutes, status: "unknown", candidates: null, rawLine: line, lkey });
+        }
+      }
+      return results;
+    }
+
+    function renderAiResults(rows) {
+      aiPendingRows = rows;
+      const area = document.getElementById("aiResultArea");
+      const body = document.getElementById("aiResultBody");
+      if (!rows.length) { area.style.display = "none"; return; }
+      area.style.display = "block";
+      const ambig = rows.filter(r => r.status === "ambiguous" || r.status === "unknown").length;
+      document.getElementById("aiResultStats").textContent =
+        `${rows.length}건 분석 · ` + (ambig > 0 ? `⚠ ${ambig}건 확인 필요` : "✓ 모두 자동 인식됨");
+      body.innerHTML = rows.map(renderAiRow).join("");
+      updateAiConfirmBtn();
+    }
+
+    function renderAiRow(row) {
+      const icons = { ok:"✓", learned:"★", ambiguous:"?", unknown:"!" };
+      const icon = `<span class="ai-status ai-status--${row.status}" title="${{ok:"자동 인식",learned:"학습 기반",ambiguous:"확인 필요",unknown:"미인식"}[row.status]}">${icons[row.status]}</span>`;
+      const allMains = Object.keys(MANUAL_CATEGORIES);
+      const mainOpts = allMains.map(m => `<option value="${escapeHtml(m)}"${row.main===m?" selected":""}>${escapeHtml(m)}</option>`).join("");
+      const subOpts  = (MANUAL_CATEGORIES[row.main]||[]).map(s => `<option value="${escapeHtml(s)}"${row.sub===s?" selected":""}>${escapeHtml(s)}</option>`).join("");
+
+      let mainCell, subCell;
+      if (row.status === "unknown") {
+        mainCell = `<select class="ai-cell-select ai-cell-select--err" data-id="${row.id}" data-field="main" onchange="aiOnMainChange(this)">
+          <option value="">— 대분류 선택 —</option>${mainOpts}</select>`;
+        subCell = `<select class="ai-cell-select ai-cell-select--err" data-id="${row.id}" data-field="sub" onchange="aiOnFieldChange(this)">
+          <option value="">— 소분류 선택 —</option>${subOpts}</select>`;
+      } else if (row.status === "ambiguous") {
+        mainCell = `<span class="ai-cell-text">${escapeHtml(row.main)}</span>`;
+        const candOpts = (row.candidates||[]).map(c => `<option value="${escapeHtml(c)}"${row.sub===c?" selected":""}>${escapeHtml(c)}</option>`).join("");
+        subCell = `<select class="ai-cell-select ai-cell-select--warn" data-id="${row.id}" data-field="sub" onchange="aiOnFieldChange(this)">
+          <option value="">— 선택하세요 —</option>${candOpts}</select>`;
+      } else {
+        mainCell = `<span class="ai-cell-text">${escapeHtml(row.main)}</span>`;
+        subCell  = `<span class="ai-cell-text">${escapeHtml(row.sub)}</span>`;
+      }
+
+      return `<tr data-row-id="${row.id}">
+        <td>${icon}</td>
+        <td><input class="ai-cell-input" style="width:106px" type="date" value="${row.date}" data-id="${row.id}" data-field="date" onchange="aiOnFieldChange(this)"></td>
+        <td><select class="ai-cell-select" style="width:76px" data-id="${row.id}" data-field="counselor" onchange="aiOnFieldChange(this)">
+          <option value="">선택</option>
+          <option value="김순옥"${row.counselor==="김순옥"?" selected":""}>김순옥</option>
+          <option value="진수진"${row.counselor==="진수진"?" selected":""}>진수진</option>
+        </select></td>
+        <td style="min-width:110px">${mainCell}</td>
+        <td style="min-width:140px">${subCell}</td>
+        <td><input class="ai-cell-input" style="width:52px;text-align:right" type="number" min="1" value="${row.count}" data-id="${row.id}" data-field="count" onchange="aiOnFieldChange(this)"></td>
+        <td><input class="ai-cell-input" style="width:60px;text-align:right" type="number" min="0" value="${row.minutes||0}" data-id="${row.id}" data-field="minutes" onchange="aiOnFieldChange(this)"></td>
+        <td><button class="del-btn" onclick="aiDeleteRow(${row.id})" type="button" title="삭제">×</button></td>
+      </tr>`;
+    }
+
+    function aiOnFieldChange(el) {
+      const id = parseInt(el.dataset.id);
+      const row = aiPendingRows.find(r => r.id === id);
+      if (!row) return;
+      const prev = row[el.dataset.field];
+      row[el.dataset.field] = (el.dataset.field==="count"||el.dataset.field==="minutes") ? (parseInt(el.value)||0) : el.value;
+      // 소분류 선택 완료 → 학습 저장 + 상태 ok로
+      if (el.dataset.field === "sub" && row.sub && row.status !== "ok" && row.status !== "learned") {
+        const lrn = getLearning();
+        lrn[row.lkey] = { main: row.main, sub: row.sub };
+        saveLearning(lrn);
+        row.status = "ok";
+        const tr = document.querySelector(`tr[data-row-id="${id}"]`);
+        if (tr) tr.cells[0].innerHTML = `<span class="ai-status ai-status--ok" title="확인됨">✓</span>`;
+      }
+      updateAiConfirmBtn();
+    }
+
+    function aiOnMainChange(el) {
+      const id = parseInt(el.dataset.id);
+      const row = aiPendingRows.find(r => r.id === id);
+      if (!row) return;
+      row.main = el.value; row.sub = "";
+      const tr = document.querySelector(`tr[data-row-id="${id}"]`);
+      if (tr) {
+        const subSel = tr.querySelector(`[data-field="sub"]`);
+        if (subSel && subSel.tagName === "SELECT") {
+          const subs = MANUAL_CATEGORIES[row.main] || [];
+          subSel.innerHTML = `<option value="">— 소분류 선택 —</option>` +
+            subs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+          subSel.className = "ai-cell-select " + (row.main ? "ai-cell-select--warn" : "ai-cell-select--err");
+        }
+      }
+      updateAiConfirmBtn();
+    }
+
+    function aiDeleteRow(id) {
+      aiPendingRows = aiPendingRows.filter(r => r.id !== id);
+      const tr = document.querySelector(`tr[data-row-id="${id}"]`);
+      if (tr) tr.remove();
+      updateAiConfirmBtn();
+    }
+
+    function aiAddRow() {
+      const today = new Date().toISOString().slice(0,10);
+      const newRow = { id: aiRowIdCounter++, date: today, counselor: "", main: "", sub: "", count: 1, minutes: 0, status: "unknown", rawLine: "", lkey: "" };
+      aiPendingRows.push(newRow);
+      document.getElementById("aiResultBody").insertAdjacentHTML("beforeend", renderAiRow(newRow));
+      updateAiConfirmBtn();
+    }
+
+    function updateAiConfirmBtn() {
+      const btn = document.getElementById("aiConfirmBtn");
+      const warn = document.getElementById("aiResultWarning");
+      if (!btn) return;
+      const pending = aiPendingRows.filter(r => !r.main || !r.sub || !r.counselor);
+      if (pending.length) {
+        btn.disabled = true; btn.style.opacity = "0.5";
+        warn.textContent = `⚠ ${pending.length}건의 정보를 모두 입력해주세요.`;
+      } else {
+        btn.disabled = false; btn.style.opacity = "1";
+        warn.textContent = "";
+      }
+    }
+
+    function confirmAiResults() {
+      const newRows = aiPendingRows.map(row => {
+        const masked = MANUAL_COUNSELORS[row.counselor] || row.counselor;
+        const d = row.date ? new Date(row.date + "T00:00:00") : new Date();
+        return {
+          _id: `manual_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          date: d,
+          dateText: row.date ? row.date.replace(/-/g,".") : "",
+          month: `${d.getFullYear()}년 ${d.getMonth()+1}월`,
+          counselor: masked,
+          main: row.main, sub: row.sub,
+          count: row.count || 0, minutes: row.minutes || 0,
+          source: "manual"
+        };
+      });
+      state.manualRows = [...state.manualRows, ...newRows];
+      saveManualRows();
+      mergeManualRows();
+      // Reset UI
+      document.getElementById("aiTextInput").value = "";
+      document.getElementById("aiResultArea").style.display = "none";
+      aiPendingRows = [];
+      // 업무 현황 탭으로 전환
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab==="status"));
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id!=="tab-status"));
+      render();
+    }
 
     function norm(value) {
       return String(value ?? "").replace(/\s+/g, " ").trim();
@@ -4838,40 +5195,6 @@
       } catch {
         state.manualRows = [];
       }
-      renderManualLog();
-    }
-
-    function renderManualLog() {
-      const body = $("manualLogBody");
-      if (!body) return;
-      if (!state.manualRows.length) {
-        body.innerHTML = '<div class="manual-log-empty">입력된 데이터가 없습니다.</div>';
-        return;
-      }
-      body.innerHTML = [...state.manualRows].sort((a, b) => b.dateText.localeCompare(a.dateText) || b._id - a._id).map((r) => `
-        <div class="manual-log-row">
-          <span>${escapeHtml(r.dateText || "")}</span>
-          <span>${escapeHtml(r.counselorDisplay || r.counselor || "")}</span>
-          <span title="${escapeHtml(r.main || "")}">${escapeHtml(shorten(r.main || "", 8))}</span>
-          <span title="${escapeHtml(r.sub || "")}">${escapeHtml(shorten(r.sub || "", 10))}</span>
-          <span>${nf.format(r.count)}</span>
-          <span>${nf.format(r.minutes)}</span>
-          <span>수동</span>
-          <button class="del-btn" data-id="${r._id}" title="삭제">×</button>
-        </div>
-      `).join("");
-      body.querySelectorAll(".del-btn").forEach((btn) => {
-        btn.addEventListener("click", () => deleteManualRow(Number(btn.dataset.id)));
-      });
-    }
-
-    function deleteManualRow(id) {
-      state.rows = state.rows.filter((r) => r._id !== id);
-      state.manualRows = state.manualRows.filter((r) => r._id !== id);
-      saveManualRows();
-      renderManualLog();
-      setFilters(state.rows);
-      applyFilters();
     }
 
     $("monthFilter").addEventListener("change", () => {
@@ -4964,64 +5287,24 @@
         showUploadMsg("error", `반영 오류: ${error.message}`);
       }
     });
-    $("datePlusBtn").addEventListener("click", () => {
-      const cur = $("manualDate").value;
-      const base = cur ? new Date(cur + "T00:00:00") : new Date();
-      base.setDate(base.getDate() + 1);
-      $("manualDate").value = `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, "0")}-${String(base.getDate()).padStart(2, "0")}`;
-    });
-
-    $("manualMain").addEventListener("change", function () {
-      const subs = MANUAL_CATEGORIES[this.value] || [];
-      const subEl = $("manualSub");
-      subEl.disabled = !subs.length;
-      subEl.innerHTML = subs.length
-        ? '<option value="">소분류 선택</option>' + subs.map((s) => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("")
-        : '<option value="">대분류를 먼저 선택하세요</option>';
-    });
-
-    $("manualAddBtn").addEventListener("click", () => {
-      const dateVal = $("manualDate").value;
-      const counselorKey = $("manualCounselor").value;
-      const main = $("manualMain").value;
-      const sub = $("manualSub").value;
-      const count = parseInt($("manualCount").value) || 0;
-      const minutes = parseInt($("manualMinutes").value) || 0;
-      if (!dateVal || !counselorKey || !main || !sub) {
-        showUploadMsg("error", "날짜, 상담사, 대분류, 소분류를 모두 입력해주세요.");
+    // AI 입력 이벤트
+    $("aiAnalyzeBtn").addEventListener("click", () => {
+      const text = $("aiTextInput").value.trim();
+      if (!text) { alert("업무 보고 내용을 입력해주세요."); return; }
+      const rows = analyzeReport(text);
+      if (!rows.length) {
+        alert("분석할 업무 내용이 없습니다.\n건수(예: 3건)가 포함된 항목을 입력해주세요.");
         return;
       }
-      if (count <= 0) {
-        showUploadMsg("error", "처리건수는 1 이상이어야 합니다.");
-        return;
-      }
-      const date = new Date(dateVal);
-      const counselor = MANUAL_COUNSELORS[counselorKey] || counselorKey;
-      const id = manualIdCounter++;
-      const row = {
-        _id: id,
-        date,
-        dateText: dateVal,
-        month: monthLabel(date),
-        counselor,
-        counselorDisplay: counselorKey,
-        main,
-        sub,
-        count,
-        minutes,
-        source: "manual"
-      };
-      state.rows.push(row);
-      state.manualRows.push(row);
-      saveManualRows();
-      renderManualLog();
-      $("manualCount").value = "";
-      $("manualMinutes").value = "";
-      $("manualCount").focus();
-      setFilters(state.rows);
-      applyFilters();
-      showUploadMsg("success", `수동 입력 완료: ${escapeHtml(counselorKey)} / ${escapeHtml(main)} / ${escapeHtml(sub)} / ${nf.format(count)}건`);
+      renderAiResults(rows);
     });
+    $("aiClearBtn").addEventListener("click", () => {
+      $("aiTextInput").value = "";
+      $("aiResultArea").style.display = "none";
+      aiPendingRows = [];
+    });
+    $("aiAddRowBtn").addEventListener("click", aiAddRow);
+    $("aiConfirmBtn").addEventListener("click", confirmAiResults);
 
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
