@@ -4627,13 +4627,11 @@
       }
     }
     function mergeUploadRowsIntoState() {
-      const existingKeys = new Set(state.rows.map((r) => `${r.dateText}|${r.counselor}|${r.sub}`));
+      if (!state.uploadRows.length) return;
+      const uploadKeySet = new Set(state.uploadRows.map((r) => `${r.dateText}|${r.counselor}|${r.sub}`));
+      state.rows = state.rows.filter((r) => !uploadKeySet.has(`${r.dateText}|${r.counselor}|${r.sub}`));
       state.uploadRows.forEach((r) => {
-        const key = `${r.dateText}|${r.counselor}|${r.sub}`;
-        if (!existingKeys.has(key)) {
-          state.rows.push({ ...r, date: r.date instanceof Date ? r.date : parseDate(r.dateText) });
-          existingKeys.add(key);
-        }
+        state.rows.push({ ...r, date: r.date instanceof Date ? r.date : parseDate(r.dateText) });
       });
     }
     function mergeUploadedRows(newRows, sub) {
@@ -4797,8 +4795,8 @@
     }
 
     function applyFilters() {
-      const start = $("startDate").value ? new Date($("startDate").value) : null;
-      const end = $("endDate").value ? new Date($("endDate").value) : null;
+      const start = $("startDate").value ? new Date($("startDate").value + "T00:00:00") : null;
+      const end = $("endDate").value ? new Date($("endDate").value + "T00:00:00") : null;
       const month = $("monthFilter").value;
       const counselor = $("counselorFilter").value;
       const main = $("mainFilter").value;
@@ -4846,7 +4844,7 @@
         el.textContent = `${arrow} ${pct || Math.abs(diff)}`;
       }
       if (startVal && endVal) {
-        const s = new Date(startVal), e = new Date(endVal);
+        const s = new Date(startVal + "T00:00:00"), e = new Date(endVal + "T00:00:00");
         const lenMs = e - s + 86400000;
         const ps = new Date(s.getTime() - lenMs), pe = new Date(s.getTime() - 86400000);
         const counselor = $("counselorFilter").value;
