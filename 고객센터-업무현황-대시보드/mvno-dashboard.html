@@ -4795,16 +4795,16 @@
     }
 
     function applyFilters() {
-      const start = $("startDate").value ? new Date($("startDate").value + "T00:00:00") : null;
-      const end = $("endDate").value ? new Date($("endDate").value + "T00:00:00") : null;
+      const startKey = $("startDate").value || null;
+      const endKey = $("endDate").value || null;
       const month = $("monthFilter").value;
       const counselor = $("counselorFilter").value;
       const main = $("mainFilter").value;
       const sub = $("subFilter").value;
       state.filtered = state.rows.filter((row) => {
         if (month !== "all" && row.month !== month) return false;
-        if (start && row.date < start) return false;
-        if (end && row.date > end) return false;
+        if (startKey && row.dateText < startKey) return false;
+        if (endKey && row.dateText > endKey) return false;
         if (counselor !== "all" && row.counselor !== counselor) return false;
         if (main !== "all" && row.main !== main) return false;
         if (sub !== "all" && row.sub !== sub) return false;
@@ -4847,11 +4847,12 @@
         const s = new Date(startVal + "T00:00:00"), e = new Date(endVal + "T00:00:00");
         const lenMs = e - s + 86400000;
         const ps = new Date(s.getTime() - lenMs), pe = new Date(s.getTime() - 86400000);
+        const psKey = dateKey(ps), peKey = dateKey(pe);
         const counselor = $("counselorFilter").value;
         const main = $("mainFilter").value;
         const sub = $("subFilter").value;
         const prior = state.rows.filter((r) => {
-          if (!r.date || r.date < ps || r.date > pe) return false;
+          if (!r.dateText || r.dateText < psKey || r.dateText > peKey) return false;
           if (counselor !== "all" && r.counselor !== counselor) return false;
           if (main !== "all" && r.main !== main) return false;
           if (sub !== "all" && r.sub !== sub) return false;
