@@ -4379,7 +4379,7 @@
         return {
           _id: `manual_${Date.now()}_${Math.random().toString(36).slice(2)}`,
           date: d,
-          dateText: row.date ? row.date.replace(/-/g,".") : "",
+          dateText: row.date || "",
           month: `${d.getFullYear()}년 ${d.getMonth()+1}월`,
           counselor: masked,
           main: row.main, sub: row.sub,
@@ -4690,7 +4690,7 @@
       try {
         const localRows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         if (!localRows.length) return SAVED_ROWS;
-        const localDateSet = new Set(localRows.map((r) => r.date || r.dateText).filter(Boolean));
+        const localDateSet = new Set(localRows.map((r) => r.dateText || (r.date ? String(r.date).substring(0, 10) : "")).filter(Boolean));
         const missing = SAVED_ROWS.filter((r) => !localDateSet.has(r.date));
         return missing.length ? [...localRows, ...missing] : localRows;
       } catch {
@@ -4749,9 +4749,9 @@
         $("subFilter").innerHTML = '<option value="all">전체</option>';
         return;
       }
-      const dates = rows.map((row) => row.date).sort((a, b) => a - b);
-      $("startDate").value = dateKey(dates[0]);
-      $("endDate").value = dateKey(dates[dates.length - 1]);
+      const dateTexts = rows.map((row) => row.dateText).filter(Boolean).sort();
+      $("startDate").value = dateTexts[0] || "";
+      $("endDate").value = dateTexts[dateTexts.length - 1] || "";
       setSelectOptions("monthFilter", [...new Set(rows.map((row) => row.month))]);
       setSelectOptions("counselorFilter", [...new Set(rows.map((row) => row.counselor))]);
       setSelectOptions("mainFilter", [...new Set(rows.map((row) => row.main))]);
@@ -4780,9 +4780,10 @@
       const month = $("monthFilter").value;
       const scoped = month === "all" ? state.rows : state.rows.filter((row) => row.month === month);
       if (!scoped.length) return;
-      const dates = scoped.map((row) => row.date).sort((a, b) => a - b);
-      $("startDate").value = dateKey(dates[0]);
-      $("endDate").value = dateKey(dates[dates.length - 1]);
+      const dateTexts = scoped.map((row) => row.dateText).filter(Boolean).sort();
+      if (!dateTexts.length) return;
+      $("startDate").value = dateTexts[0];
+      $("endDate").value = dateTexts[dateTexts.length - 1];
     }
 
     function updateSubFilter() {
@@ -5182,9 +5183,9 @@
     }
 
     function dataRangeText(rows) {
-      const dates = rows.map((row) => row.date).filter(Boolean).sort((a, b) => a - b);
-      if (!dates.length) return "날짜 없음";
-      return `${dateKey(dates[0])} ~ ${dateKey(dates[dates.length - 1])}`;
+      const dateTexts = rows.map((row) => row.dateText).filter(Boolean).sort();
+      if (!dateTexts.length) return "날짜 없음";
+      return `${dateTexts[0]} ~ ${dateTexts[dateTexts.length - 1]}`;
     }
 
     async function init() {
