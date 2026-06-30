@@ -4172,7 +4172,7 @@
       m = text.match(/(\d{1,2})월\s*(\d{1,2})일/);
       if (m) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
       m = text.match(/(?<!\d)(\d{1,2})[\/.](\d{1,2})(?!\d)/);
-      if (m) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
+      if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= 12 && parseInt(m[2]) >= 1 && parseInt(m[2]) <= 31) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
       return null;
     }
     function aiDetectCounselor(text) {
@@ -4213,7 +4213,8 @@
         if (!globalCounselor) globalCounselor = aiDetectCounselor(line);
       }
 
-      const today = new Date().toISOString().slice(0,10);
+      const _now = new Date();
+      const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,"0")}-${String(_now.getDate()).padStart(2,"0")}`;
       let currentDate = null;      // 마지막으로 만난 날짜 (섹션 헤더)
       let currentCounselor = globalCounselor || "";
 
@@ -4232,6 +4233,8 @@
 
         // 업무 행: 같은 줄에 날짜가 있으면 그 날짜 사용, 없으면 현재 섹션 날짜
         const date      = lineDate || currentDate || today;
+        if (lineDate) currentDate = lineDate;
+        if (lineCounselor) currentCounselor = lineCounselor;
         const counselor = lineCounselor || currentCounselor || "";
         const minutes   = aiDetectMinutes(line) || 0;
         const lkey      = cleanForLearning(line);
@@ -4351,7 +4354,7 @@
     }
 
     function aiAddRow() {
-      const today = new Date().toISOString().slice(0,10);
+      const _n = new Date(); const today = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,"0")}-${String(_n.getDate()).padStart(2,"0")}`;
       const newRow = { id: aiRowIdCounter++, date: today, counselor: "", main: "", sub: "", count: 1, minutes: 0, status: "unknown", rawLine: "", lkey: "" };
       aiPendingRows.push(newRow);
       document.getElementById("aiResultBody").insertAdjacentHTML("beforeend", renderAiRow(newRow));
