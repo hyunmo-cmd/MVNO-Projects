@@ -4641,10 +4641,13 @@
         const knownManagers = managers.filter((id) => CHANNEL_COUNSELOR_MAP[id]);
         if (!knownManagers.length) continue;
         const totalSec = toNumber(rec["totalReplyTime"]);
+        const isShared = knownManagers.length > 1;
         for (const managerId of knownManagers) {
           const counselor = CHANNEL_COUNSELOR_MAP[managerId];
           const rawMin = Math.round(totalSec / managers.length / 60);
-          const minutes = Math.min(10, Math.max(5, rawMin || 5));
+          const minutes = isShared
+            ? Math.min(5, Math.max(1, rawMin || 1))
+            : Math.min(10, Math.max(5, rawMin || 5));
           const key = `${dateKey(date)}|${counselor}`;
           const row = map.get(key) || { date, dateText: dateKey(date), month: monthLabel(date), counselor, main: "고객 상담 업무", sub: "채널톡", count: 0, minutes: 0, source: "channeltalk_excel" };
           row.count += 1;
@@ -5375,7 +5378,7 @@
           const followupRows = pending.phone.rows.map((r) => ({
             ...r,
             sub: "후처리(전화 상담)",
-            minutes: r.count * 2,
+            minutes: r.count * 1,
             source: "auto_followup"
           }));
           state.rows = mergeUploadedRows(followupRows, "후처리(전화 상담)");
