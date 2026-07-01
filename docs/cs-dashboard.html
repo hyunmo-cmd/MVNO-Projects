@@ -653,6 +653,36 @@
             <button class="btn btn-primary" id="aiConfirmBtn" type="button">대시보드에 반영</button>
           </div>
         </div>
+
+        <hr class="section-divider">
+
+        <p class="input-section-title">직접 입력 <span class="badge">수동</span></p>
+        <div class="manual-form">
+          <label>날짜<input id="manualDate" type="date"></label>
+          <label>상담사<select id="manualCounselor">
+            <option value="">선택</option>
+            <option value="김순옥">김순옥</option>
+            <option value="진수진">진수진</option>
+          </select></label>
+          <label>대분류<select id="manualMain">
+            <option value="">선택</option>
+          </select></label>
+          <label>소분류<select id="manualSub">
+            <option value="">선택</option>
+          </select></label>
+          <label>건수<input id="manualCount" type="number" min="1" placeholder="0"></label>
+          <label>시간(분)<input id="manualMinutes" type="number" min="0" placeholder="0"></label>
+          <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
+        </div>
+        <div class="manual-log">
+          <div class="manual-log-header">
+            <span>날짜</span><span>상담사</span><span>대분류</span><span>소분류</span>
+            <span>건수</span><span>시간(분)</span><span></span><span></span>
+          </div>
+          <div class="manual-log-body" id="manualLogBody">
+            <div class="manual-log-empty">직접 입력한 데이터가 없습니다.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -5387,6 +5417,81 @@
     $("aiAddRowBtn").addEventListener("click", aiAddRow);
     $("aiConfirmBtn").addEventListener("click", confirmAiResults);
 
+    // 직접 입력
+    function initManualForm() {
+      $("manualDate").value = new Date().toISOString().slice(0, 10);
+      const mainSel = $("manualMain");
+      Object.keys(MANUAL_CATEGORIES).forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m; opt.textContent = m;
+        mainSel.appendChild(opt);
+      });
+    }
+    $("manualMain").addEventListener("change", () => {
+      const subSel = $("manualSub");
+      subSel.innerHTML = '<option value="">선택</option>';
+      (MANUAL_CATEGORIES[$("manualMain").value] || []).forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s; opt.textContent = s;
+        subSel.appendChild(opt);
+      });
+    });
+    function renderManualLog() {
+      const body = $("manualLogBody");
+      if (!state.manualRows.length) {
+        body.innerHTML = '<div class="manual-log-empty">직접 입력한 데이터가 없습니다.</div>';
+        return;
+      }
+      body.innerHTML = state.manualRows.map(r => `
+        <div class="manual-log-row">
+          <span>${escapeHtml(r.dateText)}</span>
+          <span>${escapeHtml(r.counselor)}</span>
+          <span>${escapeHtml(r.main)}</span>
+          <span>${escapeHtml(r.sub)}</span>
+          <span>${r.count}</span>
+          <span>${r.minutes}</span>
+          <span></span>
+          <button class="del-btn" onclick="deleteManualRow(${r._id})" type="button" title="삭제">×</button>
+        </div>`).join("");
+    }
+    function deleteManualRow(id) {
+      state.manualRows = state.manualRows.filter(r => r._id !== id);
+      state.rows = state.rows.filter(r => r._id !== id);
+      saveManualRows();
+      renderManualLog();
+      applyFilters();
+    }
+    $("manualAddBtn").addEventListener("click", () => {
+      const dateText = $("manualDate").value;
+      const counselor = $("manualCounselor").value;
+      const main = $("manualMain").value;
+      const sub = $("manualSub").value;
+      const count = parseInt($("manualCount").value) || 0;
+      const minutes = parseInt($("manualMinutes").value) || 0;
+      if (!dateText || !counselor || !main || !sub || !count) {
+        alert("날짜, 상담사, 대분류, 소분류, 건수를 모두 입력해주세요.");
+        return;
+      }
+      const displayCounselor = MANUAL_COUNSELORS[counselor] || counselor;
+      const d = parseDate(dateText);
+      const row = {
+        _id: manualIdCounter++,
+        dateText,
+        date: d,
+        month: d ? monthLabel(d) : "",
+        counselor: displayCounselor,
+        main, sub, count, minutes,
+        source: "manual"
+      };
+      state.manualRows.push(row);
+      saveManualRows();
+      mergeManualRows();
+      renderManualLog();
+      applyFilters();
+      $("manualCount").value = "";
+      $("manualMinutes").value = "";
+    });
+
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = btn.dataset.tab;
@@ -5396,7 +5501,9 @@
       });
     });
 
+    initManualForm();
     initManualRows();
+    renderManualLog();
     initUploadRows();
     window.addEventListener("resize", () => render());
     init();
