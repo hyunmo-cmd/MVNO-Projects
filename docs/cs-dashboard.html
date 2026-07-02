@@ -4883,8 +4883,8 @@
         $("subFilter").innerHTML = '<option value="all">전체</option>';
         return;
       }
-      const dateTexts = rows.map((row) => row.dateText).filter(Boolean).sort();
-      setDateRange(dateTexts[0] || "", dateTexts[dateTexts.length - 1] || "");
+      const todayKey = dateKey(new Date());
+      setDateRange(todayKey, todayKey);
       setSelectOptions("monthFilter", [...new Set(rows.map((row) => row.month))]);
       setSelectOptions("counselorFilter", [...new Set(rows.map((row) => row.counselor))]);
       setSelectOptions("mainFilter", [...new Set(rows.map((row) => row.main))]);
