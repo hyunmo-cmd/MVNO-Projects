@@ -4731,7 +4731,7 @@
       try {
         let localRows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         // 잘못 입력된 데이터 정리: 2026-06-23 이후 1:1문의 제거
-        const cleaned = localRows.filter((r) => !(r.sub === "1:1문의" && r.date >= "2026-06-23"));
+        const cleaned = localRows.filter((r) => !(r.sub === "1:1문의" && (r.dateText || r.date) >= "2026-06-23"));
         if (cleaned.length !== localRows.length) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
           localRows = cleaned;
@@ -4766,7 +4766,7 @@
     async function loadFreshSheet() {
       const rows = (await Promise.all(SHEET_NAMES.map((sheetName) => loadGviz(sheetName)))).flat();
       if (!rows.length) throw new Error("원본 시트에서 불러온 데이터가 없습니다.");
-      const filtered = rows.filter((r) => !(r.sub === "1:1문의" && r.date >= "2026-06-23"));
+      const filtered = rows.filter((r) => !(r.sub === "1:1문의" && r.dateText >= "2026-06-23"));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
       return filtered;
     }
