@@ -4097,7 +4097,6 @@
   {"date":"2026-06-22","month":"2026년 6월","counselor":"진*진","main":"고객 지원 업무","sub":"입금전용계좌 발급","count":1,"minutes":2},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"유선 상담","count":86,"minutes":143},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"채널톡","count":25,"minutes":80},
-  {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"1:1문의","count":4,"minutes":8},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":86,"minutes":172},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"오프라인 개통","count":3,"minutes":45},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"개통 업무","sub":"알뜰폰 접수","count":1,"minutes":2},
@@ -4106,7 +4105,6 @@
   {"date":"2026-06-23","month":"2026년 6월","counselor":"김*옥","main":"고객 지원 업무","sub":"요금제 변경","count":1,"minutes":20},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"유선 상담","count":59,"minutes":209},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"채널톡","count":20,"minutes":62},
-  {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"1:1문의","count":5,"minutes":10},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"고객 상담 업무","sub":"후처리(전화 상담)","count":59,"minutes":118},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"온라인 개통","count":2,"minutes":20},
   {"date":"2026-06-23","month":"2026년 6월","counselor":"진*진","main":"개통 업무","sub":"오프라인 개통","count":2,"minutes":30},
@@ -4731,7 +4729,13 @@
 
     function restoreSavedRows() {
       try {
-        const localRows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        let localRows = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        // 잘못 입력된 데이터 정리: 2026-06-23 이후 1:1문의 제거
+        const cleaned = localRows.filter((r) => !(r.sub === "1:1문의" && r.date >= "2026-06-23"));
+        if (cleaned.length !== localRows.length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+          localRows = cleaned;
+        }
         if (!localRows.length) return SAVED_ROWS;
         const localDateSet = new Set(localRows.map((r) => r.dateText || (r.date ? String(r.date).substring(0, 10) : "")).filter(Boolean));
         const missing = SAVED_ROWS.filter((r) => !localDateSet.has(r.date));
