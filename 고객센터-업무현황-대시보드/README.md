@@ -1,6 +1,6 @@
 # MVNO 고객센터 업무현황 대시보드
 
-**배포 URL**: [https://hyunm0.github.io/MVNO-Projects/cs-dashboard.html](https://hyunm0.github.io/MVNO-Projects/cs-dashboard.html)
+**배포 URL**: [https://hyunmo-cmd.github.io/MVNO-Projects/cs-dashboard.html](https://hyunmo-cmd.github.io/MVNO-Projects/cs-dashboard.html)
 
 ---
 
