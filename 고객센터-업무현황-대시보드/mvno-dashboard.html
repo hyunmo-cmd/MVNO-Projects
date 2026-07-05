@@ -786,10 +786,6 @@
         <label>업무 대분류<select id="mainFilter"><option value="all">전체</option></select></label>
         <label>업무 소분류<select id="subFilter"><option value="all">전체</option></select></label>
         <div class="filter-actions">
-          <button id="syncBtn" class="btn btn-primary" type="button">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
-            동기화
-          </button>
           <button id="resetBtn" class="btn btn-ghost" type="button">초기화</button>
         </div>
       </section>
@@ -5463,14 +5459,6 @@
     });
     $("subFilter").addEventListener("change", applyFilters);
     $("resetBtn").addEventListener("click", () => setFilters(state.rows) || applyFilters());
-    $("syncBtn").addEventListener("click", async () => {
-      try {
-        setStatus("원본 시트에서 최신 데이터를 동기화하는 중입니다.");
-        loadRows(await loadFreshSheet(), "Google Sheets 최신 동기화");
-      } catch (error) {
-        setStatus(`동기화 실패: ${error.message}`);
-      }
-    });
     function clearPhoneFile() {
       $("phoneFile").value = "";
       $("phoneFileName").textContent = "파일을 선택해주세요";
