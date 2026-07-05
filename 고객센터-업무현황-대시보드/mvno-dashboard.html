@@ -638,6 +638,7 @@
     <nav class="tab-nav" aria-label="탭 메뉴">
       <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
       <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
+      <button class="tab-btn" data-tab="channeltalk" type="button">채널톡</button>
     </nav>
 
     <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
@@ -927,6 +928,129 @@
       </div>
 
     </div><!-- /tab-status -->
+
+    <!-- ══ Tab 3: 채널톡 ══════════════════════════════════ -->
+    <div class="tab-panel hidden" id="tab-channeltalk">
+
+      <!-- Filter Bar -->
+      <section class="filter-bar" aria-label="채널톡 필터">
+        <div class="date-range-group">
+          <span class="date-range-label">날짜 범위</span>
+          <div class="date-shortcuts">
+            <button type="button" class="shortcut-btn" data-ct-range="week">최근 7일</button>
+            <button type="button" class="shortcut-btn" data-ct-range="thisMonth">이번 달</button>
+            <button type="button" class="shortcut-btn" data-ct-range="all">전체</button>
+          </div>
+          <input type="text" id="ctDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
+          <input type="hidden" id="ctStartDate">
+          <input type="hidden" id="ctEndDate">
+        </div>
+        <div class="filter-actions">
+          <button id="ctResetBtn" class="btn btn-ghost" type="button">초기화</button>
+          <button id="ctRefreshBtn" class="btn btn-primary" type="button">새로고침</button>
+        </div>
+      </section>
+
+      <div id="ctErrorPanel"></div>
+
+      <p class="input-section-title">문의 유형 <span class="badge">채널톡</span></p>
+      <section class="kpis" aria-label="문의 유형 KPI">
+        <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="ctTotalCount">0</span><span class="kpi-unit">건</span></div>
+          <p class="kpi-label">총 문의 수</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="ctAvgDailyCount">0</span><span class="kpi-unit">건/일</span></div>
+          <p class="kpi-label">일 평균 문의 수</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="ctTopTypeCount">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="ctTopType" style="font-size:18px">—</span></div>
+          <p class="kpi-label">TOP 문의 유형</p>
+        </article>
+      </section>
+
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">문의 유형 비중</div>
+            <div class="chart-card-sub">필터 기간 기준</div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-canvas-wrap"><canvas id="ctTypeChart" width="150" height="150"></canvas></div>
+            <ol class="donut-legend" id="ctTypeLegend"></ol>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">TOP 문의 유형</div>
+            <div class="chart-card-sub">건수 기준 상위 5</div>
+          </div>
+          <ol class="rank-list" id="ctTypeRankList"></ol>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <p class="input-section-title">고객 대기시간 <span class="badge">채널톡</span></p>
+      <section class="kpis" aria-label="고객 대기시간 KPI">
+        <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap" style="--kpi-color:var(--violet)">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--violet)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="ctAvgWait">—</span></div>
+          <p class="kpi-label">전체 평균 대기시간</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap" style="--kpi-color:var(--red)">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--red)"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="ctMaxWaitValue">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="ctMaxWaitDate" style="font-size:18px">—</span></div>
+          <p class="kpi-label">대기시간 최고 날짜</p>
+        </article>
+      </section>
+
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">일자별 평균 대기시간 추이</div>
+            <div class="chart-card-sub">단위: 분</div>
+          </div>
+          <div class="chart-area"><canvas id="ctWaitTrendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">대기시간 TOP 5</div>
+            <div class="chart-card-sub">일자 기준</div>
+          </div>
+          <ol class="rank-list" id="ctWaitRankList"></ol>
+        </div>
+      </div>
+
+    </div><!-- /tab-channeltalk -->
   </main>
   <script id="saved-data" type="application/json">[
   {
@@ -5328,7 +5452,195 @@
           panel.innerHTML = `<div class="error-panel">Google Sheets 공유 설정이 '링크가 있는 모든 사용자 보기 가능'인지 확인해주세요.<br>${escapeHtml(error.message)}</div>`;
         }
       }
+      ctInit();
     }
+
+    // ══ 채널톡 탭 (문의 유형 · 고객 대기시간) ══════════════════════
+    const CT_API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // TODO: Apps Script 웹 앱 배포 후 실제 URL로 교체
+    const ctState = { categories: [], days: [], filteredDays: [], loaded: false };
+    let ctFp = null, ctFpSuppress = false;
+
+    async function ctFetchData() {
+      if (!CT_API_URL || CT_API_URL.indexOf("AKfycb...") !== -1) {
+        throw new Error("채널톡 API 주소가 설정되지 않았습니다. CT_API_URL 값을 배포된 웹 앱 URL로 교체해주세요.");
+      }
+      const res = await fetch(`${CT_API_URL}?cacheBust=${Date.now()}`);
+      if (!res.ok) throw new Error(`채널톡 데이터를 불러오지 못했습니다. (HTTP ${res.status})`);
+      const data = await res.json();
+      if (data && data.error) throw new Error(data.error);
+      if (!data || !Array.isArray(data.days)) throw new Error("채널톡 데이터 형식이 올바르지 않습니다.");
+      return data;
+    }
+
+    async function ctInit() {
+      const panel = $("ctErrorPanel");
+      if (panel) panel.innerHTML = "";
+      const btn = $("ctRefreshBtn");
+      if (btn) { btn.disabled = true; btn.textContent = "불러오는 중…"; }
+      try {
+        const data = await ctFetchData();
+        ctState.categories = data.categories || [];
+        ctState.days = (data.days || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+        ctState.loaded = true;
+        ctApplyFilters();
+      } catch (error) {
+        if (panel) {
+          panel.innerHTML = `<div class="error-panel">채널톡 데이터를 불러오지 못했습니다.<br>${escapeHtml(error.message)}</div>`;
+        }
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = "새로고침"; }
+      }
+    }
+
+    function ctApplyFilters() {
+      const start = $("ctStartDate").value;
+      const end = $("ctEndDate").value;
+      ctState.filteredDays = ctState.days.filter((d) => (!start || d.date >= start) && (!end || d.date <= end));
+      ctRender();
+    }
+
+    function ctFormatSeconds(sec) {
+      const s = Math.max(0, Math.round(sec));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${m}분 ${String(r).padStart(2, "0")}초`;
+    }
+
+    function ctRender() {
+      const days = ctState.filteredDays;
+      ctRenderTypeSection(days);
+      ctRenderWaitSection(days);
+    }
+
+    function ctRenderTypeSection(days) {
+      const totalsByCategory = {};
+      ctState.categories.forEach((c) => { totalsByCategory[c] = 0; });
+      let totalCount = 0;
+      days.forEach((d) => {
+        totalCount += d.total || 0;
+        Object.entries(d.counts || {}).forEach(([k, v]) => {
+          totalsByCategory[k] = (totalsByCategory[k] || 0) + v;
+        });
+      });
+
+      const ranked = Object.entries(totalsByCategory)
+        .map(([key, count]) => ({ key, count }))
+        .filter((item) => item.count > 0)
+        .sort((a, b) => b.count - a.count);
+
+      $("ctTotalCount").textContent = nf.format(totalCount);
+      $("ctAvgDailyCount").textContent = days.length ? nf.format(Math.round(totalCount / days.length)) : "0";
+      $("ctTopType").textContent = ranked.length ? shorten(ranked[0].key, 14) : "—";
+      $("ctTopTypeCount").textContent = ranked.length ? `${nf.format(ranked[0].count)}건` : "—";
+
+      drawDonutChart($("ctTypeChart"), ranked.map((r) => r.key), ranked.map((r) => r.count), "ctTypeLegend", "건");
+
+      const rankEl = $("ctTypeRankList");
+      if (!rankEl) return;
+      const top = ranked.slice(0, 5);
+      rankEl.innerHTML = top.length
+        ? top.map((item, i) => `
+          <li class="rank-item">
+            <span class="rank-no${i < 3 ? " top" : ""}">${i + 1}</span>
+            <div class="rank-name"><strong title="${escapeHtml(item.key)}">${escapeHtml(shorten(item.key, 18))}</strong></div>
+            <span class="rank-val">${nf.format(item.count)}건 · ${totalCount ? ((item.count / totalCount) * 100).toFixed(1) : "0.0"}%</span>
+          </li>`).join("")
+        : '<li><div class="empty-state">표시할 데이터가 없습니다.</div></li>';
+    }
+
+    function ctRenderWaitSection(days) {
+      const withWait = days.filter((d) => d.avgWaitSec != null && d.total > 0);
+
+      let weightedSum = 0, weightTotal = 0;
+      withWait.forEach((d) => { weightedSum += d.avgWaitSec * d.total; weightTotal += d.total; });
+      const overallAvg = weightTotal ? weightedSum / weightTotal : null;
+      $("ctAvgWait").textContent = overallAvg != null ? ctFormatSeconds(overallAvg) : "—";
+
+      const topWait = withWait.slice().sort((a, b) => b.avgWaitSec - a.avgWaitSec).slice(0, 5);
+      $("ctMaxWaitDate").textContent = topWait.length ? topWait[0].date : "—";
+      $("ctMaxWaitValue").textContent = topWait.length ? ctFormatSeconds(topWait[0].avgWaitSec) : "—";
+
+      drawLineChart($("ctWaitTrendChart"), withWait.map((d) => d.date), withWait.map((d) => Math.round((d.avgWaitSec / 60) * 10) / 10));
+
+      const rankEl = $("ctWaitRankList");
+      if (!rankEl) return;
+      rankEl.innerHTML = topWait.length
+        ? topWait.map((item, i) => `
+          <li class="rank-item">
+            <span class="rank-no${i < 3 ? " top" : ""}">${i + 1}</span>
+            <div class="rank-name"><strong>${escapeHtml(item.date)}</strong><small>${nf.format(item.total)}건</small></div>
+            <span class="rank-val">${ctFormatSeconds(item.avgWaitSec)}</span>
+          </li>`).join("")
+        : '<li><div class="empty-state">표시할 데이터가 없습니다.</div></li>';
+    }
+
+    function ctSetDateRange(start, end) {
+      $("ctStartDate").value = start || "";
+      $("ctEndDate").value = end || "";
+      ctFpSuppress = true;
+      try {
+        if (ctFp) { if (start && end) ctFp.setDate([start, end]); else ctFp.clear(); }
+      } finally {
+        ctFpSuppress = false;
+      }
+    }
+
+    function ctApplyShortcut(range) {
+      const today = new Date();
+      let start = "", end = "";
+      if (range === "week") {
+        const s = new Date(today); s.setDate(s.getDate() - 6);
+        start = dateKey(s); end = dateKey(today);
+      } else if (range === "thisMonth") {
+        start = dateKey(new Date(today.getFullYear(), today.getMonth(), 1));
+        end = dateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+      }
+      document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((b) => b.classList.toggle("active", b.dataset.ctRange === range));
+      ctSetDateRange(start, end);
+      ctApplyFilters();
+    }
+
+    try {
+      ctFp = flatpickr("#ctDateRangePicker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        locale: {
+          weekdays: {
+            shorthand: ["일", "월", "화", "수", "목", "금", "토"],
+            longhand: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+          },
+          months: {
+            shorthand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+            longhand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]
+          },
+          firstDayOfWeek: 0,
+          rangeSeparator: " ~ "
+        },
+        disableMobile: false,
+        onChange: function (selectedDates) {
+          if (ctFpSuppress) return;
+          if (selectedDates.length === 2) {
+            document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((b) => b.classList.remove("active"));
+            ctSetDateRange(dateKey(selectedDates[0]), dateKey(selectedDates[1]));
+            ctApplyFilters();
+          }
+        }
+      });
+    } catch (e) {
+      console.warn("채널톡 flatpickr 초기화 실패:", e);
+    }
+
+    document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((btn) => {
+      btn.addEventListener("click", () => ctApplyShortcut(btn.dataset.ctRange));
+    });
+
+    $("ctResetBtn").addEventListener("click", () => {
+      document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((b) => b.classList.remove("active"));
+      ctSetDateRange("", "");
+      ctApplyFilters();
+    });
+
+    $("ctRefreshBtn").addEventListener("click", () => ctInit());
 
     const pending = { phone: null, channel: null };
 
@@ -5644,6 +5956,7 @@
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
+        if (target === "channeltalk" && ctState.loaded) ctRender();
       });
     });
 
@@ -5651,7 +5964,7 @@
     initManualRows();
     renderManualLog();
     initUploadRows();
-    window.addEventListener("resize", () => render());
+    window.addEventListener("resize", () => { render(); if (ctState.loaded) ctRender(); });
     init();
   </script>
 </body>
