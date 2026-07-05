@@ -533,85 +533,7 @@
     }
     .ai-warning { font-size: 12px; color: var(--amber); font-weight: 500; }
     .badge--ai { background: #EDE9FE; color: var(--violet); }
-
-    /* ── Date Range Picker ─────────────────────────────── */
-    .date-range-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .date-range-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-    }
-    .date-shortcuts {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
-    .shortcut-btn {
-      height: 22px;
-      padding: 0 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text-2);
-      font: inherit;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .shortcut-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
-    .shortcut-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-    .date-range-input {
-      height: 34px;
-      min-height: 34px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--bg);
-      color: var(--text);
-      font: inherit;
-      font-size: 13px;
-      padding: 0 10px;
-      width: 220px;
-      min-width: 180px;
-      outline: none;
-      transition: border-color 0.15s;
-      cursor: pointer;
-    }
-    .date-range-input:focus { border-color: var(--blue); }
-    /* flatpickr theme overrides */
-    .flatpickr-calendar {
-      font-family: inherit !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
-      border: 1px solid var(--border) !important;
-      border-radius: var(--radius) !important;
-    }
-    .flatpickr-day.selected,
-    .flatpickr-day.startRange,
-    .flatpickr-day.endRange,
-    .flatpickr-day.selected:hover,
-    .flatpickr-day.startRange:hover,
-    .flatpickr-day.endRange:hover {
-      background: var(--blue) !important;
-      border-color: var(--blue) !important;
-    }
-    .flatpickr-day.inRange {
-      background: var(--blue-50) !important;
-      border-color: transparent !important;
-      color: var(--blue) !important;
-      box-shadow: -5px 0 0 var(--blue-50), 5px 0 0 var(--blue-50) !important;
-    }
-    .flatpickr-months .flatpickr-prev-month:hover svg,
-    .flatpickr-months .flatpickr-next-month:hover svg { fill: var(--blue) !important; }
   </style>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -770,18 +692,8 @@
       <!-- Filter Bar -->
       <section class="filter-bar" aria-label="필터">
         <label>월<select id="monthFilter"><option value="all">전체</option></select></label>
-        <div class="date-range-group">
-          <span class="date-range-label">날짜 범위</span>
-          <div class="date-shortcuts">
-            <button type="button" class="shortcut-btn" data-range="today">오늘</button>
-            <button type="button" class="shortcut-btn" data-range="week">최근 7일</button>
-            <button type="button" class="shortcut-btn" data-range="thisMonth">이번 달</button>
-            <button type="button" class="shortcut-btn" data-range="lastMonth">지난 달</button>
-          </div>
-          <input type="text" id="dateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
-          <input type="hidden" id="startDate">
-          <input type="hidden" id="endDate">
-        </div>
+        <label>시작일<input id="startDate" type="date"></label>
+        <label>종료일<input id="endDate" type="date"></label>
         <label>상담사<select id="counselorFilter"><option value="all">전체</option></select></label>
         <label>업무 대분류<select id="mainFilter"><option value="all">전체</option></select></label>
         <label>업무 소분류<select id="subFilter"><option value="all">전체</option></select></label>
@@ -4298,7 +4210,7 @@
       if (m) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
       // 단축: 6/27 / 6.27
       m = text.match(/(?<!\d)(\d{1,2})[\/.](\d{1,2})(?!\d)/);
-      if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= 12 && parseInt(m[2]) >= 1 && parseInt(m[2]) <= 31) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
+      if (m) { const y = new Date().getFullYear(); return `${y}-${String(m[1]).padStart(2,"0")}-${String(m[2]).padStart(2,"0")}`; }
       return null;
     }
     function aiDetectCounselor(text) {
@@ -4339,8 +4251,7 @@
         if (!globalCounselor) globalCounselor = aiDetectCounselor(line);
       }
 
-      const _now = new Date();
-      const today = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,"0")}-${String(_now.getDate()).padStart(2,"0")}`;
+      const today = new Date().toISOString().slice(0,10);
       let currentDate = null;      // 마지막으로 만난 날짜 (섹션 헤더)
       let currentCounselor = globalCounselor || "";
 
@@ -4359,8 +4270,6 @@
 
         // 업무 행: 같은 줄에 날짜가 있으면 그 날짜 사용, 없으면 현재 섹션 날짜
         const date      = lineDate || currentDate || today;
-        if (lineDate) currentDate = lineDate;
-        if (lineCounselor) currentCounselor = lineCounselor;
         const counselor = lineCounselor || currentCounselor || "";
         const minutes   = aiDetectMinutes(line) || 0;
         const lkey      = cleanForLearning(line);
@@ -4480,7 +4389,7 @@
     }
 
     function aiAddRow() {
-      const _n = new Date(); const today = `${_n.getFullYear()}-${String(_n.getMonth()+1).padStart(2,"0")}-${String(_n.getDate()).padStart(2,"0")}`;
+      const today = new Date().toISOString().slice(0,10);
       const newRow = { id: aiRowIdCounter++, date: today, counselor: "", main: "", sub: "", count: 1, minutes: 0, status: "unknown", rawLine: "", lkey: "" };
       aiPendingRows.push(newRow);
       document.getElementById("aiResultBody").insertAdjacentHTML("beforeend", renderAiRow(newRow));
@@ -4509,7 +4418,7 @@
           _id: `manual_${Date.now()}_${Math.random().toString(36).slice(2)}`,
           date: d,
           dateText: row.date || "",
-          month: monthLabel(d),
+          month: `${d.getFullYear()}년 ${d.getMonth()+1}월`,
           counselor: masked,
           main: row.main, sub: row.sub,
           count: row.count || 0, minutes: row.minutes || 0,
@@ -4555,7 +4464,6 @@
     }
 
     function monthLabel(date) {
-      if (!date || isNaN(date.getTime())) return "";
       return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
     }
 
@@ -4881,15 +4789,17 @@
 
     function setFilters(rows) {
       if (!rows.length) {
-        setDateRange("", "");
+        $("startDate").value = "";
+        $("endDate").value = "";
         $("monthFilter").innerHTML = '<option value="all">전체</option>';
         $("counselorFilter").innerHTML = '<option value="all">전체</option>';
         $("mainFilter").innerHTML = '<option value="all">전체</option>';
         $("subFilter").innerHTML = '<option value="all">전체</option>';
         return;
       }
-      const todayKey = dateKey(new Date());
-      setDateRange(todayKey, todayKey);
+      const dateTexts = rows.map((row) => row.dateText).filter(Boolean).sort();
+      $("startDate").value = dateTexts[0] || "";
+      $("endDate").value = dateTexts[dateTexts.length - 1] || "";
       setSelectOptions("monthFilter", [...new Set(rows.map((row) => row.month))]);
       setSelectOptions("counselorFilter", [...new Set(rows.map((row) => row.counselor))]);
       setSelectOptions("mainFilter", [...new Set(rows.map((row) => row.main))]);
@@ -4920,7 +4830,8 @@
       if (!scoped.length) return;
       const dateTexts = scoped.map((row) => row.dateText).filter(Boolean).sort();
       if (!dateTexts.length) return;
-      setDateRange(dateTexts[0], dateTexts[dateTexts.length - 1]);
+      $("startDate").value = dateTexts[0];
+      $("endDate").value = dateTexts[dateTexts.length - 1];
     }
 
     function updateSubFilter() {
@@ -5382,80 +5293,13 @@
       }
     }
 
-    // flatpickr 초기화
-    let _fpSuppressChange = false;
-    let fp = null;
-    try {
-      fp = flatpickr("#dateRangePicker", {
-        mode: "range",
-        dateFormat: "Y-m-d",
-        locale: {
-          weekdays: {
-            shorthand: ["일", "월", "화", "수", "목", "금", "토"],
-            longhand: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-          },
-          months: {
-            shorthand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
-            longhand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]
-          },
-          firstDayOfWeek: 0,
-          rangeSeparator: " ~ "
-        },
-        disableMobile: false,
-        onChange: function(selectedDates) {
-          if (_fpSuppressChange) return;
-          if (selectedDates.length === 2) {
-            $("startDate").value = dateKey(selectedDates[0]);
-            $("endDate").value = dateKey(selectedDates[1]);
-            applyFilters();
-          }
-        }
-      });
-    } catch (e) {
-      console.warn("flatpickr 초기화 실패:", e);
-    }
-
-    function setDateRange(start, end) {
-      $("startDate").value = start;
-      $("endDate").value = end;
-      _fpSuppressChange = true;
-      try {
-        if (start && end) fp.setDate([start, end]);
-        else fp.clear();
-      } finally {
-        _fpSuppressChange = false;
-      }
-    }
-
-    function applyShortcut(range) {
-      const today = new Date();
-      let start, end;
-      if (range === "today") {
-        start = end = dateKey(today);
-      } else if (range === "week") {
-        const s = new Date(today); s.setDate(s.getDate() - 6);
-        start = dateKey(s); end = dateKey(today);
-      } else if (range === "thisMonth") {
-        start = dateKey(new Date(today.getFullYear(), today.getMonth(), 1));
-        end = dateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
-      } else if (range === "lastMonth") {
-        start = dateKey(new Date(today.getFullYear(), today.getMonth() - 1, 1));
-        end = dateKey(new Date(today.getFullYear(), today.getMonth(), 0));
-      }
-      document.querySelectorAll(".shortcut-btn").forEach((b) => b.classList.toggle("active", b.dataset.range === range));
-      setDateRange(start, end);
-      applyFilters();
-    }
-
-    document.querySelectorAll(".shortcut-btn").forEach((btn) => {
-      btn.addEventListener("click", () => applyShortcut(btn.dataset.range));
-    });
-
     $("monthFilter").addEventListener("change", () => {
       updateDateRangeForMonth();
       updateSubFilter();
       applyFilters();
     });
+    $("startDate").addEventListener("change", applyFilters);
+    $("endDate").addEventListener("change", applyFilters);
     $("counselorFilter").addEventListener("change", () => {
       updateSubFilter();
       applyFilters();
