@@ -5456,7 +5456,7 @@
     }
 
     // ══ 채널톡 탭 (문의 유형 · 고객 대기시간) ══════════════════════
-    const CT_API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // TODO: Apps Script 웹 앱 배포 후 실제 URL로 교체
+    const CT_API_URL = "https://script.google.com/macros/s/AKfycbzQ4UmYLYO-L35X8c-GH3wpBrOIPwMC1gxA2_CJG--h8dpvTfJelsrr27Qb0nUjRQhg/exec";
     const ctState = { categories: [], days: [], filteredDays: [], loaded: false };
     let ctFp = null, ctFpSuppress = false;
 
@@ -5533,7 +5533,10 @@
       $("ctTopType").textContent = ranked.length ? shorten(ranked[0].key, 14) : "—";
       $("ctTopTypeCount").textContent = ranked.length ? `${nf.format(ranked[0].count)}건` : "—";
 
-      drawDonutChart($("ctTypeChart"), ranked.map((r) => r.key), ranked.map((r) => r.count), "ctTypeLegend", "건");
+      const donutItems = ranked.slice(0, 7);
+      const donutRestCount = ranked.slice(7).reduce((sum, r) => sum + r.count, 0);
+      if (donutRestCount > 0) donutItems.push({ key: "기타", count: donutRestCount });
+      drawDonutChart($("ctTypeChart"), donutItems.map((r) => r.key), donutItems.map((r) => r.count), "ctTypeLegend", "건");
 
       const rankEl = $("ctTypeRankList");
       if (!rankEl) return;
