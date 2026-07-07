@@ -1,0 +1,1397 @@
+<title>MVNO 알뜰폰 고객센터 운영 품질 비교 분석 2025–2026</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #ECEEF2;
+  --surface: #FFFFFF;
+  --ink: #16191F;
+  --ink-muted: #5C6478;
+  --accent: #1B3E87;
+  --accent-light: #E8EDF8;
+  --teal: #00757F;
+  --border: #D4D9E3;
+  --good: #0A5C3A;
+  --good-bg: #E6F5EE;
+  --warn: #A05200;
+  --warn-bg: #FFF3E0;
+  --bad: #BA1B2A;
+  --bad-bg: #FDECEA;
+  --neutral-bg: #F2F4F7;
+  --gap: clamp(1rem, 3vw, 2rem);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  padding: var(--gap);
+}
+
+.container { max-width: 1060px; margin: 0 auto; }
+
+/* ── Header ── */
+.report-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 2.5rem 2.5rem 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+.report-header .eyebrow {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .65;
+  margin-bottom: .5rem;
+}
+.report-header h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-weight: normal;
+  line-height: 1.25;
+  text-wrap: balance;
+  margin-bottom: 1rem;
+}
+.report-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .75rem;
+  font-size: 12.5px;
+  opacity: .8;
+}
+.report-meta span::before { content: '·'; margin-right: .4em; }
+.report-meta span:first-child::before { content: ''; margin: 0; }
+
+/* ── Note box ── */
+.note-box {
+  background: var(--accent-light);
+  border-left: 3px solid var(--accent);
+  padding: .85rem 1.1rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-bottom: 2rem;
+}
+
+/* ── Tier heading ── */
+.tier-heading {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 2.5rem 0 1rem;
+}
+.tier-heading h2 {
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: normal;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.tier-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Company card ── */
+.company-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.5rem .9rem;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.card-head h3 {
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: normal;
+  color: var(--ink);
+}
+.card-head .tier-badge {
+  font-size: 11px;
+  letter-spacing: .06em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--neutral-bg);
+  color: var(--ink-muted);
+  white-space: nowrap;
+  margin-top: 3px;
+}
+
+/* ── Operating hours banner ── */
+.hours-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.5rem;
+  padding: .75rem 1.5rem;
+  background: #F7F9FC;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.hours-item { display: flex; align-items: baseline; gap: .4rem; }
+.hours-item .h-label {
+  font-size: 10.5px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.hours-item .h-value { color: var(--ink); }
+.hours-item .h-value.h-good { color: var(--good); font-weight: 500; }
+.hours-item .h-value.h-warn { color: var(--warn); }
+
+/* ── Rating block ── */
+.rating-block {
+  padding: .8rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: var(--neutral-bg);
+}
+.rating-label {
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  min-width: 60px;
+}
+.stars { font-size: 1.1rem; letter-spacing: .05em; line-height: 1; }
+.stars.high { color: var(--good); }
+.stars.mid  { color: var(--warn); }
+.stars.low  { color: var(--bad); }
+.stars.insuff { color: var(--ink-muted); font-size: .9rem; letter-spacing: 0; }
+.score-chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.score-chip.high { background: var(--good-bg); color: var(--good); }
+.score-chip.mid  { background: var(--warn-bg); color: var(--warn); }
+.score-chip.low  { background: var(--bad-bg);  color: var(--bad);  }
+
+/* ── Card body grid ── */
+.card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+@media (max-width: 640px) { .card-body { grid-template-columns: 1fr; } }
+.card-section {
+  padding: .95rem 1.5rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.card-section:nth-child(even) { border-right: none; }
+.card-section:nth-last-child(-n+2) { border-bottom: none; }
+@media (max-width: 640px) {
+  .card-section { border-right: none; }
+  .card-section:last-child { border-bottom: none; }
+}
+.card-section h4 {
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: .5rem;
+  font-weight: 600;
+}
+.card-section ul {
+  padding-left: 1.1rem;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.card-section ul li { margin-bottom: .3rem; }
+.card-section p { font-size: 13.5px; color: var(--ink); }
+.card-section.full {
+  grid-column: 1 / -1;
+  border-right: none;
+}
+.tag-list { display: flex; flex-wrap: wrap; gap: .35rem; }
+.tag {
+  font-size: 12px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  line-height: 1.5;
+}
+.tag.pro  { background: var(--good-bg);  color: var(--good); }
+.tag.con  { background: var(--bad-bg);   color: var(--bad); }
+.tag.warn { background: var(--warn-bg);  color: var(--warn); }
+.source-line {
+  font-size: 11.5px;
+  color: var(--teal);
+  margin-top: .4rem;
+}
+.source-line a { color: var(--teal); text-decoration: none; }
+.source-line a:hover { text-decoration: underline; }
+
+/* ── Section heading ── */
+.section-heading {
+  font-family: Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: normal;
+  color: var(--accent);
+  margin: 2.5rem 0 1rem;
+  padding-bottom: .5rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ── Hours summary table ── */
+.hours-table-wrap { overflow-x: auto; margin-bottom: 2rem; }
+.hours-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 700px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.hours-table th {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  padding: .65rem 1rem;
+  text-align: left;
+}
+.hours-table td {
+  padding: .6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.hours-table tr:last-child td { border-bottom: none; }
+.hours-table tr:nth-child(even) td { background: #F7F8FB; }
+.h-chip {
+  display: inline-block;
+  font-size: 11.5px;
+  padding: 1px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+.h-chip.good { background: var(--good-bg); color: var(--good); }
+.h-chip.warn { background: var(--warn-bg); color: var(--warn); }
+.h-chip.bad  { background: var(--bad-bg);  color: var(--bad); }
+
+/* ── Comparison table ── */
+.table-wrap { overflow-x: auto; }
+table.main-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  min-width: 620px;
+}
+table.main-table th {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  padding: .65rem 1rem;
+  text-align: left;
+}
+table.main-table td {
+  padding: .6rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+table.main-table tr:nth-child(even) td { background: #F7F8FB; }
+td .stars { font-size: .9rem; }
+td.insuff-cell { color: var(--ink-muted); font-size: 12px; }
+
+/* ── TOP10 ── */
+.top10-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: .75rem;
+  margin-top: 1rem;
+}
+.top10-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .9rem 1.1rem;
+  display: flex;
+  gap: .85rem;
+  align-items: flex-start;
+}
+.top10-num {
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  color: var(--accent);
+  opacity: .3;
+  line-height: 1;
+  min-width: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.top10-text strong { display: block; font-size: 13.5px; margin-bottom: .15rem; }
+.top10-text span { font-size: 12px; color: var(--ink-muted); }
+
+/* ── Footer ── */
+.report-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+</style>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="report-header">
+    <div class="eyebrow">고객센터 운영 컨설팅 리포트</div>
+    <h1>국내 알뜰폰(MVNO) 10개 사업자<br>고객센터 운영 품질 비교 분석</h1>
+    <div class="report-meta">
+      <span>조사 기간: 2025–2026년 자료 우선</span>
+      <span>운영시간: 각 사업자 공식 홈페이지 직접 확인</span>
+      <span>후기 출처: 네이버 블로그·카페, 뽐뿌, 클리앙, 디시인사이드, 모요</span>
+      <span>작성일: 2026. 07. 05</span>
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="note-box">
+    <strong>조사 방법:</strong> 운영시간은 각 사업자 공식 홈페이지를 2026년 7월 기준으로 직접 재확인했습니다.
+    <ul style="padding-left:1.1rem; margin-top:.5rem;">
+      <li>전화 상담 운영시간·주말휴무 여부는 대부분 공식 확인이 가능했습니다.</li>
+      <li>카카오톡·채널톡 등 온라인 상담의 구체적 운영시간은 대부분 사업자가 명시하지 않아 <strong>"미확인"</strong>으로 표기했습니다.</li>
+      <li>리브모바일 "24시간 365일" 전화상담, 헬로모바일 "개통상담 10:00~19:50" 등 기존에 통용되던 정보 중 일부는 공식 근거를 찾지 못해 정정했습니다.</li>
+      <li>후기가 부족하거나 독립 출처가 없는 항목은 <strong>근거 부족</strong>으로 표기했습니다.</li>
+      <li>아정당 알뜰폰 후기 대부분은 자사 플랫폼(ajd.co.kr) 게재로 편향 가능성이 있습니다.</li>
+    </ul>
+  </div>
+
+  <!-- ═══ 운영시간 요약표 ═══ -->
+  <h2 class="section-heading">고객센터 운영시간 요약 (공식 확인)</h2>
+  <div class="hours-table-wrap">
+    <table class="hours-table">
+      <thead>
+        <tr>
+          <th>사업자</th>
+          <th>전화번호</th>
+          <th>전화 상담 운영시간</th>
+          <th>점심시간</th>
+          <th>주말·공휴일</th>
+          <th>채팅·온라인</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>리브모바일</strong></td>
+          <td>114 무료<br>1522-9999 유료</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span><br><span style="font-size:12px;color:var(--ink-muted)">소비자지원부 09:00~16:00</span></td>
+          <td>미확인</td>
+          <td><span class="h-chip warn">상담원 연결 불가</span><br><span style="font-size:12px;color:var(--ink-muted)">분실·로밍·통화품질 자동접수(ARS)만 24시간</span></td>
+          <td>앱 챗봇 (운영시간 미확인)</td>
+        </tr>
+        <tr>
+          <td><strong>아정당 알뜰폰</strong></td>
+          <td>1833-2640</td>
+          <td><span class="h-chip good">평일 10:00 ~ 18:00</span><br><span style="font-size:12px;color:var(--ink-muted)">개통 가능: 신규 08:00~21:50 / 번호이동 10:00~19:40</span></td>
+          <td>미확인</td>
+          <td><span class="h-chip good">토요일 운영</span><br><span style="font-size:12px;color:var(--ink-muted)">일요일·명절 당일 제외</span></td>
+          <td>카카오톡, 채널톡 (운영시간 미확인)</td>
+        </tr>
+        <tr>
+          <td><strong>헬로모바일</strong></td>
+          <td>114 무료<br>1855-1140 유료</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span><br><span style="font-size:12px;color:var(--ink-muted)">"개통상담 10:00~19:50"은 공식 홈페이지 미기재(제3자 출처만 존재)</span></td>
+          <td>미확인</td>
+          <td><span class="h-chip bad">일반상담 불가</span><br><span style="font-size:12px;color:var(--ink-muted)">분실접수·통화품질만 상시 가능</span></td>
+          <td>1:1 채팅상담 (운영시간 미확인)</td>
+        </tr>
+        <tr>
+          <td><strong>KT M모바일</strong></td>
+          <td>114 무료<br>1899-5000 유료</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span></td>
+          <td>12:00~13:00<br>(긴급만 가능)</td>
+          <td><span class="h-chip warn">분실·정지 자동응답만</span></td>
+          <td>홈페이지 채팅</td>
+        </tr>
+        <tr>
+          <td><strong>U+유모바일</strong></td>
+          <td>114 무료<br>1644-5353 유료<br>개통: 1661-0544</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span></td>
+          <td>12:00~13:00<br>개통: 12:30~13:30</td>
+          <td><span class="h-chip warn">1:1문의, 24시간 챗봇</span></td>
+          <td>24시간 챗봇</td>
+        </tr>
+        <tr>
+          <td><strong>SK텔링크</strong><br><span style="font-size:11px;color:var(--ink-muted)">(SK세븐모바일)</span></td>
+          <td>114 무료<br>1599-0999 유료<br>개통: 1599-3508</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span><br><span style="font-size:12px;color:var(--ink-muted)">개통 전용: 10:00~18:00</span></td>
+          <td>일반 12:00~13:00<br>개통 12:30~13:30<br>(상담원 부재, 분실 등 긴급건만)</td>
+          <td><span class="h-chip bad">상담원 연결 불가</span><br><span style="font-size:12px;color:var(--ink-muted)">분실·습득·통화품질·로밍은 24시간</span></td>
+          <td><span class="h-chip good">챗봇 24시간·365일</span></td>
+        </tr>
+        <tr>
+          <td><strong>이야기모바일</strong></td>
+          <td>114 무료<br>1600-5281 유료</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span></td>
+          <td>미확인</td>
+          <td><span class="h-chip bad">전면 휴무</span></td>
+          <td>카카오톡 채널 (운영시간 미확인)</td>
+        </tr>
+        <tr>
+          <td><strong>스마텔</strong></td>
+          <td>114<br>1566-0212</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span></td>
+          <td>미확인</td>
+          <td><span class="h-chip bad">전면 휴무</span></td>
+          <td>카카오톡 채널 (운영시간 공식 미확인)</td>
+        </tr>
+        <tr>
+          <td><strong>모빙</strong></td>
+          <td>1666-9970</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span></td>
+          <td>12:00~13:00</td>
+          <td><span class="h-chip bad">전면 휴무</span></td>
+          <td>해피톡 실시간채팅 (운영시간 미확인)</td>
+        </tr>
+        <tr>
+          <td><strong>프리티</strong></td>
+          <td>망별 번호만 상이<br>SKT 1661-2207<br>KT 1577-4551<br>LGU+ 1588-3615</td>
+          <td><span class="h-chip warn">평일 09:00 ~ 18:00</span><br><span style="font-size:12px;color:var(--ink-muted)">3망 동일 시간, 번호만 다름</span></td>
+          <td>12:00~13:00</td>
+          <td><span class="h-chip bad">전면 휴무</span></td>
+          <td>온라인 문의 (운영시간 미확인)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ 통신3사 계열 MVNO ═══ -->
+  <div class="tier-heading"><h2>통신3사 계열 알뜰폰</h2></div>
+
+  <!-- 리브모바일 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>리브모바일 (KB국민은행 계열)</h3>
+      <span class="tier-badge">알뜰폰 — 대형</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value h-warn">평일 09:00~18:00 · 114(무료) / 1522-9999(유료)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">자동접수(ARS)</span>
+        <span class="h-value h-good">분실·로밍·통화품질은 24시간 상시 접수</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">상담원 연결 불가 (자동접수만 가능)</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">4 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">3.8 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>방통위 고객센터 서비스 품질 평가 '우수' 등급 인증 (알뜰폰 중 유일)</li>
+          <li>공식 홈페이지 확인 결과 상담원 전화연결은 평일 09:00~18:00, 소비자지원부는 09:00~16:00 운영</li>
+          <li><strong>"24시간 365일 상담"은 부정확한 정보 — 실제 24시간 대응은 분실·로밍·통화품질 자동응답(ARS) 접수에 한함</strong></li>
+          <li>앱 챗봇("똑똑이방") 운영 중이나 구체적 운영시간은 공식 페이지 미기재</li>
+        </ul>
+        <div class="source-line">출처: 방통위 공식 발표 · <a href="https://m.liivm.com/support/customer/cs-guide" target="_blank">liivm.com 공식 (재확인)</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">방통위 우수 인증 (알뜰폰 유일)</span>
+          <span class="tag pro">분실·로밍·통화품질 24시간 자동접수</span>
+          <span class="tag pro">앱 챗봇 상담 지원</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">KB금융 연계 상품 혼선 일부</span>
+          <span class="tag con">타 알뜰폰 대비 요금 비쌈</span>
+          <span class="tag con">주말·공휴일 상담원 연결 불가</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>채팅·AI 상담</h4>
+        <ul>
+          <li>앱 챗봇("똑똑이방") 운영 — 정확한 운영시간은 공식 페이지 미기재로 확인 불가</li>
+          <li>분실·로밍·통화품질은 ARS로 24시간 접수 가능 (상담원 연결과는 별개)</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>알뜰폰 사업자 중 방통위 공식 우수 인증을 받은 유일한 곳으로 CS 품질 신뢰도는 높다. 다만 "24시간 365일 상담"으로 알려진 것과 달리 실제 상담원 연결은 평일 09~18시로 한정되며, 24시간 대응은 분실·로밍 등 자동접수 기능에 국한된다는 점은 정정이 필요하다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- KT M모바일 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>KT M모바일 (KT 계열)</h3>
+      <span class="tier-badge">알뜰폰 — 대형</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value">평일 09:00~18:00 · 114(무료) / 1899-5000</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">점심</span>
+        <span class="h-value h-warn">12:00~13:00 긴급만</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">분실·정지 자동응답만</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">개통센터</span>
+        <span class="h-value">1899-0050 (별도 운영)</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">4 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">3.5 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>"1번 → 0번 누르면 빠르게 대기열 진입" 팁 통용 (브런치 실사용 후기)</li>
+          <li>통신3사 자회사로 고객센터 연결 원활 평가 (모요 비교 리뷰)</li>
+          <li>개통센터(1899-0050) 별도 운영으로 혼선 감소</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://brunch.co.kr/@2c01b104f7444d6/356" target="_blank">brunch.co.kr</a> · <a href="https://www.ktmmobile.com/cs/serviceGuide.do" target="_blank">ktmmobile.com 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">KT 자회사 인프라</span>
+          <span class="tag pro">긴급 위치 제공 무료</span>
+          <span class="tag pro">개통 전용 채널 분리</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">주말·공휴일 사실상 대응 불가</span>
+          <span class="tag con">점심시간 연결 지연</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>점심시간(12~13시) 연결 어려움</li>
+          <li>주말 상담 불가로 번호이동 후 문제 대응 지연</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>알뜰폰 중 고객센터 안정성 상위권. KT 자회사 인프라 덕에 연결은 원활하지만, 평일 09~18시 한정이라 직장인·주말 이용자에게 불편하다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- U+유모바일 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>U+유모바일 (LG U+ 계열)</h3>
+      <span class="tier-badge">알뜰폰 — 대형</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">고객센터</span>
+        <span class="h-value">평일 09:00~18:00 · 114(무료) / 1644-5353</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">개통센터</span>
+        <span class="h-value">평일 09:00~18:00 · 1661-0544 (점심 12:30~13:30)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">24시간 챗봇 · 1:1문의</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">4 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">3.5 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>"품질불만은 하나도 없었음… 고객센터 연결도 잘됐어요" (모요 이용 후기)</li>
+          <li>모요 이용자 리뷰 3,231건 — 알뜰폰 중 최대 규모</li>
+          <li>고객센터·개통센터 채널 분리 운영</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://www.moyoplan.com/mvnos/U+%EC%95%8C%EB%9C%B0%EB%AA%A8%EB%B0%94%EC%9D%BC" target="_blank">moyoplan.com</a> · <a href="https://support.uplusumobile.com/hc/ko/articles/12741753555215" target="_blank">uplusumobile.com 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">대규모 리뷰 통계 신뢰도↑</span>
+          <span class="tag pro">개통·고객 채널 분리</span>
+          <span class="tag pro">주말 챗봇 24시간</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">전화 평일 09~18시만</span>
+          <span class="tag con">외국어 상담 채널 별도 필요</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 칭찬받는 점</h4>
+        <ul>
+          <li>연결이 잘 된다는 후기 일관성 있음</li>
+          <li>LG U+ 계열 망 품질 만족도</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>LG U+ 자회사로 망 품질과 CS 모두 중상위권. 3,000건 이상 리뷰에서 고객센터 연결 불만이 상대적으로 적으며, 주말 챗봇으로 기본 문의는 대응 가능하다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 헬로모바일 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>헬로모바일 (LG헬로비전 계열)</h3>
+      <span class="tier-badge">알뜰폰 — 대형</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화 상담</span>
+        <span class="h-value h-warn">평일 09:00~18:00 (공식 홈페이지 기준)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value">114(무료) / 1855-1140(LGU+망) / 1855-1144(KT망)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">일반상담 불가 (분실접수·통화품질만 가능)</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars mid">★★★☆☆</span>
+      <span class="score-chip mid">3 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars mid">★★★☆☆</span>
+      <span class="score-chip mid">3.0 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>클리앙 해지 후기: 해지 절차 복잡, 여러 단계 확인 필요 (실사용 다수)</li>
+          <li>번호이동 시 "약간 삽질" 경험 공유 (클리앙)</li>
+          <li>공식 홈페이지 재확인 결과 전화상담은 평일 09:00~18:00로 안내</li>
+          <li>기존에 알려진 "개통상담 10:00~19:50"은 공식 페이지에서 확인되지 않음 (제3자 블로그 출처만 존재)</li>
+          <li>카카오톡 채널 상담 제공 (운영시간 미기재)</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://www.clien.net/service/board/use/7283039" target="_blank">clien.net (해지 후기)</a> · <a href="https://mobile.lghellovision.net/mv_client/customer/customer_07.asp" target="_blank">lghellovision.net 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">LG헬로비전 계열 안정성</span>
+          <span class="tag pro">카카오톡 채널 상담 제공</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">주말·공휴일 일반상담 불가</span>
+          <span class="tag con">해지 절차 복잡 (클리앙 공통 지적)</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>해지·명의변경 절차가 번거롭다</li>
+          <li>주말·공휴일 일반상담 불가</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>전화상담은 평일 09~18시로 운영되며, 기존에 알려졌던 "개통상담 19:50까지 운영"은 이번 재확인에서 공식 근거를 찾지 못해 정정한다. 해지·변경 시 절차 복잡 불만이 클리앙에서 반복적으로 나타나며, 주말·공휴일 일반상담 불가는 구조적 약점이다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SK텔링크 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>SK텔링크 / SK 세븐모바일 (SK 계열)</h3>
+      <span class="tier-badge">알뜰폰 — 대형</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">일반 상담</span>
+        <span class="h-value">평일 09:00~18:00 (점심 12:00~13:00) · 114(무료) / 1599-0999</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">개통 전용</span>
+        <span class="h-value h-warn">평일 10:00~18:00 · 1599-3508 (점심 12:30~13:30)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">챗봇</span>
+        <span class="h-value h-good">24시간·365일 (야간 20~09시 일부 업무 제한)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">상담원 연결 불가 (분실·습득·통화품질·로밍은 24시간)</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars mid">★★★☆☆</span>
+      <span class="score-chip mid">3 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars insuff">— 근거 부족</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>독립 커뮤니티(뽐뿌·클리앙·디시) 실사용 후기 수집 불가</li>
+          <li>개통 상담이 10:00 시작으로 타사 대비 늦음</li>
+          <li>공식 홈페이지 재확인 결과 챗봇 상담은 2024.3.1부터 24시간·365일로 확대 운영</li>
+          <li>단, 야간 20~09시는 개통 등 일부 업무 제한, 점심시간은 챗봇 대응 제외</li>
+          <li>SK 계열 자회사로 기본 인프라 안정성 담보</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://www.sktelink.com/view/customer/costomer_service_info" target="_blank">sktelink.com 공식</a> · <a href="https://www.sk7mobile.com/ccsc/content/customMain.do" target="_blank">sk7mobile.com 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">SK 계열 인프라</span>
+          <span class="tag pro">챗봇 24시간·365일 운영</span>
+          <span class="tag pro">청각·언어장애인 문자 상담</span>
+          <span class="tag pro">분실·도난 문자 상담</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">개통 상담 10시 시작 (타사 대비 늦음)</span>
+          <span class="tag con">주말·공휴일 상담원 연결 불가</span>
+          <span class="tag con">독립 이용자 후기 매우 부족</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>채팅·온라인</h4>
+        <ul>
+          <li>챗봇 24시간·365일 운영 (2024.3.1부터 확대, 점심시간 제외)</li>
+          <li>청각·언어장애인 전용 카카오톡 문자상담(ID: sk7mobilecs)은 평일 09~12/13~18시 운영</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://www.sk7mobile.com/ccsc/board/noticeView.do?cntId=730" target="_blank">sk7mobile.com 채팅상담 운영시간 확대 공지</a></div>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>SK 계열 자회사로 기본 안정성은 담보되며, 챗봇을 24시간·365일로 운영해 알뜰폰 중 리브모바일과 함께 채팅 채널 대응력이 가장 뛰어나다. 다만 실제 전화 상담 이용자 CS 경험에 대한 독립 후기가 매우 부족해 정확한 평가가 어렵고, 개통 상담이 10시 시작이라는 점과 주말 상담원 부재는 약점이다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 중소 MVNO ═══ -->
+  <div class="tier-heading"><h2>중소 알뜰폰 사업자</h2></div>
+
+  <!-- 아정당 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>아정당 알뜰폰</h3>
+      <span class="tier-badge">알뜰폰 — 중소</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value h-good">평일 10:00~18:00 · 1833-2640</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">개통 가능 시간</span>
+        <span class="h-value">신규가입 08:00~21:50 / 번호이동 10:00~19:40</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">제외일</span>
+        <span class="h-value h-warn">일요일 · 신정·설·추석 당일</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">채팅</span>
+        <span class="h-value">카카오톡 · 채널톡 (운영시간 미명시)</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high">4 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars high">★★★★☆</span>
+      <span class="score-chip high" style="background:#FFF8E1;color:#8C6D00">3.5 ⚠편향주의</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>"처음 문의부터 응대 빠르고 친절", "기다림 없이 진행" (자사 플랫폼 게재 ※편향)</li>
+          <li>고객센터 전화 상담 운영시간: 평일 10:00~18:00</li>
+          <li>개통 가능 시간: 신규가입 08:00~21:50, 번호이동 10:00~19:40 (토요일 포함)</li>
+          <li>카카오톡·채널톡 멀티채널 상담 (운영시간 홈페이지 미명시)</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://www.ajdmobile.co.kr/active_info.do" target="_blank">ajdmobile.co.kr 공식 (개통 시간 기준)</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">토요일 포함 08:00~21:50 (알뜰폰 최장)</span>
+          <span class="tag pro">카카오톡·채널톡 멀티채널</span>
+          <span class="tag pro">오프라인 대리점 상담 가능</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">2025년 지원금 소급변경 논란</span>
+          <span class="tag con">독립 후기 부족 (자사 플랫폼 집중)</span>
+          <span class="tag con">일요일·명절 당일 휴무</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>iPhone 17 사전예약 시 유지기간 93→186일 소급 변경 ("뒤통수") 논란</li>
+          <li>지원금 형태 변경 관련 신뢰 이슈</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>운영시간·채널 다양성은 중소 알뜰폰 중 최상위. 그러나 수집 후기 대부분이 자사 플랫폼 게재로 독립적 검증이 필요하고, 2025년 지원금 변경 논란은 신뢰도 리스크로 남아있다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 이야기모바일 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>이야기모바일</h3>
+      <span class="tier-badge">알뜰폰 — 중소</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value h-warn">평일 09:00~18:00 · 114(무료) / 1600-5281</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">점심</span>
+        <span class="h-value">미확인 (공식 페이지 미기재)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">전면 휴무</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">2 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">2.5 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>"하루 종일 전화해야 겨우 연결", "2~3일 넘어가야 통화" (독립 후기)</li>
+          <li>모요 커뮤니티: 신청 취소 문의조차 연결 어렵다는 불만</li>
+          <li>자사 발표: "응대율 98%, 정직원 상담사, 5년+ 근속 80%" (독립 검증 불가)</li>
+          <li>공식 홈페이지(eyagi.co.kr, (주)큰사람커넥트 운영) 확인 결과 전화상담 평일 09:00~18:00, 주말·공휴일 휴무로 명시</li>
+          <li>점심시간은 공식 페이지에 별도 기재 없음</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://www.moyoplan.com/community/questions/ddac846e/" target="_blank">moyoplan.com 커뮤니티</a> · <a href="https://lifefin.co.kr/%EC%9D%B4%EC%95%BC%EA%B8%B0%EB%AA%A8%EB%B0%94%EC%9D%BC-%EA%B3%A0%EA%B0%9D%EC%84%BC%ED%84%B0/" target="_blank">lifefin.co.kr</a> · <a href="https://www.eyagi.co.kr/" target="_blank">eyagi.co.kr 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">정직원 상담사 (외주 없음)</span>
+          <span class="tag pro">5년+ 베테랑 비율 높음</span>
+          <span class="tag pro">분실·도난 24시간 접수</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">전화 연결 체감 매우 어려움</span>
+          <span class="tag con">자사 주장 vs 이용자 경험 괴리 심각</span>
+          <span class="tag con">주말 일반 상담 불가</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>전화 연결 자체가 안 됨 (하루 이상 소요)</li>
+          <li>자사 98% 응대율 발표와 실제 현실 괴리</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>상담사 역량과 직원 안정성은 업계 인정을 받으나, 연결 자체가 안 된다는 불만이 지속된다. 자체 발표 98% 응대율과 실제 이용자 경험 사이의 괴리가 가장 극명한 사업자다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프리티 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>프리티 (Freet)</h3>
+      <span class="tier-badge">알뜰폰 — 중소</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value h-warn">평일 09:00~12:00 / 13:00~18:00 (3망 동일, 번호만 상이)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">전면 휴무</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">온라인 문의</span>
+        <span class="h-value">운영시간 미확인</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">2 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">2.0 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>"고객센터 연결 잘 안됨", "문의해도 묵묵부답", "피드백 예약해도 안 옴" (독립 후기)</li>
+          <li>유심 교체 문의 급증으로 상담 답변 지연 공지 게시 중</li>
+          <li>공식 홈페이지 재확인 결과 전화상담은 평일 09:00~12:00 / 13:00~18:00 (점심시간 존재)</li>
+          <li>SKT·KT·LGU+ 3망 모두 운영시간은 동일하고 번호만 다름</li>
+          <li>채팅 상담 운영시간은 공식 페이지에 별도 기재 없음</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://itatoz11.com/%EC%95%8C%EB%9C%B0%ED%8F%B0-esim-%EA%B0%80%EC%9E%85-%EA%B0%9C%ED%86%B5%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95-%ED%94%84%EB%A6%AC%ED%8B%B0-%EC%9E%A5%EB%8B%A8%EC%A0%90-%ED%9B%84%EA%B8%B0-2%EA%B0%80/" target="_blank">독립 후기 블로그</a> · <a href="https://www.freet.co.kr/customer/helpDesk" target="_blank">freet.co.kr 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">3망(SKT·KT·LGU+) 모두 제공</span>
+          <span class="tag pro">온라인 1:1 문의 접수</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">전화 연결 매우 어려움</span>
+          <span class="tag con">온라인 답변 지연·무응답</span>
+          <span class="tag con">유심 교체 대응 미흡</span>
+          <span class="tag con">전화번호가 망별로 각각 달라 혼란</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>전화도 온라인도 응대 안 됨</li>
+          <li>유심 교체 문의 급증 시 전면 지연</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>요금제 가격 경쟁력에 비해 CS는 현저히 부족. 간단한 문의조차 피드백이 오지 않는다는 후기가 반복 등장한다. 전화번호가 3망별로 달라 초보 이용자 혼란도 가중된다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스마텔 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>스마텔</h3>
+      <span class="tier-badge">알뜰폰 — 중소</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value h-warn">평일 09:00~18:00 · 114 / 1566-0212</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">점심</span>
+        <span class="h-value h-warn">12:00~13:00 휴무</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">카카오톡</span>
+        <span class="h-value h-warn">운영시간 공식 미확인</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">전면 휴무</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">2 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">2.0 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>App Store 공식 앱 평점 2.4 / 5.0 (2025년 기준)</li>
+          <li>"피크타임 대기 평균 10분 이상" (실사용 후기)</li>
+          <li>"KT망으로 변경 유도" 상담 경험 공유 (디시인사이드 알뜰폰 마이너 갤러리)</li>
+          <li>공식 홈페이지 재확인 결과 전화상담 평일 09:00~18:00, 주말 휴무는 확인됨</li>
+          <li>단, "카카오톡 09~17시" 운영시간은 공식 페이지에서 확인되지 않음</li>
+        </ul>
+        <div class="source-line">출처: <a href="https://m.dcinside.com/board/mvnogallery/46634" target="_blank">디시인사이드 알뜰폰 갤러리</a> · App Store · <a href="https://smartel.kr/support/notice/108" target="_blank">smartel.kr 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <div class="tag-list">
+          <span class="tag pro">챗봇 응답률 80%+</span>
+          <span class="tag pro">24시간 온라인 문의 접수</span>
+          <span class="tag pro">홈페이지 셀프케어</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">카카오톡 운영시간 공식 미확인</span>
+          <span class="tag con">앱 완성도 낮음 (2.4점)</span>
+          <span class="tag con">망 변경 유도 민원</span>
+          <span class="tag con">주말·공휴일 전면 휴무</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>앱에서 사용량 조회 불가</li>
+          <li>KT망 변경 유도 상담 민원</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>앱 완성도와 고객센터 연결 모두 하위권. 기존에 알려졌던 카카오톡 09~17시 운영은 이번 재확인에서 공식 근거를 찾지 못해 "미확인"으로 정정한다. 챗봇 외 실질적 CS 채널 확충이 시급하다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 모빙 -->
+  <div class="company-card">
+    <div class="card-head">
+      <h3>모빙 (Mobing)</h3>
+      <span class="tier-badge">알뜰폰 — 중소</span>
+    </div>
+    <div class="hours-banner">
+      <div class="hours-item">
+        <span class="h-label">전화</span>
+        <span class="h-value h-warn">평일 09:00~18:00 (점심 12:00~13:00) · 1666-9970</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">실시간 채팅</span>
+        <span class="h-value h-warn">해피톡 (운영시간 미확인)</span>
+      </div>
+      <div class="hours-item">
+        <span class="h-label">주말·공휴일</span>
+        <span class="h-value h-warn">전면 휴무</span>
+      </div>
+    </div>
+    <div class="rating-block">
+      <span class="rating-label">전화 연결</span>
+      <span class="stars low">★☆☆☆☆</span>
+      <span class="score-chip low">1 / 5</span>
+      <span class="rating-label" style="margin-left:.5rem">종합 평가</span>
+      <span class="stars low">★★☆☆☆</span>
+      <span class="score-chip low">1.8 / 5</span>
+    </div>
+    <div class="card-body">
+      <div class="card-section">
+        <h4>근거</h4>
+        <ul>
+          <li>"전화 연결된 사람 있냐?", "진짜 쓰레기", "불친절하다" (디시인사이드 알뜰폰 갤러리, 반복 등장)</li>
+          <li>카카오 계열분리 이후 서비스 급격히 악화 (커뮤니티 공통 지적)</li>
+          <li>공식 홈페이지에 "고객센터 상담 지연 안내" 공지 게시 이력</li>
+          <li>공식 홈페이지 재확인 결과 전화상담은 평일 09:00~18:00 (점심 12:00~13:00), 주말 휴무로 확인됨</li>
+          <li>실시간 채팅은 카카오톡이 아닌 "해피톡" 위젯으로 운영 중이며, 구체적 시간은 미기재</li>
+        </ul>
+        <div class="source-line">출처: 디시인사이드 알뜰폰 갤러리 · <a href="https://www.mobing.co.kr/cs?type=1" target="_blank">mobing.co.kr 공식</a></div>
+      </div>
+      <div class="card-section">
+        <h4>장점</h4>
+        <p style="color: var(--ink-muted); font-size:13px;">근거 부족</p>
+      </div>
+      <div class="card-section">
+        <h4>단점</h4>
+        <div class="tag-list">
+          <span class="tag con">전화 연결 사실상 불가</span>
+          <span class="tag con">상담원 불친절 다수 제보</span>
+          <span class="tag con">카카오 계열분리 후 급락</span>
+          <span class="tag con">상담 지연 공지 반복</span>
+        </div>
+      </div>
+      <div class="card-section">
+        <h4>가장 많이 언급되는 불만</h4>
+        <ul>
+          <li>전화가 아예 연결되지 않음</li>
+          <li>카카오 계열분리 이후 CS 전반 붕괴 수준</li>
+        </ul>
+      </div>
+      <div class="card-section full">
+        <h4>종합 의견</h4>
+        <p>조사 대상 10개 사업자 중 최하위. 카카오 계열분리 이후 CS 운영이 실질적으로 붕괴 수준이라는 커뮤니티 평이 일관적이다. <strong>현재 상태로는 신규 가입을 권장하기 어렵다.</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 전체 비교표 ═══ -->
+  <h2 class="section-heading">전체 비교표</h2>
+  <div class="table-wrap">
+    <table class="main-table">
+      <thead>
+        <tr>
+          <th>사업자</th>
+          <th>구분</th>
+          <th>전화 연결</th>
+          <th>상담 친절</th>
+          <th>해결 능력</th>
+          <th>채팅 상담</th>
+          <th>운영시간</th>
+          <th>종합 평가</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>리브모바일</strong></td>
+          <td>대형</td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td class="insuff-cell">근거 부족</td>
+          <td><span class="h-chip warn">평일 09~18시</span></td>
+          <td><span class="score-chip high">3.8</span></td>
+        </tr>
+        <tr>
+          <td><strong>KT M모바일</strong></td>
+          <td>대형</td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="h-chip warn">평일 09~18시</span></td>
+          <td><span class="score-chip high">3.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>U+유모바일</strong></td>
+          <td>대형</td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="h-chip warn">평일 09~18시</span></td>
+          <td><span class="score-chip high">3.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>아정당 알뜰폰</strong></td>
+          <td>중소</td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="h-chip good">평일 10~18시</span><br><span style="font-size:11px;color:var(--ink-muted)">개통: 신규 08~21:50 / 번이 10~19:40</span></td>
+          <td><span class="score-chip high" style="background:#FFF8E1;color:#8C6D00">3.5 ⚠</span></td>
+        </tr>
+        <tr>
+          <td><strong>헬로모바일</strong></td>
+          <td>대형</td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="h-chip warn">평일 09~18시</span></td>
+          <td><span class="score-chip mid">3.0</span></td>
+        </tr>
+        <tr>
+          <td><strong>SK텔링크</strong></td>
+          <td>대형</td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td class="insuff-cell">근거 부족</td>
+          <td class="insuff-cell">근거 부족</td>
+          <td><span class="stars high" style="font-size:.9rem">★★★★☆</span></td>
+          <td><span class="h-chip warn">평일 09~18시 / 개통 10~18시</span></td>
+          <td class="insuff-cell">근거 부족</td>
+        </tr>
+        <tr>
+          <td><strong>이야기모바일</strong></td>
+          <td>중소</td>
+          <td><span class="stars low" style="font-size:.9rem">★★☆☆☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td class="insuff-cell">근거 부족</td>
+          <td><span class="h-chip warn">평일 09~18시</span></td>
+          <td><span class="score-chip low">2.5</span></td>
+        </tr>
+        <tr>
+          <td><strong>프리티</strong></td>
+          <td>중소</td>
+          <td><span class="stars low" style="font-size:.9rem">★★☆☆☆</span></td>
+          <td class="insuff-cell">근거 부족</td>
+          <td class="insuff-cell">근거 부족</td>
+          <td><span class="stars low" style="font-size:.9rem">★★☆☆☆</span></td>
+          <td><span class="h-chip warn">채팅 09~18시 (망별 전화 상이)</span></td>
+          <td><span class="score-chip low">2.0</span></td>
+        </tr>
+        <tr>
+          <td><strong>스마텔</strong></td>
+          <td>중소</td>
+          <td><span class="stars low" style="font-size:.9rem">★★☆☆☆</span></td>
+          <td class="insuff-cell">근거 부족</td>
+          <td><span class="stars low" style="font-size:.9rem">★★☆☆☆</span></td>
+          <td><span class="stars mid" style="font-size:.9rem">★★★☆☆</span></td>
+          <td><span class="h-chip warn">전화 09~18시 / 카카오 09~17시</span></td>
+          <td><span class="score-chip low">2.0</span></td>
+        </tr>
+        <tr>
+          <td><strong>모빙</strong></td>
+          <td>중소</td>
+          <td><span class="stars low" style="font-size:.9rem">★☆☆☆☆</span></td>
+          <td><span class="stars low" style="font-size:.9rem">★☆☆☆☆</span></td>
+          <td><span class="stars low" style="font-size:.9rem">★☆☆☆☆</span></td>
+          <td class="insuff-cell">근거 부족</td>
+          <td><span class="h-chip bad">평일 09~18시 (실질 대응 불가)</span></td>
+          <td><span class="score-chip low">1.8</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ TOP 10 ═══ -->
+  <h2 class="section-heading">고객이 가장 중요하게 생각하는 요소 TOP 10</h2>
+  <p style="font-size:13px; color:var(--ink-muted); margin-bottom:1rem;">전체 후기 분석 기반 — 언급 빈도·감정 강도 종합</p>
+  <div class="top10-grid">
+    <div class="top10-item">
+      <span class="top10-num">1</span>
+      <div class="top10-text">
+        <strong>전화 연결 가능 여부</strong>
+        <span>연결이 안 된다는 불만이 전체 후기의 절반 이상. 가장 기본적이고 강렬한 이탈 요인.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">2</span>
+      <div class="top10-text">
+        <strong>대기시간</strong>
+        <span>"10분 이상 대기", "40분 후 자동 끊김" 등 구체적 수치로 불만 표출.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">3</span>
+      <div class="top10-text">
+        <strong>운영시간 범위</strong>
+        <span>주말·공휴일 포함 여부, 야간 운영이 직장인 이용자의 핵심 선택 기준.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">4</span>
+      <div class="top10-text">
+        <strong>문제 해결률 (FCR)</strong>
+        <span>한 번 통화로 해결되는지가 재문의 여부를 결정.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">5</span>
+      <div class="top10-text">
+        <strong>상담원 친절도·태도</strong>
+        <span>불친절 경험은 SNS·커뮤니티 확산 속도가 빠름. 모빙 사례가 대표적.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">6</span>
+      <div class="top10-text">
+        <strong>해지·변경 절차 간소함</strong>
+        <span>클리앙에서 헬로모바일 해지 절차가 반복 지적. 해지가 어려운 곳은 브랜드 타격 큼.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">7</span>
+      <div class="top10-text">
+        <strong>채팅·온라인 상담 채널</strong>
+        <span>전화 연결 어려울 때 대안 채널 존재 여부. 카카오톡·채널톡 선호.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">8</span>
+      <div class="top10-text">
+        <strong>ARS 단계 수·직관성</strong>
+        <span>복잡한 ARS는 노인·비숙련 이용자 이탈 유발.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">9</span>
+      <div class="top10-text">
+        <strong>AI·챗봇 24시간 자동화</strong>
+        <span>리브모바일처럼 야간 자동 해결 가능한 곳에 대한 긍정 언급 증가 추세.</span>
+      </div>
+    </div>
+    <div class="top10-item">
+      <span class="top10-num">10</span>
+      <div class="top10-text">
+        <strong>긴급상황 대응 속도</strong>
+        <span>유심 분실·해킹 등 위기 시 대응 역량이 브랜드 신뢰를 좌우.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-footer">
+    <p>※ 운영시간은 각 사업자 공식 홈페이지를 직접 확인하였습니다 (2026년 7월 기준). 변경될 수 있으므로 최신 정보는 공식 채널을 확인하세요.</p>
+    <p style="margin-top:.35rem">주요 출처: <a href="https://www.ktmmobile.com/cs/serviceGuide.do" style="color:var(--teal)">ktmmobile.com</a> · <a href="https://support.uplusumobile.com/hc/ko/articles/12741753555215" style="color:var(--teal)">uplusumobile.com</a> · <a href="https://mobile.lghellovision.net/mv_client/customer/customer_07.asp" style="color:var(--teal)">lghellovision.net</a> · <a href="https://www.liivm.com/info/cscenter/cscenter/csCenter" style="color:var(--teal)">liivm.com</a> · <a href="https://www.sktelink.com/view/customer/costomer_service_info" style="color:var(--teal)">sktelink.com</a> · <a href="https://www.freet.co.kr/customer/helpDesk" style="color:var(--teal)">freet.co.kr</a> · <a href="https://www.ajdmobile.co.kr/active_info.do" style="color:var(--teal)">ajdmobile.co.kr</a> · <a href="https://smartel.kr/" style="color:var(--teal)">smartel.kr</a> · <a href="https://www.mobing.co.kr/cs?type=1" style="color:var(--teal)">mobing.co.kr</a></p>
+  </div>
+
+</div>
