@@ -609,6 +609,19 @@
     }
     .flatpickr-months .flatpickr-prev-month:hover svg,
     .flatpickr-months .flatpickr-next-month:hover svg { fill: var(--blue) !important; }
+
+    /* ── Complaint Tab ─────────────────────────────────────── */
+    .kw-chip {
+      display: inline-block;
+      background: var(--blue-50); color: var(--blue);
+      border-radius: 4px; padding: 1px 6px;
+      font-size: 10px; margin: 1px; white-space: nowrap;
+    }
+    .conf-bar {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600; white-space: nowrap;
+    }
+    .conf-bar small { font-weight: 400; color: var(--muted); }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
@@ -639,6 +652,7 @@
       <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
       <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
       <button class="tab-btn" data-tab="channeltalk" type="button">채널톡</button>
+      <button class="tab-btn" data-tab="complaint" type="button">유선 민원 현황</button>
     </nav>
 
     <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
@@ -1051,6 +1065,189 @@
       </div>
 
     </div><!-- /tab-channeltalk -->
+
+    <!-- ══ Tab 4: 유선 민원 현황 ══════════════════════════════ -->
+    <div class="tab-panel hidden" id="tab-complaint">
+
+      <!-- Upload Section -->
+      <div class="input-panel" style="margin-bottom:16px">
+        <p class="input-section-title">STT 녹취록 업로드 <span class="badge badge--ai">자동 분류</span></p>
+        <p class="ai-desc">STT로 변환된 상담 녹취록 파일(.txt)을 업로드하면 문의 유형을 자동으로 분류합니다.<br>
+          개인정보(이름, 전화번호, 주민번호 등)와 원본 상담 내용은 저장되지 않으며, 날짜·상담사·통화시간·문의 유형·신뢰도만 보관합니다.</p>
+        <div class="upload-slot" style="max-width:500px;margin-bottom:12px">
+          <label>녹취록 파일 <small>(.txt · 여러 파일 동시 선택 가능)</small>
+            <input id="sttFile" type="file" accept=".txt,text/plain" multiple>
+          </label>
+          <div class="upload-filename" id="sttFileName">파일을 선택해주세요</div>
+        </div>
+
+        <!-- Analysis Result Preview -->
+        <div id="sttResultArea" style="display:none;margin-top:16px">
+          <div class="ai-result-header">
+            <div>
+              <span class="ai-result-title">분석 결과 — 확인 후 반영</span>
+              <span id="sttResultStats" class="ai-stats"></span>
+            </div>
+          </div>
+          <div class="ai-result-table-wrap">
+            <table class="ai-result-table">
+              <thead>
+                <tr>
+                  <th>날짜</th>
+                  <th>상담사</th>
+                  <th style="width:80px">통화시간(분)</th>
+                  <th style="width:150px">문의 유형</th>
+                  <th style="width:90px">신뢰도</th>
+                  <th>근거 키워드</th>
+                  <th style="width:36px">제외</th>
+                </tr>
+              </thead>
+              <tbody id="sttResultBody"></tbody>
+            </table>
+          </div>
+          <div class="ai-result-footer">
+            <span id="sttResultWarning" class="ai-warning"></span>
+            <button class="btn btn-primary" id="sttConfirmBtn" type="button">대시보드 반영</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <section class="filter-bar" aria-label="유선 민원 필터">
+        <div class="date-range-group">
+          <span class="date-range-label">날짜 범위</span>
+          <div class="date-shortcuts">
+            <button type="button" class="shortcut-btn" data-cmp-range="week">최근 7일</button>
+            <button type="button" class="shortcut-btn" data-cmp-range="thisMonth">이번 달</button>
+            <button type="button" class="shortcut-btn" data-cmp-range="all">전체</button>
+          </div>
+          <input type="text" id="cmpDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
+          <input type="hidden" id="cmpStartDate">
+          <input type="hidden" id="cmpEndDate">
+        </div>
+        <label>상담사<select id="cmpCounselorFilter">
+          <option value="all">전체</option>
+          <option value="김*옥">김*옥</option>
+          <option value="진*진">진*진</option>
+        </select></label>
+        <div class="filter-actions">
+          <button id="cmpResetBtn" class="btn btn-ghost" type="button">초기화</button>
+          <button id="cmpRefreshBtn" class="btn btn-primary" type="button">새로고침</button>
+        </div>
+      </section>
+
+      <!-- KPIs -->
+      <section class="kpis" aria-label="유선 민원 KPI">
+        <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="cmpTotalCount">0</span><span class="kpi-unit">건</span></div>
+          <p class="kpi-label">총 분류 건수</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="cmpAvgDuration" style="font-size:18px">—</span></div>
+          <p class="kpi-label">평균 통화시간</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat" id="cmpTopTypeCount">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="cmpTopType" style="font-size:15px;line-height:1.2">—</span></div>
+          <p class="kpi-label">TOP 문의 유형</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-50)">
+          <div class="kpi-header">
+            <div class="kpi-icon-wrap" style="--kpi-color:var(--red)">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--red)"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            </div>
+            <span class="kpi-delta kpi-delta--flat">—</span>
+          </div>
+          <div class="kpi-body"><span class="kpi-value" id="cmpLowCount">0</span><span class="kpi-unit">건</span></div>
+          <p class="kpi-label">신뢰도 낮음 (&lt;60%)</p>
+        </article>
+      </section>
+
+      <!-- Row 1: 문의 유형별 건수 / 비중 -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">문의 유형별 건수</div>
+            <div class="chart-card-sub">건수 내림차순 상위 10</div>
+          </div>
+          <div class="chart-area"><canvas id="cmpTypeCountChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">문의 유형별 비중</div>
+            <div class="chart-card-sub">상위 7개 + 기타</div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-canvas-wrap"><canvas id="cmpTypePropChart" width="150" height="150"></canvas></div>
+            <ol class="donut-legend" id="cmpTypePropLegend"></ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: 날짜별 추이 / 상담사별 문의 유형 -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">날짜별 문의 유형 추이</div>
+            <div class="chart-card-sub">총 건수 기준</div>
+          </div>
+          <div class="chart-area"><canvas id="cmpTrendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">상담사별 문의 유형</div>
+            <div class="chart-card-sub">상담사별 총 건수 및 주요 유형</div>
+          </div>
+          <div class="data-table-scroll" style="flex:1">
+            <table class="data-table" id="cmpCounselorTable">
+              <thead><tr><th>상담사</th><th>총 건수</th><th>주요 문의 유형</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: 평균 통화시간 / 신뢰도 낮은 목록 -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">평균 통화시간</div>
+            <div class="chart-card-sub">문의 유형별 · 단위: 분/건</div>
+          </div>
+          <div class="chart-area"><canvas id="cmpAvgDurChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">신뢰도 낮은 문의 목록</div>
+            <div class="chart-card-sub">신뢰도 60% 미만 · 최대 20건</div>
+          </div>
+          <div class="data-table-scroll" style="flex:1">
+            <table class="data-table" id="cmpLowConfTable">
+              <thead><tr><th>날짜</th><th>상담사</th><th>문의 유형</th><th>신뢰도</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-complaint -->
   </main>
   <script id="saved-data" type="application/json">[
   {
@@ -5953,6 +6150,445 @@
       $("manualMinutes").value = "";
     });
 
+    // ════════════════════════════════════════════════════════════
+    // 유선 민원 현황 탭
+    // ════════════════════════════════════════════════════════════
+
+    const COMPLAINT_STORAGE_KEY = "mvno-complaint-v1";
+    const COMPLAINT_LOW_CONF = 0.6;
+
+    const COMPLAINT_TYPES_LIST = [
+      "가입 문의","요금제 문의","셀프가입 방법","번호이동","신규가입",
+      "안면인증","유심 배송","유심 결제취소","개통오류","인증 오류",
+      "미납","납부변경","청구요금","과다청구","납부일정",
+      "가입정보조회","요금제변경","번호변경","유심변경","서류발급",
+      "부가서비스","해지","위약금","로밍","인터넷결합","eSIM",
+      "기타(알뜰폰 문의 아님)"
+    ];
+
+    const COMPLAINT_KEYWORDS = {
+      "가입 문의":        ["가입하고 싶어요","가입 문의","어떻게 가입해요","가입하고 싶은데","가입방법","가입하려고","가입하고 싶"],
+      "요금제 문의":      ["요금제 추천","요금제 뭐 있어요","요금제 문의","요금제 알려","어떤 요금제","요금제 소개","요금제 뭐가","요금제가 어떻게"],
+      "셀프가입 방법":    ["셀프가입","직접 가입","셀프 신청","혼자 가입","앱으로 가입","온라인으로 가입","셀프로 가입","셀프 가입"],
+      "번호이동":         ["번호이동","번호 이동","기존 번호 그대로","번호 유지","현재 번호 그대로","이동 번호","번호를 이동"],
+      "신규가입":         ["신규가입","새 번호","신규 번호","새로운 번호","번호 새로","신규로 가입","새 번호로"],
+      "안면인증":         ["안면인증","얼굴 인증","신분증 인증 안 됨","얼굴 인식","얼굴인식","안면 인식","얼굴인증"],
+      "유심 배송":        ["유심 배송","택배","언제 도착","배송 조회","유심 언제","배송 현황","유심 왔나요","유심 보내줬","배송이 언제"],
+      "유심 결제취소":    ["유심 결제 취소","유심 주문 취소","결제취소","주문 취소","유심 환불","유심 결제취소"],
+      "개통오류":         ["개통 오류","개통 안 됨","개통 실패","개통이 안","개통이 안 돼","개통 문제","개통이 되지"],
+      "인증 오류":        ["인증 오류","본인인증 안 됨","인증 실패","인증이 안","인증 안 돼","본인인증 오류","인증 문제","인증이 되지"],
+      "미납":             ["미납","요금 미납","미납 때문에","미납 요금","미납 되어","미납 상태","미납이 있어"],
+      "납부변경":         ["납부변경","카드 변경","자동이체 변경","계좌 변경","납부 방법 변경","결제 방법 변경","납부 계좌","출금 계좌 변경"],
+      "청구요금":         ["청구요금","요금 청구","이번 달 요금","청구 요금","청구된 요금","요금이 얼마","이번달 요금"],
+      "과다청구":         ["과다청구","요금이 많이 나왔","요금이 이상해","요금이 왜","이상하게 나왔","과하게 나왔","많이 청구","요금이 너무 많이"],
+      "납부일정":         ["납부일정","납부일","출금일","결제일","언제 빠져나가","언제 납부","납부 날짜","결제 날짜"],
+      "가입정보조회":     ["가입정보조회","가입 정보","내 가입 내역","가입 내용 확인","가입된 정보","가입 현황","가입 내역"],
+      "요금제변경":       ["요금제변경","요금제 변경","다른 요금제로","요금제 바꾸","요금제 변경 하려고","요금제 바꾸고 싶"],
+      "번호변경":         ["번호변경","전화번호 변경","번호 바꾸","전화번호 바꾸","번호를 변경","전화번호를 바꾸"],
+      "유심변경":         ["유심변경","유심 교체","유심 재발급","유심 바꾸","usim 교체","심카드 교체","유심카드 교체"],
+      "서류발급":         ["가입확인서","서류 발급","증명서","확인서","납입확인서","서류 신청","서류를 발급","확인서 발급"],
+      "부가서비스":       ["부가서비스","부가 서비스","부가서비스 신청","부가서비스 해지","부가 서비스 신청","부가 해지"],
+      "해지":             ["해지","해지하고 싶어요","번호 해지","해지 신청","해지 하려고","해지하려","해지를 하고 싶"],
+      "위약금":           ["위약금","할인반환금","약정 위약금","위약금 얼마","위약 금액","위약금 확인","위약금이 얼마"],
+      "로밍":             ["로밍","해외에서 사용","해외 통화","해외 데이터","해외 서비스","해외 이용","해외에서 쓰려고"],
+      "인터넷결합":       ["인터넷결합","인터넷 결합","결합 할인","결합 서비스","인터넷 연결 결합","결합 상품"],
+      "eSIM":             ["esim","이심","e심","esim 재발급","이심 발급","이심으로 바꾸","esim으로"]
+    };
+
+    let complaintPending = [];
+    let cmpIdCounter = 1;
+    const cmpState = { records: [] };
+
+    function loadComplaintData() {
+      try { cmpState.records = JSON.parse(localStorage.getItem(COMPLAINT_STORAGE_KEY) || "[]"); }
+      catch { cmpState.records = []; }
+    }
+
+    function saveComplaintData() {
+      localStorage.setItem(COMPLAINT_STORAGE_KEY, JSON.stringify(cmpState.records));
+    }
+
+    function cmpExtractDate(filename) {
+      let m = filename.match(/(\d{4})(\d{2})(\d{2})/);
+      if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      m = filename.match(/(\d{4})[_\-](\d{2})[_\-](\d{2})/);
+      if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      return null;
+    }
+
+    function cmpExtractCounselor(text) {
+      if (text.includes("김순옥") || text.includes("김*옥")) return "김*옥";
+      if (text.includes("진수진") || text.includes("진*진")) return "진*진";
+      return null;
+    }
+
+    function cmpExtractDuration(text) {
+      const tss = [];
+      const re = /\[(\d{1,2}):(\d{2}):(\d{2})\]/g;
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        tss.push(+m[1] * 3600 + +m[2] * 60 + +m[3]);
+      }
+      if (!tss.length) {
+        const re2 = /^(\d{1,2}):(\d{2}):(\d{2})/gm;
+        while ((m = re2.exec(text)) !== null) {
+          tss.push(+m[1] * 3600 + +m[2] * 60 + +m[3]);
+        }
+      }
+      if (tss.length >= 2) return Math.max(...tss) - Math.min(...tss);
+      const dur = text.match(/통화시간[^\d]*(\d+)분/);
+      if (dur) return parseInt(dur[1]) * 60;
+      return 0;
+    }
+
+    function cmpClassify(text) {
+      const lower = text.toLowerCase().replace(/\s+/g, " ");
+      const scores = [];
+      for (const [type, kws] of Object.entries(COMPLAINT_KEYWORDS)) {
+        let score = 0;
+        const matched = [];
+        for (const kw of kws) {
+          if (lower.includes(kw.toLowerCase())) { score += kw.length; matched.push(kw); }
+        }
+        if (score > 0) scores.push({ type, score, matched });
+      }
+      if (!scores.length) return { type: "기타(알뜰폰 문의 아님)", confidence: 0.3, keywords: [] };
+      scores.sort((a, b) => b.score - a.score);
+      const best = scores[0], second = scores[1];
+      const margin = second ? best.score / second.score : Infinity;
+      let conf = margin >= 2 ? (best.score >= 10 ? 0.95 : 0.85) : margin >= 1.3 ? 0.7 : 0.55;
+      if (best.score < 4) conf = Math.min(conf, 0.5);
+      return { type: best.type, confidence: conf, keywords: best.matched.slice(0, 3) };
+    }
+
+    async function cmpAnalyzeFiles(files) {
+      const today = new Date().toISOString().slice(0, 10);
+      const results = [];
+      for (const file of files) {
+        try {
+          const text = await file.text();
+          const date = cmpExtractDate(file.name) || today;
+          const counselor = cmpExtractCounselor(file.name) || cmpExtractCounselor(text.slice(0, 500)) || "";
+          const callDuration = cmpExtractDuration(text);
+          const { type, confidence, keywords } = cmpClassify(text);
+          results.push({ id: cmpIdCounter++, filename: file.name, date, counselor, callDuration, inquiryType: type, confidence, keywords, excluded: false });
+        } catch (e) {
+          results.push({ id: cmpIdCounter++, filename: file.name, date: today, counselor: "", callDuration: 0, inquiryType: "기타(알뜰폰 문의 아님)", confidence: 0, keywords: [], excluded: false });
+        }
+      }
+      return results;
+    }
+
+    function cmpDurationLabel(secs) {
+      if (!secs) return "—";
+      const m = Math.floor(secs / 60), s = secs % 60;
+      return s > 0 ? `${m}분 ${s}초` : `${m}분`;
+    }
+
+    function cmpConfColor(c) { return c >= 0.8 ? "var(--green)" : c >= 0.6 ? "var(--amber)" : "var(--red)"; }
+    function cmpConfLabel(c) { return c >= 0.8 ? "높음" : c >= 0.6 ? "보통" : "낮음"; }
+
+    function renderComplaintResults(rows) {
+      complaintPending = rows;
+      const area = $("sttResultArea");
+      if (!rows.length) { area.style.display = "none"; return; }
+      area.style.display = "block";
+      const low = rows.filter(r => r.confidence < COMPLAINT_LOW_CONF && !r.excluded).length;
+      $("sttResultStats").textContent = `${rows.length}건 분석 · ` + (low > 0 ? `⚠ ${low}건 신뢰도 낮음` : "✓ 모두 정상 분류");
+
+      const typeOpts = (sel) => COMPLAINT_TYPES_LIST.map(t =>
+        `<option value="${escapeHtml(t)}"${sel===t?" selected":""}>${escapeHtml(t)}</option>`).join("");
+      const counselorOpts = (sel) => [
+        `<option value="">선택</option>`,
+        `<option value="김*옥"${sel==="김*옥"?" selected":""}>김*옥</option>`,
+        `<option value="진*진"${sel==="진*진"?" selected":""}>진*진</option>`
+      ].join("");
+
+      $("sttResultBody").innerHTML = rows.map(row => {
+        const durMins = Math.round(row.callDuration / 60);
+        const chips = row.keywords.map(k => `<span class="kw-chip">${escapeHtml(k)}</span>`).join("");
+        const confStyle = `color:${cmpConfColor(row.confidence)};font-weight:600`;
+        const rowStyle = row.excluded ? "opacity:0.4" : "";
+        return `<tr data-cid="${row.id}" style="${rowStyle}">
+          <td><input type="date" class="ai-cell-input" style="width:110px" value="${row.date}" onchange="cmpSetField(${row.id},'date',this.value)"></td>
+          <td><select class="ai-cell-select" style="width:72px" onchange="cmpSetField(${row.id},'counselor',this.value)">${counselorOpts(row.counselor)}</select></td>
+          <td><input type="number" class="ai-cell-input" style="width:60px;text-align:right" min="0" value="${durMins}" onchange="cmpSetField(${row.id},'callDuration',this.value*60)"></td>
+          <td><select class="ai-cell-select" style="width:148px" onchange="cmpSetType(${row.id},this.value)">${typeOpts(row.inquiryType)}</select></td>
+          <td><span class="conf-bar" style="${confStyle}">${(row.confidence*100).toFixed(0)}% <small>${cmpConfLabel(row.confidence)}</small></span></td>
+          <td>${chips || '<span style="color:var(--muted-2);font-size:11px">없음</span>'}</td>
+          <td><button type="button" class="del-btn" style="color:${row.excluded?'var(--green)':'var(--red)'}" onclick="cmpToggleExclude(${row.id})" title="${row.excluded?'포함':'제외'}">${row.excluded?'↩':'×'}</button></td>
+        </tr>`;
+      }).join("");
+
+      const unready = rows.filter(r => !r.excluded && (!r.counselor || !r.inquiryType));
+      const warn = $("sttResultWarning");
+      if (warn) warn.textContent = unready.length ? `⚠ ${unready.length}건의 상담사 또는 문의 유형을 선택하세요.` : "";
+    }
+
+    function cmpSetField(id, field, value) {
+      const row = complaintPending.find(r => r.id === id);
+      if (row) row[field] = value;
+    }
+
+    function cmpSetType(id, value) {
+      const row = complaintPending.find(r => r.id === id);
+      if (!row) return;
+      row.inquiryType = value;
+      row.confidence = 1.0;
+      const tr = document.querySelector(`tr[data-cid="${id}"]`);
+      if (tr) {
+        const cell = tr.cells[4];
+        cell.innerHTML = '<span class="conf-bar" style="color:var(--green);font-weight:600">100% <small>수동 지정</small></span>';
+      }
+      const warn = $("sttResultWarning");
+      if (warn) {
+        const unready = complaintPending.filter(r => !r.excluded && (!r.counselor || !r.inquiryType));
+        warn.textContent = unready.length ? `⚠ ${unready.length}건의 상담사 또는 문의 유형을 선택하세요.` : "";
+      }
+    }
+
+    function cmpToggleExclude(id) {
+      const row = complaintPending.find(r => r.id === id);
+      if (row) row.excluded = !row.excluded;
+      renderComplaintResults(complaintPending);
+    }
+
+    function confirmComplaintResults() {
+      const toAdd = complaintPending.filter(r => !r.excluded);
+      if (!toAdd.length) { alert("반영할 데이터가 없습니다."); return; }
+      const missing = toAdd.filter(r => !r.counselor || !r.inquiryType);
+      if (missing.length) { alert(`${missing.length}건의 상담사 또는 문의 유형이 선택되지 않았습니다.`); return; }
+
+      const newRecords = toAdd.map(r => ({
+        date: r.date,
+        counselor: r.counselor,
+        callDuration: Math.round(parseInt(r.callDuration) || 0),
+        inquiryType: r.inquiryType,
+        confidence: parseFloat(r.confidence) || 0,
+        count: 1
+      }));
+
+      cmpState.records = [...cmpState.records, ...newRecords];
+      saveComplaintData();
+      $("sttFile").value = "";
+      $("sttResultArea").style.display = "none";
+      $("sttFileName").textContent = "파일을 선택해주세요";
+      complaintPending = [];
+      complaintRender();
+      alert(`${newRecords.length}건이 대시보드에 반영되었습니다.`);
+    }
+
+    // ── Complaint Dashboard ──────────────────────────────────────
+
+    function cmpGetFiltered() {
+      const start = $("cmpStartDate")?.value || "";
+      const end   = $("cmpEndDate")?.value   || "";
+      const counselor = $("cmpCounselorFilter")?.value || "all";
+      return cmpState.records.filter(r => {
+        if (start && r.date < start) return false;
+        if (end   && r.date > end)   return false;
+        if (counselor !== "all" && r.counselor !== counselor) return false;
+        return true;
+      });
+    }
+
+    function complaintRender() {
+      const records = cmpGetFiltered();
+      cmpRenderKpis(records);
+      cmpRenderTypeCount(records);
+      cmpRenderTypeProp(records);
+      cmpRenderTrend(records);
+      cmpRenderByCounselor(records);
+      cmpRenderAvgDuration(records);
+      cmpRenderLowConf(records);
+    }
+
+    function cmpRenderKpis(records) {
+      const total = records.reduce((s, r) => s + r.count, 0);
+      const avgSec = total ? records.reduce((s, r) => s + r.callDuration * r.count, 0) / total : 0;
+      const low = records.filter(r => r.confidence < COMPLAINT_LOW_CONF).length;
+      const byType = {};
+      records.forEach(r => { byType[r.inquiryType] = (byType[r.inquiryType] || 0) + r.count; });
+      const top = Object.entries(byType).sort((a, b) => b[1] - a[1])[0];
+      const el = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+      el("cmpTotalCount", nf.format(total));
+      el("cmpAvgDuration", total ? cmpDurationLabel(Math.round(avgSec)) : "—");
+      el("cmpTopType",      top ? shorten(top[0], 10) : "—");
+      el("cmpTopTypeCount", top ? `${nf.format(top[1])}건` : "—");
+      el("cmpLowCount",     nf.format(low));
+    }
+
+    function cmpCountByType(records) {
+      const m = {};
+      records.forEach(r => { m[r.inquiryType] = (m[r.inquiryType] || 0) + r.count; });
+      return Object.entries(m).sort((a, b) => b[1] - a[1]);
+    }
+
+    function drawCountHorizBar(canvas, labels, values) {
+      if (!canvas) return;
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!values.length) return drawEmpty(ctx, width, height);
+      const max = Math.max(...values, 1);
+      const n = values.length;
+      const labelW = Math.min(width * 0.42, 150);
+      const barArea = width - labelW - 54;
+      const rowH = Math.min(24, (height - 8) / Math.max(n, 1));
+      const gap = Math.max(2, rowH * 0.2);
+      const barH = rowH - gap;
+      const topPad = Math.max(4, (height - n * rowH) / 2);
+      ctx.font = `11px 'Segoe UI', sans-serif`;
+      values.forEach((v, i) => {
+        const y = topPad + i * rowH;
+        const bw = (v / max) * barArea;
+        ctx.fillStyle = "#6B7280"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        ctx.fillText(shorten(labels[i], 15), labelW - 6, y + barH / 2);
+        ctx.fillStyle = "#F3F4F6"; ctx.fillRect(labelW, y, barArea, barH);
+        const alpha = 1 - (i / n) * 0.5;
+        ctx.fillStyle = `rgba(37,99,235,${alpha})`; ctx.fillRect(labelW, y, Math.max(bw, 2), barH);
+        ctx.fillStyle = "#374151"; ctx.textAlign = "left";
+        ctx.fillText(nf.format(v) + "건", labelW + bw + 5, y + barH / 2);
+      });
+    }
+
+    function cmpRenderTypeCount(records) {
+      const sorted = cmpCountByType(records).slice(0, 10);
+      drawCountHorizBar($("cmpTypeCountChart"), sorted.map(([t]) => t), sorted.map(([, v]) => v));
+    }
+
+    function cmpRenderTypeProp(records) {
+      let sorted = cmpCountByType(records);
+      let labels, values;
+      if (sorted.length > 8) {
+        const top7 = sorted.slice(0, 7);
+        const rest = sorted.slice(7).reduce((s, [, v]) => s + v, 0);
+        labels = [...top7.map(([t]) => t), "기타"];
+        values = [...top7.map(([, v]) => v), rest];
+      } else {
+        labels = sorted.map(([t]) => t); values = sorted.map(([, v]) => v);
+      }
+      drawDonutChart($("cmpTypePropChart"), labels, values, "cmpTypePropLegend", "건");
+    }
+
+    function cmpRenderTrend(records) {
+      const m = {};
+      records.forEach(r => { m[r.date] = (m[r.date] || 0) + r.count; });
+      const sorted = Object.entries(m).sort(([a], [b]) => a.localeCompare(b));
+      drawLineChart($("cmpTrendChart"), sorted.map(([d]) => d), sorted.map(([, v]) => v));
+    }
+
+    function cmpRenderByCounselor(records) {
+      const tbody = document.querySelector("#cmpCounselorTable tbody");
+      if (!tbody) return;
+      const byCounselor = {};
+      records.forEach(r => {
+        if (!byCounselor[r.counselor]) byCounselor[r.counselor] = {};
+        byCounselor[r.counselor][r.inquiryType] = (byCounselor[r.counselor][r.inquiryType] || 0) + r.count;
+      });
+      const counselors = Object.keys(byCounselor);
+      if (!counselors.length) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:16px">데이터 없음</td></tr>';
+        return;
+      }
+      tbody.innerHTML = counselors.map(c => {
+        const types = Object.entries(byCounselor[c]).sort((a, b) => b[1] - a[1]);
+        const total = types.reduce((s, [, v]) => s + v, 0);
+        const topType = types[0]?.[0] || "—";
+        const allTypes = types.map(([t, v]) => `${t}: ${v}건`).join(", ");
+        return `<tr><td>${escapeHtml(c)}</td><td style="text-align:right">${nf.format(total)}</td><td title="${escapeHtml(allTypes)}">${escapeHtml(shorten(topType, 14))}</td></tr>`;
+      }).join("");
+    }
+
+    function cmpRenderAvgDuration(records) {
+      const m = {};
+      records.forEach(r => {
+        if (!m[r.inquiryType]) m[r.inquiryType] = { total: 0, count: 0 };
+        m[r.inquiryType].total += r.callDuration * r.count;
+        m[r.inquiryType].count += r.count;
+      });
+      const sorted = Object.entries(m)
+        .filter(([, v]) => v.count > 0 && v.total > 0)
+        .map(([t, v]) => ({ type: t, avg: v.total / v.count / 60 }))
+        .sort((a, b) => b.avg - a.avg).slice(0, 8);
+      drawHorizBar($("cmpAvgDurChart"), sorted.map(s => s.type), sorted.map(s => s.avg));
+    }
+
+    function cmpRenderLowConf(records) {
+      const tbody = document.querySelector("#cmpLowConfTable tbody");
+      if (!tbody) return;
+      const low = records.filter(r => r.confidence < COMPLAINT_LOW_CONF)
+        .sort((a, b) => a.confidence - b.confidence).slice(0, 20);
+      if (!low.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--green);padding:16px">신뢰도 낮은 항목이 없습니다.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = low.map(r => `<tr>
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.counselor || "—")}</td>
+        <td>${escapeHtml(r.inquiryType)}</td>
+        <td style="color:${cmpConfColor(r.confidence)};font-weight:600">${(r.confidence*100).toFixed(0)}%</td>
+      </tr>`).join("");
+    }
+
+    // ── Complaint Event Listeners ─────────────────────────────────
+
+    $("sttFile").addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      $("sttFileName").textContent = files.length === 1 ? files[0].name : `${files.length}개 파일 선택됨`;
+      const results = await cmpAnalyzeFiles(files);
+      renderComplaintResults(results);
+    });
+
+    $("sttConfirmBtn").addEventListener("click", confirmComplaintResults);
+
+    $("cmpRefreshBtn").addEventListener("click", () => { loadComplaintData(); complaintRender(); });
+
+    $("cmpResetBtn").addEventListener("click", () => {
+      if ($("cmpDateRangePicker")) $("cmpDateRangePicker").value = "";
+      $("cmpStartDate").value = "";
+      $("cmpEndDate").value = "";
+      $("cmpCounselorFilter").value = "all";
+      complaintRender();
+    });
+
+    document.querySelectorAll("[data-cmp-range]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-cmp-range]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const range = btn.dataset.cmpRange;
+        const today = new Date();
+        const fmt = d => d.toISOString().slice(0, 10);
+        let start = "", end = "";
+        if (range === "week") {
+          const s = new Date(today); s.setDate(s.getDate() - 6);
+          start = fmt(s); end = fmt(today);
+        } else if (range === "thisMonth") {
+          start = fmt(new Date(today.getFullYear(), today.getMonth(), 1));
+          end = fmt(today);
+        }
+        $("cmpStartDate").value = start;
+        $("cmpEndDate").value   = end;
+        if ($("cmpDateRangePicker")) {
+          $("cmpDateRangePicker").value = start && end ? `${start} ~ ${end}` : start ? `${start} ~` : "";
+        }
+        complaintRender();
+      });
+    });
+
+    (function initCmpDatePicker() {
+      const el = $("cmpDateRangePicker");
+      if (!el || typeof flatpickr === "undefined") return;
+      flatpickr(el, {
+        mode: "range", dateFormat: "Y-m-d", locale: "ko",
+        onChange(selectedDates) {
+          $("cmpStartDate").value = selectedDates[0] ? selectedDates[0].toISOString().slice(0,10) : "";
+          $("cmpEndDate").value   = selectedDates[1] ? selectedDates[1].toISOString().slice(0,10) : "";
+          complaintRender();
+        }
+      });
+    })();
+
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = btn.dataset.tab;
@@ -5960,14 +6596,16 @@
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
         if (target === "channeltalk" && ctState.loaded) ctRender();
+        if (target === "complaint") { loadComplaintData(); complaintRender(); }
       });
     });
 
+    loadComplaintData();
     initManualForm();
     initManualRows();
     renderManualLog();
     initUploadRows();
-    window.addEventListener("resize", () => { render(); if (ctState.loaded) ctRender(); });
+    window.addEventListener("resize", () => { render(); if (ctState.loaded) ctRender(); complaintRender(); });
     init();
   </script>
 </body>
