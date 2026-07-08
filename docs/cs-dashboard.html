@@ -977,74 +977,210 @@
 
     <!-- ══ Tab 3: 민원 관리 ══════════════════════════════════ -->
     <div class="tab-panel hidden" id="tab-complaint">
-      <section class="filter-bar" aria-label="민원 필터">
-        <label>월<select id="cpMonthFilter"><option value="all">전체</option></select></label>
+
+      <!-- ① 유선 STT 업로드 -->
+      <div class="complaint-section">
+        <div class="complaint-section-title">
+          <span class="complaint-section-icon">📞</span>유선 STT 녹취록 업로드
+          <span class="badge badge--ai" style="font-size:11px;padding:2px 8px;margin-left:4px">자동 분류</span>
+        </div>
+        <p class="ai-desc">STT 녹취록 Excel(.xlsx)을 업로드하면 통화 내용을 분석해 문의 유형을 자동 분류합니다.<br>
+          고객명·전화번호·주민번호 등 개인정보와 상담 원문은 저장하지 않습니다.</p>
+        <div class="upload-slot" style="max-width:460px;margin-bottom:0">
+          <label>STT 녹취록 <small>(.xlsx · 날짜별 시트 포함)</small>
+            <input id="sttFile" type="file" accept=".xlsx">
+          </label>
+          <div class="upload-filename" id="sttFileName">파일을 선택해주세요</div>
+        </div>
+        <div id="sttResultArea" style="display:none;margin-top:16px">
+          <div class="ai-result-header">
+            <div>
+              <span class="ai-result-title">분석 결과 — 확인 후 반영</span>
+              <span id="sttResultStats" class="ai-stats"></span>
+            </div>
+          </div>
+          <div class="ai-result-table-wrap">
+            <table class="ai-result-table">
+              <thead>
+                <tr>
+                  <th>날짜</th><th>상담사</th>
+                  <th style="width:80px;text-align:right">통화시간(분)</th>
+                  <th style="width:150px">문의 유형</th>
+                  <th style="width:90px">신뢰도</th>
+                  <th>근거 키워드</th>
+                  <th style="width:36px">제외</th>
+                </tr>
+              </thead>
+              <tbody id="sttResultBody"></tbody>
+            </table>
+          </div>
+          <div class="ai-result-footer">
+            <span id="sttResultWarning" class="ai-warning"></span>
+            <button class="btn btn-primary" id="sttConfirmBtn" type="button">대시보드 반영</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 유선 필터 -->
+      <section class="filter-bar" aria-label="유선 민원 필터">
         <div class="date-range-group">
           <span class="date-range-label">날짜 범위</span>
           <div class="date-shortcuts">
-            <button type="button" class="shortcut-btn" data-cp-range="today">오늘</button>
-            <button type="button" class="shortcut-btn" data-cp-range="week">최근 7일</button>
-            <button type="button" class="shortcut-btn" data-cp-range="thisMonth">이번 달</button>
-            <button type="button" class="shortcut-btn" data-cp-range="lastMonth">지난 달</button>
+            <button type="button" class="shortcut-btn" data-stt-range="week">최근 7일</button>
+            <button type="button" class="shortcut-btn" data-stt-range="thisMonth">이번 달</button>
+            <button type="button" class="shortcut-btn" data-stt-range="all">전체</button>
           </div>
-          <input type="text" id="cpDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
-          <input type="hidden" id="cpStartDate">
-          <input type="hidden" id="cpEndDate">
+          <input type="text" id="sttDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
+          <input type="hidden" id="sttStartDate">
+          <input type="hidden" id="sttEndDate">
         </div>
-        <label>채널<select id="cpChannelFilter">
-          <option value="all">전체</option>
-          <option value="유선 상담">유선</option>
-          <option value="채널톡">채널톡</option>
-          <option value="1:1문의">1:1 문의</option>
-        </select></label>
-        <label>상담사<select id="cpCounselorFilter"><option value="all">전체</option></select></label>
-        <label>검색<input type="text" id="cpSearch" placeholder="날짜·상담사·채널 검색" style="min-width:140px"></label>
-        <div class="filter-actions"><button id="cpResetBtn" class="btn btn-ghost" type="button">초기화</button></div>
+        <label>상담사<select id="sttCounselorFilter"><option value="all">전체</option></select></label>
+        <div class="filter-actions">
+          <button id="sttResetBtn" class="btn btn-ghost" type="button">초기화</button>
+        </div>
       </section>
-      <!-- ① 전체 민원 현황 -->
-      <div class="complaint-section">
-        <div class="complaint-section-title">
-          <span class="complaint-section-icon">📋</span>전체 민원 현황
-          <span id="cpTotalBadge" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;background:var(--blue-50);color:var(--blue);margin-left:4px">0건</span>
+
+      <!-- ③ 유선 KPI -->
+      <section class="kpis" aria-label="유선 민원 KPI">
+        <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
+          <div class="kpi-header"><div class="kpi-icon-wrap">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+          </div><span class="kpi-delta kpi-delta--flat">—</span></div>
+          <div class="kpi-body"><span class="kpi-value" id="sttTotalCount">0</span><span class="kpi-unit">건</span></div>
+          <p class="kpi-label">총 분류 건수</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
+          <div class="kpi-header"><div class="kpi-icon-wrap">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div><span class="kpi-delta kpi-delta--flat">—</span></div>
+          <div class="kpi-body"><span class="kpi-value" id="sttAvgDuration" style="font-size:18px">—</span></div>
+          <p class="kpi-label">평균 통화시간</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
+          <div class="kpi-header"><div class="kpi-icon-wrap">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div><span class="kpi-delta kpi-delta--flat" id="sttTopTypeCount">—</span></div>
+          <div class="kpi-body"><span class="kpi-value" id="sttTopType" style="font-size:15px;line-height:1.2">—</span></div>
+          <p class="kpi-label">TOP 문의 유형</p>
+        </article>
+        <article class="kpi-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-50)">
+          <div class="kpi-header"><div class="kpi-icon-wrap" style="--kpi-color:var(--red)">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--red)"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+          </div><span class="kpi-delta kpi-delta--flat">—</span></div>
+          <div class="kpi-body"><span class="kpi-value" id="sttLowCount">0</span><span class="kpi-unit">건</span></div>
+          <p class="kpi-label">신뢰도 낮음 (&lt;60%)</p>
+        </article>
+      </section>
+
+      <!-- ④ 유선 차트 Row 1 -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">문의 유형별 건수</div>
+            <div class="chart-card-sub">건수 내림차순 상위 10</div>
+          </div>
+          <div class="chart-area"><canvas id="sttTypeCountChart"></canvas></div>
         </div>
-        <div class="complaint-table-wrap">
-          <table class="complaint-table">
-            <thead><tr><th>날짜</th><th>채널</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th><th style="text-align:right">평균(분/건)</th><th>처리 상태</th></tr></thead>
-            <tbody id="complaintAllBody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">데이터를 불러오는 중입니다.</td></tr></tbody>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">문의 유형별 비중</div>
+            <div class="chart-card-sub">상위 7개 + 기타</div>
+          </div>
+          <div class="donut-layout">
+            <div class="donut-canvas-wrap"><canvas id="sttTypePropChart" width="150" height="150"></canvas></div>
+            <ol class="donut-legend" id="sttTypePropLegend"></ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ 유선 차트 Row 2 -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">날짜별 문의 유형 추이</div>
+            <div class="chart-card-sub">총 건수 기준</div>
+          </div>
+          <div class="chart-area"><canvas id="sttTrendChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">상담사별 문의 유형</div>
+            <div class="chart-card-sub">상담사별 총 건수 및 주요 유형</div>
+          </div>
+          <div class="data-table-scroll" style="flex:1">
+            <table class="data-table" id="sttCounselorTable">
+              <thead><tr><th>상담사</th><th>총 건수</th><th>주요 문의 유형</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ 유선 차트 Row 3 -->
+      <div class="chart-row chart-row--trend">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">평균 통화시간</div>
+            <div class="chart-card-sub">문의 유형별 · 단위: 분/건</div>
+          </div>
+          <div class="chart-area"><canvas id="sttAvgDurChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div class="chart-card-title">신뢰도 낮은 문의 목록</div>
+            <div class="chart-card-sub">신뢰도 60% 미만 · 최대 20건</div>
+          </div>
+          <div class="data-table-scroll" style="flex:1">
+            <table class="data-table" id="sttLowConfTable">
+              <thead><tr><th>날짜</th><th>상담사</th><th>문의 유형</th><th>신뢰도</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ⑦ 채널톡 현황 -->
+      <div class="complaint-section">
+        <div class="complaint-section-title" style="justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="complaint-section-icon">💬</span>채널톡 민원 현황
+          </div>
+          <button id="ctRefreshComplaint" class="btn btn-primary" type="button" style="font-size:12px;padding:5px 12px">새로고침</button>
+        </div>
+        <div id="ctComplaintError" style="margin-bottom:8px"></div>
+        <section class="kpis" aria-label="채널톡 KPI" style="margin-bottom:12px">
+          <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
+            <div class="kpi-header"><div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
+            <div class="kpi-body"><span class="kpi-value" id="ctCmpTotal">0</span><span class="kpi-unit">건</span></div>
+            <p class="kpi-label">총 문의 수</p>
+          </article>
+          <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
+            <div class="kpi-header"><div class="kpi-icon-wrap" style="--kpi-color:var(--violet)">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--violet)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
+            <div class="kpi-body"><span class="kpi-value" id="ctCmpAvgWait" style="font-size:18px">—</span></div>
+            <p class="kpi-label">평균 대기시간</p>
+          </article>
+          <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
+            <div class="kpi-header"><div class="kpi-icon-wrap">
+              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div><span class="kpi-delta kpi-delta--flat" id="ctCmpTopTypeCount">—</span></div>
+            <div class="kpi-body"><span class="kpi-value" id="ctCmpTopType" style="font-size:18px">—</span></div>
+            <p class="kpi-label">TOP 문의 유형</p>
+          </article>
+        </section>
+        <div class="channel-tbl-scroll" style="max-height:240px">
+          <table class="channel-mini-tbl">
+            <thead><tr><th>날짜</th><th style="text-align:right">건수</th><th>평균 대기</th><th>TOP 유형</th></tr></thead>
+            <tbody id="ctCmpBody"></tbody>
           </table>
         </div>
       </div>
-      <!-- ② 채널별 민원 현황 -->
-      <div class="complaint-section">
-        <div class="complaint-section-title"><span class="complaint-section-icon">📊</span>채널별 민원 현황</div>
-        <div class="channel-cards">
-          <div class="channel-card">
-            <div class="channel-card-header"><span class="ch-icon">📞</span><span class="ch-name">유선</span></div>
-            <div class="channel-stats">
-              <div class="channel-stat"><span class="cs-label">총 문의</span><span class="cs-val" id="cpPhoneTotal">0건</span></div>
-              <div class="channel-stat"><span class="cs-label">평균 처리시간</span><span class="cs-val" id="cpPhoneAvg">—</span></div>
-            </div>
-            <div class="channel-tbl-scroll"><table class="channel-mini-tbl"><thead><tr><th>날짜</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th></tr></thead><tbody id="cpPhoneBody"></tbody></table></div>
-          </div>
-          <div class="channel-card">
-            <div class="channel-card-header"><span class="ch-icon">💬</span><span class="ch-name">채널톡</span></div>
-            <div class="channel-stats">
-              <div class="channel-stat"><span class="cs-label">총 문의</span><span class="cs-val" id="cpChatTotal">0건</span></div>
-              <div class="channel-stat"><span class="cs-label">평균 대기시간</span><span class="cs-val" id="cpChatWait">—</span></div>
-              <div class="channel-stat"><span class="cs-label">평균 처리시간</span><span class="cs-val" id="cpChatAvg">—</span></div>
-            </div>
-            <div class="channel-tbl-scroll"><table class="channel-mini-tbl"><thead><tr><th>날짜</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th></tr></thead><tbody id="cpChatBody"></tbody></table></div>
-          </div>
-          <div class="channel-card">
-            <div class="channel-card-header"><span class="ch-icon">📧</span><span class="ch-name">1:1 문의</span></div>
-            <div class="channel-stats">
-              <div class="channel-stat"><span class="cs-label">총 문의</span><span class="cs-val" id="cp1to1Total">0건</span></div>
-              <div class="channel-stat"><span class="cs-label">평균 처리시간</span><span class="cs-val" id="cp1to1Avg">—</span></div>
-            </div>
-            <div class="channel-tbl-scroll"><table class="channel-mini-tbl"><thead><tr><th>날짜</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th></tr></thead><tbody id="cp1to1Body"></tbody></table></div>
-          </div>
-        </div>
-      </div>
+
     </div><!-- /tab-complaint -->
   </main>
   <script id="saved-data" type="application/json">[
@@ -5428,7 +5564,6 @@
       document.getElementById("loadErrorPanel")?.remove();
       setFilters(state.rows);
       applyFilters();
-      if (typeof cpSetCounselorOptions === "function") { cpSetCounselorOptions(); cpApplyFilters(); }
       setStatus(`${sourceLabel} · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
     }
 
@@ -5482,7 +5617,7 @@
 
     function ctApplyFilters() {
       ctState.filteredDays = ctState.days;
-      if (typeof cpApplyFilters === "function") cpApplyFilters();
+      if (typeof renderCtSection === "function") renderCtSection();
     }
 
     function ctFormatSeconds(sec) {
@@ -5801,116 +5936,343 @@
       $("manualMinutes").value = "";
     });
 
-    // ── 민원 관리 탭 (cp*) ──────────────────────────────────
-    const CP_SUBS = ["유선 상담", "채널톡", "1:1문의"];
-    const CP_LABEL = { "유선 상담": "유선", "채널톡": "채널톡", "1:1문의": "1:1 문의" };
-    const CP_BADGE = { "유선 상담": "phone", "채널톡": "chat", "1:1문의": "dm" };
-    let cpFp = null, cpFpSuppress = false;
+    // ══ 민원 관리 탭 ═══════════════════════════════════════
 
-    function cpGetRows() { return state.rows.filter(r => CP_SUBS.includes(r.sub)); }
+    const PHONE_COMPLAINT_KEY = "mvno-phone-complaint-v1";
+    const COMPLAINT_LOW_CONF = 0.6;
 
-    function cpSetCounselorOptions() {
-      const rows = cpGetRows();
-      const months = [...new Set(rows.map(r => r.month))].filter(Boolean).sort((a,b) => a.localeCompare(b,"ko"));
-      $("cpMonthFilter").innerHTML = '<option value="all">전체</option>' + months.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
-      const counselors = [...new Set(rows.map(r => r.counselor))].filter(Boolean).sort((a,b) => a.localeCompare(b,"ko"));
-      $("cpCounselorFilter").innerHTML = '<option value="all">전체</option>' + counselors.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    const COMPLAINT_TYPES_LIST = [
+      "가입 문의","요금제 문의","셀프가입 방법","번호이동","신규가입",
+      "안면인증","유심 배송","유심 결제취소","개통오류","인증 오류",
+      "미납","납부변경","청구요금","과다청구","납부일정",
+      "가입정보조회","요금제변경","번호변경","유심변경","서류발급",
+      "부가서비스","해지","위약금","로밍","인터넷결합","eSIM",
+      "기타(알뜰폰 문의 아님)"
+    ];
+
+    const COMPLAINT_KEYWORDS = {
+      "가입 문의":     ["가입하고 싶어요","가입 문의","어떻게 가입해요","가입하고 싶은데","가입방법","가입하려고","가입하고 싶","알뜰폰 가입","알뜰폰으로 옮기","알뜰폰 쓰고 싶","처음 가입","신청하려고","신청하고 싶"],
+      "요금제 문의":   ["요금제 추천","요금제 뭐 있어요","요금제 문의","요금제 알려","어떤 요금제","요금제 소개","요금제 뭐가","요금제가 어떻게","무슨 요금제","요금제 궁금","요금제가 어떤","요금제를 몰라","월정액이 얼마"],
+      "셀프가입 방법": ["셀프가입","직접 가입","셀프 신청","혼자 가입","앱으로 가입","온라인으로 가입","셀프로 가입","셀프 가입"],
+      "번호이동":      ["번호이동","번호 이동","기존 번호 그대로","번호 유지","현재 번호 그대로","이동 번호","번호를 이동","번호 옮기","번호 가져가","번호 그대로 옮기","통신사 이동하고 번호"],
+      "신규가입":      ["신규가입","새 번호","신규 번호","새로운 번호","번호 새로","신규로 가입","새 번호로"],
+      "안면인증":      ["안면인증","얼굴 인증","신분증 인증 안 됨","얼굴 인식","얼굴인식","안면 인식","얼굴인증"],
+      "유심 배송":     ["유심 배송","택배","언제 도착","배송 조회","유심 언제","배송 현황","유심 왔나요","유심 보내줬","배송이 언제","유심이 언제","배송 문의"],
+      "유심 결제취소": ["유심 결제 취소","유심 주문 취소","결제취소","주문 취소","유심 환불","유심 결제취소"],
+      "개통오류":      ["개통 오류","개통 안 됨","개통 실패","개통이 안","개통이 안 돼","개통 문제","개통이 되지","개통이 안되","개통이 계속","개통 실패했"],
+      "인증 오류":     ["인증 오류","본인인증 안 됨","인증 실패","인증이 안","인증 안 돼","본인인증 오류","인증 문제","인증이 되지","본인인증이 안"],
+      "미납":          ["미납","요금 미납","미납 때문에","미납 요금","미납 되어","미납 상태","미납이 있어","미납 처리"],
+      "납부변경":      ["납부변경","카드 변경","자동이체 변경","계좌 변경","납부 방법 변경","결제 방법 변경","납부 계좌","출금 계좌 변경","자동이체 계좌","카드로 변경"],
+      "청구요금":      ["청구요금","요금 청구","이번 달 요금","청구 요금","청구된 요금","요금이 얼마","이번달 요금","이번 달에 얼마","요금 확인"],
+      "과다청구":      ["과다청구","요금이 많이 나왔","요금이 이상해","요금이 왜","이상하게 나왔","과하게 나왔","많이 청구","요금이 너무 많이","왜 이렇게 많이","요금이 너무"],
+      "납부일정":      ["납부일정","납부일","출금일","결제일","언제 빠져나가","언제 납부","납부 날짜","결제 날짜","언제 청구","언제 나가"],
+      "가입정보조회":  ["가입정보조회","가입 정보","내 가입 내역","가입 내용 확인","가입된 정보","가입 현황","가입 내역","요금제 확인","어떤 요금제 쓰고","데이터 초기화","데이터 언제 초기화","현재 요금제가","무슨 요금제 쓰고","어떤 요금제 사용","요금제가 뭔지","데이터 언제","오기가"],
+      "요금제변경":    ["요금제변경","요금제 변경","다른 요금제로","요금제 바꾸","요금제 변경 하려고","요금제 바꾸고 싶","요금제를 바꾸","요금제 올리","요금제 낮추"],
+      "번호변경":      ["번호변경","전화번호 변경","번호 바꾸","전화번호 바꾸","번호를 변경","전화번호를 바꾸"],
+      "유심변경":      ["유심변경","유심 교체","유심 재발급","유심 바꾸","usim 교체","심카드 교체","유심카드 교체","유심 업데이트","유심 교환"],
+      "서류발급":      ["가입확인서","서류 발급","증명서","확인서","납입확인서","서류 신청","서류를 발급","확인서 발급","납부 영수증","납부 내역서","요금 영수증","납입 내역","사용 내역서","납부 확인서"],
+      "부가서비스":    ["부가서비스","부가 서비스","부가서비스 신청","부가서비스 해지","부가 서비스 신청","부가 해지"],
+      "해지":          ["해지","해지하고 싶어요","번호 해지","해지 신청","해지 하려고","해지하려","해지를 하고 싶","해지 접수","해지 처리","해지 문의"],
+      "위약금":        ["위약금","할인반환금","약정 위약금","위약금 얼마","위약 금액","위약금 확인","위약금이 얼마","약정 기간","약정이 있나"],
+      "로밍":          ["로밍","해외에서 사용","해외 통화","해외 데이터","해외 서비스","해외 이용","해외에서 쓰려고","해외 여행"],
+      "인터넷결합":    ["인터넷결합","인터넷 결합","결합 할인","결합 서비스","인터넷 연결 결합","결합 상품"],
+      "eSIM":          ["esim","이심","e심","esim 재발급","이심 발급","이심으로 바꾸","esim으로"]
+    };
+
+    let phoneComplaintState = { records: [] };
+    let sttPending = [], sttIdCounter = 1;
+    let sttFp = null, sttFpSuppress = false;
+
+    function loadPhoneComplaints() {
+      try { phoneComplaintState.records = JSON.parse(localStorage.getItem(PHONE_COMPLAINT_KEY) || "[]"); }
+      catch { phoneComplaintState.records = []; }
     }
 
-    function cpApplyFilters() {
-      const month = $("cpMonthFilter").value;
-      const channel = $("cpChannelFilter").value;
-      const counselor = $("cpCounselorFilter").value;
-      const start = $("cpStartDate").value;
-      const end = $("cpEndDate").value;
-      const search = ($("cpSearch").value || "").toLowerCase().trim();
-      const filtered = cpGetRows().filter(r => {
-        if (month !== "all" && r.month !== month) return false;
-        if (start && r.dateText < start) return false;
-        if (end && r.dateText > end) return false;
-        if (channel !== "all" && r.sub !== channel) return false;
-        if (counselor !== "all" && r.counselor !== counselor) return false;
-        if (search && !`${r.dateText} ${r.counselor} ${r.sub}`.toLowerCase().includes(search)) return false;
-        return true;
-      });
-      cpRender(filtered);
+    function savePhoneComplaints() {
+      localStorage.setItem(PHONE_COMPLAINT_KEY, JSON.stringify(phoneComplaintState.records));
     }
 
-    function cpRender(rows) {
-      const totalCount = rows.reduce((s,r) => s + r.count, 0);
-      const badge = $("cpTotalBadge"); if (badge) badge.textContent = nf.format(totalCount) + "건";
-      const tbody = $("complaintAllBody");
-      if (tbody) {
-        if (!rows.length) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">표시할 데이터가 없습니다.</td></tr>';
-        } else {
-          const sorted = rows.slice().sort((a,b) => (b.dateText||"").localeCompare(a.dateText||""));
-          tbody.innerHTML = sorted.map(r => {
-            const avg = r.count > 0 ? (r.minutes/r.count).toFixed(1)+"분" : "—";
-            const badgeCls = CP_BADGE[r.sub] || "phone";
-            const label = CP_LABEL[r.sub] || r.sub;
-            return `<tr><td>${escapeHtml(r.dateText||"")}</td><td><span class="ch-badge ch-badge--${badgeCls}">${escapeHtml(label)}</span></td><td>${escapeHtml(r.counselor||"")}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(r.count)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(Math.round(r.minutes))}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${avg}</td><td><span class="status-ok">✓ 완료</span></td></tr>`;
-          }).join("");
+    function maskAgentName(name) {
+      const s = (name || "").trim();
+      if (!s) return "";
+      if (s.length <= 1) return s;
+      if (s.length === 2) return s[0] + "*";
+      return s[0] + "*".repeat(s.length - 2) + s[s.length - 1];
+    }
+
+    function calcCallDuration(startVal, endVal) {
+      if (!startVal || !endVal) return 0;
+      const toMs = v => {
+        if (typeof v === "number") return v > 1e11 ? v : Math.round((v - 25569) * 86400000);
+        return new Date(String(v).replace(" ", "T")).getTime();
+      };
+      const diff = toMs(endVal) - toMs(startVal);
+      return isFinite(diff) ? Math.max(0, Math.round(diff / 60000)) : 0;
+    }
+
+    function sttClassify(text) {
+      const lower = text.toLowerCase().replace(/\s+/g, " ");
+      const scores = [];
+      for (const [type, kws] of Object.entries(COMPLAINT_KEYWORDS)) {
+        let score = 0; const matched = [];
+        for (const kw of kws) {
+          if (lower.includes(kw.toLowerCase())) { score += 5 + kw.length; matched.push(kw); }
+        }
+        if (score > 0) scores.push({ type, score, matched });
+      }
+      if (!scores.length) return { type: "기타(알뜰폰 문의 아님)", confidence: 0.3, keywords: [] };
+      scores.sort((a, b) => b.score - a.score);
+      const best = scores[0], second = scores[1];
+      const margin = second ? best.score / second.score : Infinity;
+      let conf = margin >= 2 ? 0.95 : margin >= 1.3 ? 0.75 : 0.6;
+      if (best.matched.length === 1 && best.matched[0].length <= 3) conf = Math.min(conf, 0.65);
+      return { type: best.type, confidence: conf, keywords: best.matched.slice(0, 3) };
+    }
+
+    async function parseSttXlsx(arrayBuffer) {
+      const wb = XLSX.read(arrayBuffer, { type: "array" });
+      const results = [];
+      for (const sheetName of wb.SheetNames) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(sheetName)) continue;
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+        for (const row of rows) {
+          const agentName = row["agent_name"] || "";
+          if (!agentName) continue;
+          const transcript = row["transcript_text"] || "";
+          const durationMin = calcCallDuration(row["conversation_start_kst"], row["conversation_end_kst"]);
+          const { type, confidence, keywords } = sttClassify(transcript);
+          results.push({ id: sttIdCounter++, date: sheetName, agent: maskAgentName(agentName), durationMin, type, confidence, keywords, excluded: false });
         }
       }
-      cpRenderChannelCard(rows,"유선 상담","cpPhoneBody","cpPhoneTotal","cpPhoneAvg");
-      cpRenderChannelCard(rows,"채널톡","cpChatBody","cpChatTotal","cpChatAvg",true);
-      cpRenderChannelCard(rows,"1:1문의","cp1to1Body","cp1to1Total","cp1to1Avg");
+      return results.sort((a, b) => a.date.localeCompare(b.date));
     }
 
-    function cpRenderChannelCard(rows, sub, bodyId, totalId, avgId, isChat) {
-      const ch = rows.filter(r => r.sub === sub);
-      const total = ch.reduce((s,r) => s+r.count, 0);
-      const minutes = ch.reduce((s,r) => s+r.minutes, 0);
-      const avg = total > 0 ? (minutes/total).toFixed(1)+"분/건" : "—";
-      const totalEl = $(totalId); if (totalEl) totalEl.textContent = nf.format(total)+"건";
-      const avgEl = $(avgId); if (avgEl) avgEl.textContent = avg;
-      if (isChat && ctState.loaded) {
-        const start = $("cpStartDate").value; const end = $("cpEndDate").value;
-        const days = ctState.days.filter(d => (!start||d.date>=start)&&(!end||d.date<=end));
-        const valid = days.filter(d => d.avgWaitSec!=null&&d.total>0);
-        let ws=0,wt=0; valid.forEach(d=>{ws+=d.avgWaitSec*d.total;wt+=d.total;});
-        const waitEl=$("cpChatWait"); if(waitEl) waitEl.textContent = wt ? ctFormatSeconds(ws/wt) : "—";
+    function sttConfColor(c) { return c >= 0.8 ? "var(--green)" : c >= 0.6 ? "var(--amber)" : "var(--red)"; }
+    function sttConfLabel(c) { return c >= 0.8 ? "높음" : c >= 0.6 ? "보통" : "낮음"; }
+
+    function renderSttPreview(rows) {
+      sttPending = rows;
+      const area = $("sttResultArea");
+      if (!rows.length) { area.style.display = "none"; return; }
+      area.style.display = "block";
+      const low = rows.filter(r => r.confidence < COMPLAINT_LOW_CONF && !r.excluded).length;
+      $("sttResultStats").textContent = `${rows.length}건 분석 · ` + (low > 0 ? `⚠ ${low}건 신뢰도 낮음` : "✓ 모두 정상 분류");
+      const typeOpts = sel => COMPLAINT_TYPES_LIST.map(t => `<option value="${escapeHtml(t)}"${sel===t?" selected":""}>${escapeHtml(t)}</option>`).join("");
+      $("sttResultBody").innerHTML = rows.map(row => {
+        const chips = row.keywords.map(k => `<span class="kw-chip">${escapeHtml(k)}</span>`).join("");
+        const confStyle = `color:${sttConfColor(row.confidence)};font-weight:600`;
+        return `<tr data-sid="${row.id}" style="${row.excluded?"opacity:0.4":""}">
+          <td>${escapeHtml(row.date)}</td>
+          <td>${escapeHtml(row.agent)}</td>
+          <td style="text-align:right">${row.durationMin > 0 ? row.durationMin : "—"}</td>
+          <td><select class="ai-cell-select" style="width:148px" onchange="sttSetType(${row.id},this.value)">${typeOpts(row.type)}</select></td>
+          <td><span class="conf-bar" style="${confStyle}">${(row.confidence*100).toFixed(0)}% <small>${sttConfLabel(row.confidence)}</small></span></td>
+          <td>${chips || '<span style="color:var(--muted-2);font-size:11px">없음</span>'}</td>
+          <td><button type="button" class="del-btn" style="color:${row.excluded?"var(--green)":"var(--red)"}" onclick="sttToggleExclude(${row.id})" title="${row.excluded?"포함":"제외"}">${row.excluded?"↩":"×"}</button></td>
+        </tr>`;
+      }).join("");
+    }
+
+    function sttSetType(id, value) {
+      const row = sttPending.find(r => r.id === id);
+      if (!row) return;
+      row.type = value; row.confidence = 1.0;
+      const tr = document.querySelector(`tr[data-sid="${id}"]`);
+      if (tr) tr.cells[4].innerHTML = '<span class="conf-bar" style="color:var(--green);font-weight:600">100% <small>수동 지정</small></span>';
+    }
+
+    function sttToggleExclude(id) {
+      const row = sttPending.find(r => r.id === id);
+      if (row) row.excluded = !row.excluded;
+      renderSttPreview(sttPending);
+    }
+
+    function confirmSttResults() {
+      const toAdd = sttPending.filter(r => !r.excluded);
+      if (!toAdd.length) { alert("반영할 데이터가 없습니다."); return; }
+      phoneComplaintState.records = [...phoneComplaintState.records, ...toAdd.map(r => ({
+        date: r.date, agent: r.agent,
+        durationMin: Math.max(0, parseInt(r.durationMin) || 0),
+        type: r.type, confidence: parseFloat(r.confidence) || 0, count: 1
+      }))];
+      savePhoneComplaints();
+      $("sttFile").value = ""; $("sttResultArea").style.display = "none";
+      $("sttFileName").textContent = "파일을 선택해주세요";
+      sttPending = [];
+      phoneComplaintRender();
+      alert(`${toAdd.length}건이 대시보드에 반영되었습니다.`);
+    }
+
+    function sttGetFiltered() {
+      const start = $("sttStartDate")?.value || "";
+      const end   = $("sttEndDate")?.value   || "";
+      const agent = $("sttCounselorFilter")?.value || "all";
+      return phoneComplaintState.records.filter(r => {
+        if (start && r.date < start) return false;
+        if (end   && r.date > end)   return false;
+        if (agent !== "all" && r.agent !== agent) return false;
+        return true;
+      });
+    }
+
+    function phoneComplaintRender() {
+      // 상담사 필터 옵션 갱신
+      const allAgents = [...new Set(phoneComplaintState.records.map(r => r.agent))].filter(Boolean).sort((a,b)=>a.localeCompare(b,"ko"));
+      const sel = $("sttCounselorFilter");
+      if (sel) {
+        const cur = sel.value;
+        sel.innerHTML = '<option value="all">전체</option>' + allAgents.map(a=>`<option value="${escapeHtml(a)}"${a===cur?" selected":""}>${escapeHtml(a)}</option>`).join("");
       }
-      const tbody=$(bodyId); if(!tbody) return;
-      const sorted = ch.slice().sort((a,b)=>(b.dateText||"").localeCompare(a.dateText||""));
-      tbody.innerHTML = sorted.length
-        ? sorted.map(r=>`<tr><td>${escapeHtml(r.dateText||"")}</td><td>${escapeHtml(r.counselor||"")}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(r.count)}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(Math.round(r.minutes))}</td></tr>`).join("")
-        : '<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--muted)">데이터 없음</td></tr>';
+      const records = sttGetFiltered();
+      const total = records.length;
+      const totalDur = records.reduce((s,r)=>s+r.durationMin, 0);
+      const avgDur = total > 0 ? (totalDur/total).toFixed(1) : null;
+      const typeCounts = {};
+      records.forEach(r => { typeCounts[r.type] = (typeCounts[r.type]||0)+1; });
+      const topEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
+      const lowCount = records.filter(r=>r.confidence < COMPLAINT_LOW_CONF).length;
+
+      $("sttTotalCount").textContent = nf.format(total);
+      $("sttAvgDuration").textContent = avgDur ? `${avgDur}분` : "—";
+      $("sttTopType").textContent = topEntry ? shorten(topEntry[0], 12) : "—";
+      $("sttTopTypeCount").textContent = topEntry ? `${nf.format(topEntry[1])}건` : "—";
+      $("sttLowCount").textContent = nf.format(lowCount);
+
+      // 유형별 건수 bar
+      const sorted = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      drawBarChart($("sttTypeCountChart"), sorted.map(e=>shorten(e[0],12)), sorted.map(e=>e[1]), "건", null);
+
+      // 유형별 비중 donut
+      const allSorted = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
+      const donutItems = allSorted.slice(0,7);
+      const rest = allSorted.slice(7).reduce((s,e)=>s+e[1], 0);
+      if (rest > 0) donutItems.push(["기타", rest]);
+      drawDonutChart($("sttTypePropChart"), donutItems.map(e=>e[0]), donutItems.map(e=>e[1]), "sttTypePropLegend", "건");
+
+      // 날짜별 추이 line
+      const byDate = {};
+      records.forEach(r => { byDate[r.date] = (byDate[r.date]||0)+1; });
+      const dates = Object.keys(byDate).sort();
+      drawLineChart($("sttTrendChart"), dates, dates.map(d=>byDate[d]));
+
+      // 상담사별 table
+      const byAgent = {};
+      records.forEach(r => {
+        if (!byAgent[r.agent]) byAgent[r.agent] = { total:0, types:{} };
+        byAgent[r.agent].total++;
+        byAgent[r.agent].types[r.type] = (byAgent[r.agent].types[r.type]||0)+1;
+      });
+      const ctbl = $("sttCounselorTable")?.querySelector("tbody");
+      if (ctbl) {
+        const agRows = Object.entries(byAgent).sort((a,b)=>b[1].total-a[1].total);
+        ctbl.innerHTML = agRows.length
+          ? agRows.map(([ag, d]) => {
+              const top = Object.entries(d.types).sort((a,b)=>b[1]-a[1])[0];
+              return `<tr><td>${escapeHtml(ag)}</td><td style="text-align:right">${nf.format(d.total)}</td><td>${escapeHtml(top?top[0]:"—")}</td></tr>`;
+            }).join("")
+          : `<tr><td colspan="3" style="text-align:center;color:var(--muted)">데이터 없음</td></tr>`;
+      }
+
+      // 평균 통화시간 bar
+      const durByType = {};
+      records.forEach(r => {
+        if (!durByType[r.type]) durByType[r.type] = { sum:0, cnt:0 };
+        durByType[r.type].sum += r.durationMin; durByType[r.type].cnt++;
+      });
+      const durSorted = Object.entries(durByType).map(([t,d])=>[t, d.cnt>0?Math.round(d.sum/d.cnt*10)/10:0]).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      drawBarChart($("sttAvgDurChart"), durSorted.map(e=>shorten(e[0],12)), durSorted.map(e=>e[1]), "분", null);
+
+      // 신뢰도 낮음 table
+      const lowTbl = $("sttLowConfTable")?.querySelector("tbody");
+      if (lowTbl) {
+        const lowRecs = records.filter(r=>r.confidence < COMPLAINT_LOW_CONF).slice(0,20);
+        lowTbl.innerHTML = lowRecs.length
+          ? lowRecs.map(r=>`<tr><td>${escapeHtml(r.date)}</td><td>${escapeHtml(r.agent)}</td><td>${escapeHtml(r.type)}</td><td style="color:${sttConfColor(r.confidence)};font-weight:600">${(r.confidence*100).toFixed(0)}%</td></tr>`).join("")
+          : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">없음</td></tr>`;
+      }
     }
 
-    function cpSetDateRange(start, end) {
-      $("cpStartDate").value = start||""; $("cpEndDate").value = end||"";
-      cpFpSuppress = true;
-      try { if(cpFp){if(start&&end)cpFp.setDate([start,end]);else cpFp.clear();} }
-      finally { cpFpSuppress=false; }
+    function renderCtSection() {
+      if (!ctState.loaded) return;
+      const days = ctState.days;
+      let total=0, ws=0, wt=0;
+      const typeTotals = {};
+      days.forEach(d => {
+        total += d.total||0;
+        if (d.avgWaitSec!=null && d.total>0) { ws+=d.avgWaitSec*d.total; wt+=d.total; }
+        Object.entries(d.counts||{}).forEach(([k,v])=>{ typeTotals[k]=(typeTotals[k]||0)+v; });
+      });
+      const topType = Object.entries(typeTotals).sort((a,b)=>b[1]-a[1])[0];
+      $("ctCmpTotal").textContent = nf.format(total);
+      $("ctCmpAvgWait").textContent = wt>0 ? ctFormatSeconds(ws/wt) : "—";
+      $("ctCmpTopType").textContent = topType ? shorten(topType[0],12) : "—";
+      $("ctCmpTopTypeCount").textContent = topType ? `${nf.format(topType[1])}건` : "—";
+      const tbody = $("ctCmpBody");
+      if (tbody) {
+        const sorted = days.slice().sort((a,b)=>b.date.localeCompare(a.date));
+        tbody.innerHTML = sorted.length
+          ? sorted.map(d => {
+              const top = Object.entries(d.counts||{}).sort((a,b)=>b[1]-a[1])[0];
+              return `<tr><td>${escapeHtml(d.date)}</td><td style="text-align:right">${nf.format(d.total||0)}</td><td>${d.avgWaitSec!=null?ctFormatSeconds(d.avgWaitSec):"—"}</td><td>${escapeHtml(shorten(top?top[0]:"—",14))}</td></tr>`;
+            }).join("")
+          : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">데이터 없음</td></tr>`;
+      }
     }
 
-    function cpApplyShortcut(range) {
+    // 날짜 범위 (유선)
+    function sttSetDateRange(start, end) {
+      $("sttStartDate").value = start||""; $("sttEndDate").value = end||"";
+      sttFpSuppress = true;
+      try { if(sttFp){if(start&&end)sttFp.setDate([start,end]);else sttFp.clear();} }
+      finally { sttFpSuppress=false; }
+    }
+
+    function sttApplyShortcut(range) {
       const today = new Date(); let start="",end="";
-      if(range==="today"){start=end=dateKey(today);}
-      else if(range==="week"){const s=new Date(today);s.setDate(s.getDate()-6);start=dateKey(s);end=dateKey(today);}
+      if(range==="week"){const s=new Date(today);s.setDate(s.getDate()-6);start=dateKey(s);end=dateKey(today);}
       else if(range==="thisMonth"){start=dateKey(new Date(today.getFullYear(),today.getMonth(),1));end=dateKey(new Date(today.getFullYear(),today.getMonth()+1,0));}
-      else if(range==="lastMonth"){start=dateKey(new Date(today.getFullYear(),today.getMonth()-1,1));end=dateKey(new Date(today.getFullYear(),today.getMonth(),0));}
-      document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(b=>b.classList.toggle("active",b.dataset.cpRange===range));
-      cpSetDateRange(start,end); cpApplyFilters();
+      document.querySelectorAll("[data-stt-range]").forEach(b=>b.classList.toggle("active",b.dataset.sttRange===range));
+      sttSetDateRange(start,end); phoneComplaintRender();
     }
 
     try {
-      cpFp = flatpickr("#cpDateRangePicker", { mode:"range", dateFormat:"Y-m-d", locale:{weekdays:{shorthand:["일","월","화","수","목","금","토"],longhand:["일요일","월요일","화요일","수요일","목요일","금요일","토요일"]},months:{shorthand:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],longhand:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]},firstDayOfWeek:0,rangeSeparator:" ~ "}, disableMobile:false,
-        onChange:function(selectedDates){if(cpFpSuppress)return;if(selectedDates.length===2){document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(b=>b.classList.remove("active"));cpSetDateRange(dateKey(selectedDates[0]),dateKey(selectedDates[1]));cpApplyFilters();}}
+      sttFp = flatpickr("#sttDateRangePicker", { mode:"range", dateFormat:"Y-m-d", locale:{weekdays:{shorthand:["일","월","화","수","목","금","토"],longhand:["일요일","월요일","화요일","수요일","목요일","금요일","토요일"]},months:{shorthand:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],longhand:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]},firstDayOfWeek:0,rangeSeparator:" ~ "}, disableMobile:false,
+        onChange:function(sel){if(sttFpSuppress)return;if(sel.length===2){document.querySelectorAll("[data-stt-range]").forEach(b=>b.classList.remove("active"));sttSetDateRange(dateKey(sel[0]),dateKey(sel[1]));phoneComplaintRender();}}
       });
-    } catch(e){console.warn("민원 flatpickr 초기화 실패:",e);}
+    } catch(e){console.warn("유선 flatpickr 초기화 실패:",e);}
 
-    document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(btn=>btn.addEventListener("click",()=>cpApplyShortcut(btn.dataset.cpRange)));
-    $("cpMonthFilter").addEventListener("change",cpApplyFilters);
-    $("cpChannelFilter").addEventListener("change",cpApplyFilters);
-    $("cpCounselorFilter").addEventListener("change",cpApplyFilters);
-    $("cpSearch").addEventListener("input",cpApplyFilters);
-    $("cpResetBtn").addEventListener("click",()=>{
-      $("cpMonthFilter").value="all";$("cpChannelFilter").value="all";$("cpCounselorFilter").value="all";$("cpSearch").value="";
-      document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(b=>b.classList.remove("active"));
-      cpSetDateRange("",""); cpApplyFilters();
+    document.querySelectorAll("[data-stt-range]").forEach(btn=>btn.addEventListener("click",()=>sttApplyShortcut(btn.dataset.sttRange)));
+    $("sttCounselorFilter").addEventListener("change", phoneComplaintRender);
+    $("sttResetBtn").addEventListener("click", ()=>{
+      document.querySelectorAll("[data-stt-range]").forEach(b=>b.classList.remove("active"));
+      sttSetDateRange("",""); $("sttCounselorFilter").value="all"; phoneComplaintRender();
+    });
+
+    $("sttFile").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      $("sttFileName").textContent = `${file.name} — 분석 중…`;
+      try {
+        const results = await parseSttXlsx(await file.arrayBuffer());
+        if (!results.length) { $("sttFileName").textContent = "처리 가능한 데이터가 없습니다. (날짜별 시트 형식 필요)"; return; }
+        $("sttFileName").textContent = `${file.name} (${results.length}건 분석)`;
+        renderSttPreview(results);
+      } catch(err) {
+        alert("Excel 파일 읽기 오류: " + err.message);
+        $("sttFileName").textContent = "파일을 선택해주세요";
+      }
+    });
+
+    $("sttConfirmBtn").addEventListener("click", confirmSttResults);
+
+    $("ctRefreshComplaint").addEventListener("click", async () => {
+      const btn = $("ctRefreshComplaint");
+      btn.disabled=true; btn.textContent="불러오는 중…";
+      const errEl=$("ctComplaintError"); if(errEl) errEl.innerHTML="";
+      try { await ctInit(); renderCtSection(); }
+      catch(e){ if(errEl) errEl.innerHTML=`<div class="error-panel">${escapeHtml(e.message)}</div>`; }
+      finally { btn.disabled=false; btn.textContent="새로고침"; }
     });
 
     document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -5919,10 +6281,12 @@
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
-        if (target === "complaint") { cpSetCounselorOptions(); cpApplyFilters(); }
+        if (target === "complaint") { phoneComplaintRender(); renderCtSection(); }
       });
     });
 
+    loadPhoneComplaints();
+    phoneComplaintRender();
     initManualForm();
     initManualRows();
     renderManualLog();
