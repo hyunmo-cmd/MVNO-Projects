@@ -426,10 +426,137 @@
     }
     .del-btn:hover { background: var(--red-50); border-color: var(--red); }
 
+    /* ── Complaint Tab ─────────────────────────────────── */
+    .complaint-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+    .complaint-section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .complaint-section-icon { font-size: 15px; }
+    .complaint-table-wrap {
+      overflow-x: auto;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      max-height: 340px;
+    }
+    .complaint-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .complaint-table th {
+      padding: 8px 12px;
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .complaint-table td {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border-2);
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+    .complaint-table tbody tr:last-child td { border-bottom: none; }
+    .complaint-table tbody tr:hover td { background: var(--bg); }
+    .ch-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .ch-badge--phone { background: #EFF6FF; color: #2563EB; }
+    .ch-badge--chat  { background: #ECFDF5; color: #059669; }
+    .ch-badge--dm    { background: #FEF3C7; color: #D97706; }
+    .status-ok {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 7px; border-radius: 10px;
+      font-size: 11px; font-weight: 600;
+      background: var(--green-50); color: var(--green);
+    }
+    /* Channel Cards */
+    .channel-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .channel-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .channel-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .ch-icon { font-size: 17px; }
+    .ch-name { font-size: 14px; font-weight: 700; color: var(--text); }
+    .channel-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .channel-stat { display: flex; flex-direction: column; gap: 2px; min-width: 70px; }
+    .cs-label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .cs-val { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .channel-tbl-scroll {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 190px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .channel-mini-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .channel-mini-tbl th {
+      padding: 5px 8px;
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .channel-mini-tbl td {
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--border-2);
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+    .channel-mini-tbl tbody tr:last-child td { border-bottom: none; }
+    .channel-mini-tbl tbody tr:hover td { background: var(--panel); }
+
     /* ── Responsive ────────────────────────────────────── */
     @media (max-width: 1200px) {
       .chart-row--3col { grid-template-columns: 1fr 1fr; }
       .chart-row--3col .chart-card:last-child { grid-column: span 2; }
+      .channel-cards { grid-template-columns: 1fr 1fr; }
+      .channel-cards .channel-card:last-child { grid-column: span 2; }
     }
     @media (max-width: 1100px) {
       .kpis { grid-template-columns: repeat(2, 1fr); }
@@ -445,6 +572,8 @@
       .upload-grid { grid-template-columns: 1fr; }
       .manual-form { grid-template-columns: 1fr 1fr; }
       .manual-log-header, .manual-log-row { grid-template-columns: 80px 60px 1fr 1fr 40px 50px 40px 30px; font-size: 10px; }
+      .channel-cards { grid-template-columns: 1fr; }
+      .channel-cards .channel-card:last-child { grid-column: auto; }
     }
     @media (max-width: 600px) {
       .kpis { grid-template-columns: 1fr 1fr; }
@@ -638,7 +767,7 @@
     <nav class="tab-nav" aria-label="탭 메뉴">
       <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
       <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
-      <button class="tab-btn" data-tab="channeltalk" type="button">채널톡</button>
+      <button class="tab-btn" data-tab="complaint" type="button">민원 관리</button>
     </nav>
 
     <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
@@ -929,128 +1058,131 @@
 
     </div><!-- /tab-status -->
 
-    <!-- ══ Tab 3: 채널톡 ══════════════════════════════════ -->
-    <div class="tab-panel hidden" id="tab-channeltalk">
+    <!-- ══ Tab 3: 민원 관리 ══════════════════════════════════ -->
+    <div class="tab-panel hidden" id="tab-complaint">
 
       <!-- Filter Bar -->
-      <section class="filter-bar" aria-label="채널톡 필터">
+      <section class="filter-bar" aria-label="민원 필터">
+        <label>월<select id="cpMonthFilter"><option value="all">전체</option></select></label>
         <div class="date-range-group">
           <span class="date-range-label">날짜 범위</span>
           <div class="date-shortcuts">
-            <button type="button" class="shortcut-btn" data-ct-range="week">최근 7일</button>
-            <button type="button" class="shortcut-btn" data-ct-range="thisMonth">이번 달</button>
-            <button type="button" class="shortcut-btn" data-ct-range="all">전체</button>
+            <button type="button" class="shortcut-btn" data-cp-range="today">오늘</button>
+            <button type="button" class="shortcut-btn" data-cp-range="week">최근 7일</button>
+            <button type="button" class="shortcut-btn" data-cp-range="thisMonth">이번 달</button>
+            <button type="button" class="shortcut-btn" data-cp-range="lastMonth">지난 달</button>
           </div>
-          <input type="text" id="ctDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
-          <input type="hidden" id="ctStartDate">
-          <input type="hidden" id="ctEndDate">
+          <input type="text" id="cpDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
+          <input type="hidden" id="cpStartDate">
+          <input type="hidden" id="cpEndDate">
         </div>
+        <label>채널<select id="cpChannelFilter">
+          <option value="all">전체</option>
+          <option value="유선 상담">유선</option>
+          <option value="채널톡">채널톡</option>
+          <option value="1:1문의">1:1 문의</option>
+        </select></label>
+        <label>상담사<select id="cpCounselorFilter"><option value="all">전체</option></select></label>
+        <label>검색<input type="text" id="cpSearch" placeholder="날짜·상담사·채널 검색" style="min-width:140px"></label>
         <div class="filter-actions">
-          <button id="ctResetBtn" class="btn btn-ghost" type="button">초기화</button>
-          <button id="ctRefreshBtn" class="btn btn-primary" type="button">새로고침</button>
+          <button id="cpResetBtn" class="btn btn-ghost" type="button">초기화</button>
         </div>
       </section>
 
-      <div id="ctErrorPanel"></div>
-
-      <p class="input-section-title">문의 유형 <span class="badge">채널톡</span></p>
-      <section class="kpis" aria-label="문의 유형 KPI">
-        <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="ctTotalCount">0</span><span class="kpi-unit">건</span></div>
-          <p class="kpi-label">총 문의 수</p>
-        </article>
-        <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="ctAvgDailyCount">0</span><span class="kpi-unit">건/일</span></div>
-          <p class="kpi-label">일 평균 문의 수</p>
-        </article>
-        <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat" id="ctTopTypeCount">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="ctTopType" style="font-size:18px">—</span></div>
-          <p class="kpi-label">TOP 문의 유형</p>
-        </article>
-      </section>
-
-      <div class="chart-row chart-row--trend">
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">문의 유형 비중</div>
-            <div class="chart-card-sub">필터 기간 기준</div>
-          </div>
-          <div class="donut-layout">
-            <div class="donut-canvas-wrap"><canvas id="ctTypeChart" width="150" height="150"></canvas></div>
-            <ol class="donut-legend" id="ctTypeLegend"></ol>
-          </div>
+      <!-- ① 전체 민원 현황 -->
+      <div class="complaint-section">
+        <div class="complaint-section-title">
+          <span class="complaint-section-icon">📋</span>
+          전체 민원 현황
+          <span id="cpTotalBadge" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;background:var(--blue-50);color:var(--blue);margin-left:4px">0건</span>
         </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">TOP 문의 유형</div>
-            <div class="chart-card-sub">건수 기준 상위 5</div>
-          </div>
-          <ol class="rank-list" id="ctTypeRankList"></ol>
+        <div class="complaint-table-wrap">
+          <table class="complaint-table">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>채널</th>
+                <th>상담사</th>
+                <th style="text-align:right">건수</th>
+                <th style="text-align:right">처리시간(분)</th>
+                <th style="text-align:right">평균(분/건)</th>
+                <th>처리 상태</th>
+              </tr>
+            </thead>
+            <tbody id="complaintAllBody">
+              <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">데이터를 불러오는 중입니다.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <hr class="section-divider">
-
-      <p class="input-section-title">고객 대기시간 <span class="badge">채널톡</span></p>
-      <section class="kpis" aria-label="고객 대기시간 KPI">
-        <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap" style="--kpi-color:var(--violet)">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--violet)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="ctAvgWait">—</span></div>
-          <p class="kpi-label">전체 평균 대기시간</p>
-        </article>
-        <article class="kpi-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap" style="--kpi-color:var(--red)">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--red)"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat" id="ctMaxWaitValue">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="ctMaxWaitDate" style="font-size:18px">—</span></div>
-          <p class="kpi-label">대기시간 최고 날짜</p>
-        </article>
-      </section>
-
-      <div class="chart-row chart-row--trend">
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">일자별 평균 대기시간 추이</div>
-            <div class="chart-card-sub">단위: 분</div>
-          </div>
-          <div class="chart-area"><canvas id="ctWaitTrendChart"></canvas></div>
+      <!-- ② 채널별 민원 현황 -->
+      <div class="complaint-section">
+        <div class="complaint-section-title">
+          <span class="complaint-section-icon">📊</span>
+          채널별 민원 현황
         </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">대기시간 TOP 5</div>
-            <div class="chart-card-sub">일자 기준</div>
+        <div class="channel-cards">
+
+          <!-- 유선 -->
+          <div class="channel-card">
+            <div class="channel-card-header">
+              <span class="ch-icon">📞</span>
+              <span class="ch-name">유선</span>
+            </div>
+            <div class="channel-stats">
+              <div class="channel-stat"><span class="cs-label">총 문의</span><span class="cs-val" id="cpPhoneTotal">0건</span></div>
+              <div class="channel-stat"><span class="cs-label">평균 처리시간</span><span class="cs-val" id="cpPhoneAvg">—</span></div>
+            </div>
+            <div class="channel-tbl-scroll">
+              <table class="channel-mini-tbl">
+                <thead><tr><th>날짜</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th></tr></thead>
+                <tbody id="cpPhoneBody"></tbody>
+              </table>
+            </div>
           </div>
-          <ol class="rank-list" id="ctWaitRankList"></ol>
+
+          <!-- 채널톡 -->
+          <div class="channel-card">
+            <div class="channel-card-header">
+              <span class="ch-icon">💬</span>
+              <span class="ch-name">채널톡</span>
+            </div>
+            <div class="channel-stats">
+              <div class="channel-stat"><span class="cs-label">총 문의</span><span class="cs-val" id="cpChatTotal">0건</span></div>
+              <div class="channel-stat"><span class="cs-label">평균 대기시간</span><span class="cs-val" id="cpChatWait">—</span></div>
+              <div class="channel-stat"><span class="cs-label">평균 처리시간</span><span class="cs-val" id="cpChatAvg">—</span></div>
+            </div>
+            <div class="channel-tbl-scroll">
+              <table class="channel-mini-tbl">
+                <thead><tr><th>날짜</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th></tr></thead>
+                <tbody id="cpChatBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 1:1 문의 -->
+          <div class="channel-card">
+            <div class="channel-card-header">
+              <span class="ch-icon">📧</span>
+              <span class="ch-name">1:1 문의</span>
+            </div>
+            <div class="channel-stats">
+              <div class="channel-stat"><span class="cs-label">총 문의</span><span class="cs-val" id="cp1to1Total">0건</span></div>
+              <div class="channel-stat"><span class="cs-label">평균 처리시간</span><span class="cs-val" id="cp1to1Avg">—</span></div>
+            </div>
+            <div class="channel-tbl-scroll">
+              <table class="channel-mini-tbl">
+                <thead><tr><th>날짜</th><th>상담사</th><th style="text-align:right">건수</th><th style="text-align:right">처리시간(분)</th></tr></thead>
+                <tbody id="cp1to1Body"></tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
-    </div><!-- /tab-channeltalk -->
+    </div><!-- /tab-complaint -->
   </main>
   <script id="saved-data" type="application/json">[
   {
@@ -5433,6 +5565,8 @@
       document.getElementById("loadErrorPanel")?.remove();
       setFilters(state.rows);
       applyFilters();
+      cpSetCounselorOptions();
+      cpApplyFilters();
       setStatus(`${sourceLabel} · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
     }
 
@@ -5473,30 +5607,19 @@
     }
 
     async function ctInit() {
-      const panel = $("ctErrorPanel");
-      if (panel) panel.innerHTML = "";
-      const btn = $("ctRefreshBtn");
-      if (btn) { btn.disabled = true; btn.textContent = "불러오는 중…"; }
       try {
         const data = await ctFetchData();
         ctState.categories = data.categories || [];
         ctState.days = (data.days || []).slice().sort((a, b) => a.date.localeCompare(b.date));
         ctState.loaded = true;
-        ctApplyFilters();
+        cpApplyFilters();
       } catch (error) {
-        if (panel) {
-          panel.innerHTML = `<div class="error-panel">채널톡 데이터를 불러오지 못했습니다.<br>${escapeHtml(error.message)}</div>`;
-        }
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = "새로고침"; }
+        console.warn("채널톡 데이터 로드 실패:", error.message);
       }
     }
 
     function ctApplyFilters() {
-      const start = $("ctStartDate").value;
-      const end = $("ctEndDate").value;
-      ctState.filteredDays = ctState.days.filter((d) => (!start || d.date >= start) && (!end || d.date <= end));
-      ctRender();
+      ctState.filteredDays = ctState.days;
     }
 
     function ctFormatSeconds(sec) {
@@ -5588,62 +5711,6 @@
       }
     }
 
-    function ctApplyShortcut(range) {
-      const today = new Date();
-      let start = "", end = "";
-      if (range === "week") {
-        const s = new Date(today); s.setDate(s.getDate() - 6);
-        start = dateKey(s); end = dateKey(today);
-      } else if (range === "thisMonth") {
-        start = dateKey(new Date(today.getFullYear(), today.getMonth(), 1));
-        end = dateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
-      }
-      document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((b) => b.classList.toggle("active", b.dataset.ctRange === range));
-      ctSetDateRange(start, end);
-      ctApplyFilters();
-    }
-
-    try {
-      ctFp = flatpickr("#ctDateRangePicker", {
-        mode: "range",
-        dateFormat: "Y-m-d",
-        locale: {
-          weekdays: {
-            shorthand: ["일", "월", "화", "수", "목", "금", "토"],
-            longhand: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
-          },
-          months: {
-            shorthand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
-            longhand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]
-          },
-          firstDayOfWeek: 0,
-          rangeSeparator: " ~ "
-        },
-        disableMobile: false,
-        onChange: function (selectedDates) {
-          if (ctFpSuppress) return;
-          if (selectedDates.length === 2) {
-            document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((b) => b.classList.remove("active"));
-            ctSetDateRange(dateKey(selectedDates[0]), dateKey(selectedDates[1]));
-            ctApplyFilters();
-          }
-        }
-      });
-    } catch (e) {
-      console.warn("채널톡 flatpickr 초기화 실패:", e);
-    }
-
-    document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((btn) => {
-      btn.addEventListener("click", () => ctApplyShortcut(btn.dataset.ctRange));
-    });
-
-    $("ctResetBtn").addEventListener("click", () => {
-      document.querySelectorAll("#tab-channeltalk .shortcut-btn").forEach((b) => b.classList.remove("active"));
-      ctSetDateRange("", "");
-      ctApplyFilters();
-    });
-
-    $("ctRefreshBtn").addEventListener("click", () => ctInit());
 
     const pending = { phone: null, channel: null };
 
@@ -5853,6 +5920,8 @@
         }
         setFilters(state.rows);
         applyFilters();
+        cpSetCounselorOptions();
+        cpApplyFilters();
         showUploadMsg("success", `반영 완료: ${labels.join(", ")}`);
         setStatus(`업로드 반영 · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
       } catch (error) {
@@ -5959,15 +6028,193 @@
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
-        if (target === "channeltalk" && ctState.loaded) ctRender();
+        if (target === "complaint") cpApplyFilters();
       });
+    });
+
+    // ══ 민원 관리 탭 ══════════════════════════════════════
+    const CP_SUBS = ["유선 상담", "채널톡", "1:1문의"];
+    const CP_LABEL = { "유선 상담": "유선", "채널톡": "채널톡", "1:1문의": "1:1 문의" };
+    const CP_BADGE = { "유선 상담": "phone", "채널톡": "chat", "1:1문의": "dm" };
+    let cpFp = null, cpFpSuppress = false;
+
+    function cpGetRows() {
+      return state.rows.filter(r => CP_SUBS.includes(r.sub));
+    }
+
+    function cpSetCounselorOptions() {
+      const rows = cpGetRows();
+      const months = [...new Set(rows.map(r => r.month))].filter(Boolean).sort((a, b) => a.localeCompare(b, "ko"));
+      $("cpMonthFilter").innerHTML = '<option value="all">전체</option>' +
+        months.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
+      const counselors = [...new Set(rows.map(r => r.counselor))].filter(Boolean).sort((a, b) => a.localeCompare(b, "ko"));
+      $("cpCounselorFilter").innerHTML = '<option value="all">전체</option>' +
+        counselors.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    }
+
+    function cpApplyFilters() {
+      const month    = $("cpMonthFilter").value;
+      const channel  = $("cpChannelFilter").value;
+      const counselor= $("cpCounselorFilter").value;
+      const start    = $("cpStartDate").value;
+      const end      = $("cpEndDate").value;
+      const search   = ($("cpSearch").value || "").toLowerCase().trim();
+
+      const filtered = cpGetRows().filter(r => {
+        if (month    !== "all" && r.month    !== month)    return false;
+        if (start    && r.dateText < start)                 return false;
+        if (end      && r.dateText > end)                   return false;
+        if (channel  !== "all" && r.sub !== channel)        return false;
+        if (counselor!== "all" && r.counselor !== counselor)return false;
+        if (search && !`${r.dateText} ${r.counselor} ${r.sub}`.toLowerCase().includes(search)) return false;
+        return true;
+      });
+      cpRender(filtered);
+    }
+
+    function cpRender(rows) {
+      const totalCount = rows.reduce((s, r) => s + r.count, 0);
+      const badge = $("cpTotalBadge");
+      if (badge) badge.textContent = nf.format(totalCount) + "건";
+
+      // ① 전체 민원 현황 테이블
+      const tbody = $("complaintAllBody");
+      if (tbody) {
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted)">표시할 데이터가 없습니다.</td></tr>';
+        } else {
+          const sorted = rows.slice().sort((a, b) => (b.dateText || "").localeCompare(a.dateText || ""));
+          tbody.innerHTML = sorted.map(r => {
+            const avg = r.count > 0 ? (r.minutes / r.count).toFixed(1) + "분" : "—";
+            const badgeCls = CP_BADGE[r.sub] || "phone";
+            const label    = CP_LABEL[r.sub] || r.sub;
+            return `<tr>
+              <td>${escapeHtml(r.dateText || "")}</td>
+              <td><span class="ch-badge ch-badge--${badgeCls}">${escapeHtml(label)}</span></td>
+              <td>${escapeHtml(r.counselor || "")}</td>
+              <td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(r.count)}</td>
+              <td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(Math.round(r.minutes))}</td>
+              <td style="text-align:right;font-variant-numeric:tabular-nums">${avg}</td>
+              <td><span class="status-ok">✓ 완료</span></td>
+            </tr>`;
+          }).join("");
+        }
+      }
+
+      // ② 채널별 카드
+      cpRenderChannelCard(rows, "유선 상담", "cpPhoneBody", "cpPhoneTotal", "cpPhoneAvg");
+      cpRenderChannelCard(rows, "채널톡",    "cpChatBody",  "cpChatTotal",  "cpChatAvg", true);
+      cpRenderChannelCard(rows, "1:1문의",   "cp1to1Body",  "cp1to1Total",  "cp1to1Avg");
+    }
+
+    function cpRenderChannelCard(rows, sub, bodyId, totalId, avgId, isChat) {
+      const ch = rows.filter(r => r.sub === sub);
+      const total   = ch.reduce((s, r) => s + r.count, 0);
+      const minutes = ch.reduce((s, r) => s + r.minutes, 0);
+      const avg = total > 0 ? (minutes / total).toFixed(1) + "분/건" : "—";
+      const totalEl = $(totalId); if (totalEl) totalEl.textContent = nf.format(total) + "건";
+      const avgEl   = $(avgId);   if (avgEl)   avgEl.textContent   = avg;
+
+      if (isChat && ctState.loaded) {
+        const start = $("cpStartDate").value;
+        const end   = $("cpEndDate").value;
+        const days  = ctState.days.filter(d => (!start || d.date >= start) && (!end || d.date <= end));
+        const valid = days.filter(d => d.avgWaitSec != null && d.total > 0);
+        let ws = 0, wt = 0;
+        valid.forEach(d => { ws += d.avgWaitSec * d.total; wt += d.total; });
+        const waitEl = $("cpChatWait");
+        if (waitEl) waitEl.textContent = wt ? ctFormatSeconds(ws / wt) : "—";
+      }
+
+      const tbody = $(bodyId);
+      if (!tbody) return;
+      const sorted = ch.slice().sort((a, b) => (b.dateText || "").localeCompare(a.dateText || ""));
+      tbody.innerHTML = sorted.length
+        ? sorted.map(r => `<tr>
+            <td>${escapeHtml(r.dateText || "")}</td>
+            <td>${escapeHtml(r.counselor || "")}</td>
+            <td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(r.count)}</td>
+            <td style="text-align:right;font-variant-numeric:tabular-nums">${nf.format(Math.round(r.minutes))}</td>
+          </tr>`).join("")
+        : '<tr><td colspan="4" style="text-align:center;padding:12px;color:var(--muted)">데이터 없음</td></tr>';
+    }
+
+    function cpSetDateRange(start, end) {
+      $("cpStartDate").value = start || "";
+      $("cpEndDate").value   = end   || "";
+      cpFpSuppress = true;
+      try {
+        if (cpFp) { if (start && end) cpFp.setDate([start, end]); else cpFp.clear(); }
+      } finally { cpFpSuppress = false; }
+    }
+
+    function cpApplyShortcut(range) {
+      const today = new Date();
+      let start = "", end = "";
+      if (range === "today") { start = end = dateKey(today); }
+      else if (range === "week") {
+        const s = new Date(today); s.setDate(s.getDate() - 6);
+        start = dateKey(s); end = dateKey(today);
+      } else if (range === "thisMonth") {
+        start = dateKey(new Date(today.getFullYear(), today.getMonth(), 1));
+        end   = dateKey(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+      } else if (range === "lastMonth") {
+        start = dateKey(new Date(today.getFullYear(), today.getMonth() - 1, 1));
+        end   = dateKey(new Date(today.getFullYear(), today.getMonth(), 0));
+      }
+      document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(b =>
+        b.classList.toggle("active", b.dataset.cpRange === range));
+      cpSetDateRange(start, end);
+      cpApplyFilters();
+    }
+
+    try {
+      cpFp = flatpickr("#cpDateRangePicker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        locale: {
+          weekdays: { shorthand: ["일","월","화","수","목","금","토"], longhand: ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"] },
+          months: {
+            shorthand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+            longhand:  ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"]
+          },
+          firstDayOfWeek: 0,
+          rangeSeparator: " ~ "
+        },
+        disableMobile: false,
+        onChange: function(selectedDates) {
+          if (cpFpSuppress) return;
+          if (selectedDates.length === 2) {
+            document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(b => b.classList.remove("active"));
+            cpSetDateRange(dateKey(selectedDates[0]), dateKey(selectedDates[1]));
+            cpApplyFilters();
+          }
+        }
+      });
+    } catch(e) { console.warn("민원 flatpickr 초기화 실패:", e); }
+
+    document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(btn => {
+      btn.addEventListener("click", () => cpApplyShortcut(btn.dataset.cpRange));
+    });
+    $("cpMonthFilter").addEventListener("change", cpApplyFilters);
+    $("cpChannelFilter").addEventListener("change", cpApplyFilters);
+    $("cpCounselorFilter").addEventListener("change", cpApplyFilters);
+    $("cpSearch").addEventListener("input", cpApplyFilters);
+    $("cpResetBtn").addEventListener("click", () => {
+      $("cpMonthFilter").value = "all";
+      $("cpChannelFilter").value = "all";
+      $("cpCounselorFilter").value = "all";
+      $("cpSearch").value = "";
+      document.querySelectorAll("#tab-complaint .shortcut-btn").forEach(b => b.classList.remove("active"));
+      cpSetDateRange("", "");
+      cpApplyFilters();
     });
 
     initManualForm();
     initManualRows();
     renderManualLog();
     initUploadRows();
-    window.addEventListener("resize", () => { render(); if (ctState.loaded) ctRender(); });
+    window.addEventListener("resize", () => { render(); });
     init();
   </script>
 </body>
