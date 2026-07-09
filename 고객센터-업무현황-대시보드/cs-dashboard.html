@@ -680,42 +680,84 @@
       grid-template-columns: repeat(6, 1fr);
       margin-bottom: 0;
     }
-    .chart-card--sm { min-height: 200px; }
-    .chart-card--sm .chart-area { min-height: 140px; }
 
-    /* Channel Sections */
-    .cmp-channel-section {
-      margin-bottom: 0;
+    /* Channel Type Grid (3열) */
+    .channel-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: start;
+    }
+    .cmp-channel-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
     }
     .cmp-channel-header {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 12px;
     }
     .cmp-channel-badge {
       display: inline-flex; align-items: center;
-      padding: 4px 12px; border-radius: 20px;
-      font-size: 12px; font-weight: 700; white-space: nowrap;
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; white-space: nowrap;
     }
     .cmp-channel-badge--phone { background: #EFF6FF; color: #2563EB; }
     .cmp-channel-badge--chat  { background: #ECFDF5; color: #059669; }
     .cmp-channel-badge--dm    { background: #FEF3C7; color: #D97706; }
     .cmp-channel-title {
-      font-size: 15px; font-weight: 700; color: var(--text);
+      font-size: 13px; font-weight: 700; color: var(--text); flex: 1;
     }
 
-    /* Overview List Table */
-    .ov-list-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px; gap: 12px; flex-wrap: wrap;
+    /* Channel Type Table */
+    .channel-type-table-wrap {
+      overflow-x: auto; overflow-y: auto;
+      max-height: 300px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 12px;
     }
-    .ov-search-wrap { display: flex; align-items: center; gap: 8px; }
-    .ov-count { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
+    /* Small Charts */
+    .channel-chart-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .channel-chart-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 10px;
+    }
+    .channel-chart-title {
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.02em;
+    }
+    .channel-chart-area { height: 130px; position: relative; }
+    .channel-chart-area canvas { width: 100% !important; height: 100% !important; }
+
+    /* Overview Type Table */
+    .ov-type-table-wrap {
+      overflow-x: auto; overflow-y: auto;
+      max-height: 400px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .rank-num {
+      font-size: 12px; font-weight: 700; color: var(--muted-2);
+      text-align: center;
+    }
+    .rank-num.top3 { color: var(--blue); }
+
+    @media (max-width: 1200px) {
+      .channel-type-grid { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 1300px) {
       .kpis--6col { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 900px) {
       .kpis--6col { grid-template-columns: repeat(2, 1fr); }
+      .channel-type-grid { grid-template-columns: 1fr; }
     }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
@@ -1054,19 +1096,13 @@
           <input type="hidden" id="cmpEndDate">
         </div>
         <label>상담사<select id="cmpCounselorFilter"><option value="all">전체</option></select></label>
-        <label>채널<select id="cmpChannelFilter">
-          <option value="all">전체</option>
-          <option value="phone">유선</option>
-          <option value="channeltalk">채널톡</option>
-          <option value="dm">1:1 문의</option>
-        </select></label>
         <div class="filter-actions">
           <button id="cmpResetBtn" class="btn btn-ghost" type="button">초기화</button>
         </div>
       </section>
 
       <!-- ② 전체 민원 현황 KPI -->
-      <section class="cmp-overview-section">
+      <section class="cmp-overview-section" style="margin-bottom:8px">
         <div class="cmp-section-header">
           <h2 class="cmp-section-title">전체 민원 현황</h2>
           <span class="cmp-section-sub">유선 · 채널톡 · 1:1 문의 합산</span>
@@ -1117,286 +1153,152 @@
         </section>
       </section>
 
-      <!-- ③ 전체 민원 분석 -->
+      <!-- ③ 전체 문의 유형 표 -->
       <section class="cmp-overview-section">
         <div class="cmp-section-header">
-          <h2 class="cmp-section-title">전체 민원 분석</h2>
-          <span class="cmp-section-sub">전체 채널 통합 기준</span>
+          <h2 class="cmp-section-title">전체 문의 유형</h2>
+          <span class="cmp-section-sub">채널 합산 · 건수 내림차순</span>
         </div>
-        <div class="chart-row chart-row--trend" style="margin-bottom:10px">
-          <div class="chart-card chart-card--sm">
-            <div class="chart-card-header">
-              <div class="chart-card-title">문의 유형별 건수</div>
-              <div class="chart-card-sub">상위 10</div>
-            </div>
-            <div class="chart-area"><canvas id="ovTypeCountChart"></canvas></div>
-          </div>
-          <div class="chart-card chart-card--sm">
-            <div class="chart-card-header">
-              <div class="chart-card-title">문의 유형별 비중</div>
-              <div class="chart-card-sub">상위 7개 + 기타</div>
-            </div>
-            <div class="donut-layout">
-              <div class="donut-canvas-wrap"><canvas id="ovTypePropChart" width="130" height="130"></canvas></div>
-              <ol class="donut-legend" id="ovTypePropLegend"></ol>
-            </div>
-          </div>
-        </div>
-        <div class="chart-row chart-row--trend" style="margin-bottom:0">
-          <div class="chart-card chart-card--sm">
-            <div class="chart-card-header">
-              <div class="chart-card-title">날짜별 문의 추이</div>
-              <div class="chart-card-sub">총 건수 기준</div>
-            </div>
-            <div class="chart-area"><canvas id="ovTrendChart"></canvas></div>
-          </div>
-          <div class="chart-card chart-card--sm">
-            <div class="chart-card-header">
-              <div class="chart-card-title">채널별 문의 비중</div>
-              <div class="chart-card-sub">유선 · 채널톡 · 1:1 문의</div>
-            </div>
-            <div class="donut-layout">
-              <div class="donut-canvas-wrap"><canvas id="ovChannelChart" width="130" height="130"></canvas></div>
-              <ol class="donut-legend" id="ovChannelLegend"></ol>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ④ 전체 민원 목록 -->
-      <section class="cmp-overview-section">
-        <div class="ov-list-header">
-          <div class="cmp-section-header" style="margin-bottom:0">
-            <h2 class="cmp-section-title">전체 민원 목록</h2>
-            <span class="ov-count" id="ovListCount">0건</span>
-          </div>
-          <div class="ov-search-wrap">
-            <input type="text" id="cmpSearchInput" class="date-range-input" placeholder="검색 (상담사·유형·날짜)" style="width:210px">
-          </div>
-        </div>
-        <div class="complaint-table-wrap">
-          <table class="complaint-table" id="ovListTable">
+        <div class="ov-type-table-wrap">
+          <table class="complaint-table" id="ovTypeTable">
             <thead>
               <tr>
-                <th data-ov-sort="date" style="cursor:pointer;user-select:none">날짜 <span class="sort-icon">↕</span></th>
-                <th>채널</th>
-                <th>상담사</th>
-                <th data-ov-sort="type" style="cursor:pointer;user-select:none">문의 유형 <span class="sort-icon">↕</span></th>
-                <th data-ov-sort="duration" style="text-align:right;cursor:pointer;user-select:none">처리시간 <span class="sort-icon">↕</span></th>
-                <th data-ov-sort="wait" style="text-align:right;cursor:pointer;user-select:none">고객 대기시간 <span class="sort-icon">↕</span></th>
+                <th style="width:40px;text-align:center">순위</th>
+                <th>문의 유형</th>
+                <th style="text-align:right">총 건수</th>
+                <th style="text-align:right">비율</th>
+                <th style="text-align:right">📞 유선</th>
+                <th style="text-align:right">💬 채널톡</th>
+                <th style="text-align:right">✉ 1:1</th>
               </tr>
             </thead>
-            <tbody id="ovListBody"></tbody>
+            <tbody id="ovTypeBody"></tbody>
           </table>
         </div>
       </section>
 
-      <hr class="section-divider" style="margin:24px 0">
+      <!-- ④⑤⑥ 채널별 문의 유형 (3열 동일 행) -->
+      <div class="channel-type-grid">
 
-      <!-- ⑤ 유선 민원 현황 -->
-      <section class="cmp-channel-section" id="sec-phone">
-        <div class="cmp-channel-header">
-          <span class="cmp-channel-badge cmp-channel-badge--phone">📞 유선</span>
-          <h3 class="cmp-channel-title">유선 민원 현황</h3>
-        </div>
+        <!-- ④ 유선 문의 유형 -->
+        <div class="cmp-channel-card">
+          <div class="cmp-channel-header">
+            <span class="cmp-channel-badge cmp-channel-badge--phone">📞 유선</span>
+            <span class="cmp-channel-title">유선 문의 유형</span>
+            <button class="btn btn-ghost" id="sttUploadToggle" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px">STT 업로드</button>
+          </div>
 
-        <!-- STT 업로드 (유선 섹션 내부) -->
-        <div class="complaint-section" style="margin-bottom:12px">
-          <div class="complaint-section-title">
-            <span class="complaint-section-icon">📎</span>STT 녹취록 업로드
-            <span class="badge badge--ai" style="font-size:11px;padding:2px 8px;margin-left:4px">자동 분류</span>
-          </div>
-          <p class="ai-desc">STT 녹취록 Excel(.xlsx)을 업로드하면 통화 내용을 분석해 문의 유형을 자동 분류합니다.<br>
-            고객명·전화번호·주민번호 등 개인정보와 상담 원문은 저장하지 않습니다.</p>
-          <div class="upload-slot" style="max-width:460px;margin-bottom:0">
-            <label>STT 녹취록 <small>(.xlsx · 날짜별 시트 포함)</small>
-              <input id="sttFile" type="file" accept=".xlsx">
-            </label>
-            <div class="upload-filename" id="sttFileName">파일을 선택해주세요</div>
-          </div>
-          <div id="sttResultArea" style="display:none;margin-top:16px">
-            <div class="ai-result-header">
-              <div>
-                <span class="ai-result-title">분석 결과 — 확인 후 반영</span>
-                <span id="sttResultStats" class="ai-stats"></span>
+          <!-- STT 업로드 패널 (토글) -->
+          <div id="sttUploadPanel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+            <p class="ai-desc" style="margin-bottom:8px">STT 녹취록(.xlsx)을 업로드하면 문의 유형을 자동 분류합니다.</p>
+            <div class="upload-slot" style="margin-bottom:0">
+              <label>STT 녹취록 <small>(.xlsx · 날짜별 시트)</small>
+                <input id="sttFile" type="file" accept=".xlsx">
+              </label>
+              <div class="upload-filename" id="sttFileName">파일을 선택해주세요</div>
+            </div>
+            <div id="sttResultArea" style="display:none;margin-top:12px">
+              <div class="ai-result-header">
+                <div><span class="ai-result-title">분석 결과</span><span id="sttResultStats" class="ai-stats"></span></div>
+              </div>
+              <div class="ai-result-table-wrap">
+                <table class="ai-result-table">
+                  <thead><tr>
+                    <th>날짜</th><th>상담사</th>
+                    <th style="width:70px;text-align:right">통화(분)</th>
+                    <th style="width:140px">문의 유형</th>
+                    <th style="width:80px">신뢰도</th>
+                    <th>키워드</th>
+                    <th style="width:36px">제외</th>
+                  </tr></thead>
+                  <tbody id="sttResultBody"></tbody>
+                </table>
+              </div>
+              <div class="ai-result-footer">
+                <span id="sttResultWarning" class="ai-warning"></span>
+                <button class="btn btn-primary" id="sttConfirmBtn" type="button">대시보드 반영</button>
               </div>
             </div>
-            <div class="ai-result-table-wrap">
-              <table class="ai-result-table">
-                <thead>
-                  <tr>
-                    <th>날짜</th><th>상담사</th>
-                    <th style="width:80px;text-align:right">통화시간(분)</th>
-                    <th style="width:150px">문의 유형</th>
-                    <th style="width:90px">신뢰도</th>
-                    <th>근거 키워드</th>
-                    <th style="width:36px">제외</th>
-                  </tr>
-                </thead>
-                <tbody id="sttResultBody"></tbody>
-              </table>
+          </div>
+
+          <!-- 유선 문의 유형 표 -->
+          <div class="channel-type-table-wrap">
+            <table class="complaint-table">
+              <thead>
+                <tr>
+                  <th style="width:32px;text-align:center">순위</th>
+                  <th>문의 유형</th>
+                  <th style="text-align:right">건수</th>
+                  <th style="text-align:right">비율</th>
+                </tr>
+              </thead>
+              <tbody id="phoneTypeBody"></tbody>
+            </table>
+          </div>
+
+          <!-- 유선 소형 차트 -->
+          <div class="channel-chart-row">
+            <div class="channel-chart-card">
+              <div class="channel-chart-title">문의 유형 차트</div>
+              <div class="channel-chart-area"><canvas id="sttTypeCountChart"></canvas></div>
             </div>
-            <div class="ai-result-footer">
-              <span id="sttResultWarning" class="ai-warning"></span>
-              <button class="btn btn-primary" id="sttConfirmBtn" type="button">대시보드 반영</button>
+            <div class="channel-chart-card">
+              <div class="channel-chart-title">날짜별 추이</div>
+              <div class="channel-chart-area"><canvas id="sttTrendChart"></canvas></div>
             </div>
           </div>
         </div>
 
-        <!-- 유선 KPI -->
-        <section class="kpis" aria-label="유선 민원 KPI" style="margin-bottom:12px">
-          <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
-            <div class="kpi-header"><div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="sttTotalCount">0</span><span class="kpi-unit">건</span></div>
-            <p class="kpi-label">총 분류 건수</p>
-          </article>
-          <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
-            <div class="kpi-header"><div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="sttAvgDuration" style="font-size:18px">—</span></div>
-            <p class="kpi-label">평균 통화시간</p>
-          </article>
-          <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
-            <div class="kpi-header"><div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat" id="sttTopTypeCount">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="sttTopType" style="font-size:15px;line-height:1.2">—</span></div>
-            <p class="kpi-label">TOP 문의 유형</p>
-          </article>
-          <article class="kpi-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-50)">
-            <div class="kpi-header"><div class="kpi-icon-wrap" style="--kpi-color:var(--red)">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--red)"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="sttLowCount">0</span><span class="kpi-unit">건</span></div>
-            <p class="kpi-label">신뢰도 낮음 (&lt;60%)</p>
-          </article>
-        </section>
-
-        <!-- 유선 차트 Row 1 -->
-        <div class="chart-row chart-row--trend">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-card-title">문의 유형별 건수</div>
-              <div class="chart-card-sub">건수 내림차순 상위 10</div>
-            </div>
-            <div class="chart-area"><canvas id="sttTypeCountChart"></canvas></div>
+        <!-- ⑤ 채널톡 문의 유형 -->
+        <div class="cmp-channel-card">
+          <div class="cmp-channel-header">
+            <span class="cmp-channel-badge cmp-channel-badge--chat">💬 채널톡</span>
+            <span class="cmp-channel-title">채널톡 문의 유형</span>
+            <button id="ctRefreshComplaint" class="btn btn-primary" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px">새로고침</button>
           </div>
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-card-title">문의 유형별 비중</div>
-              <div class="chart-card-sub">상위 7개 + 기타</div>
+          <div id="ctComplaintError" style="margin-bottom:6px"></div>
+
+          <!-- 채널톡 문의 유형 표 -->
+          <div class="channel-type-table-wrap">
+            <table class="complaint-table">
+              <thead>
+                <tr>
+                  <th style="width:32px;text-align:center">순위</th>
+                  <th>문의 유형</th>
+                  <th style="text-align:right">건수</th>
+                  <th style="text-align:right">비율</th>
+                </tr>
+              </thead>
+              <tbody id="ctTypeBody"></tbody>
+            </table>
+          </div>
+
+          <!-- 채널톡 소형 차트 -->
+          <div class="channel-chart-row">
+            <div class="channel-chart-card">
+              <div class="channel-chart-title">문의 유형 차트</div>
+              <div class="channel-chart-area"><canvas id="ctTypeCountChart"></canvas></div>
             </div>
-            <div class="donut-layout">
-              <div class="donut-canvas-wrap"><canvas id="sttTypePropChart" width="150" height="150"></canvas></div>
-              <ol class="donut-legend" id="sttTypePropLegend"></ol>
+            <div class="channel-chart-card">
+              <div class="channel-chart-title">날짜별 추이</div>
+              <div class="channel-chart-area"><canvas id="ctTrendChart"></canvas></div>
             </div>
           </div>
         </div>
 
-        <!-- 유선 차트 Row 2 -->
-        <div class="chart-row chart-row--trend">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-card-title">날짜별 문의 유형 추이</div>
-              <div class="chart-card-sub">총 건수 기준</div>
-            </div>
-            <div class="chart-area"><canvas id="sttTrendChart"></canvas></div>
+        <!-- ⑥ 1:1 문의 유형 -->
+        <div class="cmp-channel-card">
+          <div class="cmp-channel-header">
+            <span class="cmp-channel-badge cmp-channel-badge--dm">✉ 1:1</span>
+            <span class="cmp-channel-title">1:1 문의 유형</span>
           </div>
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-card-title">상담사별 문의 유형</div>
-              <div class="chart-card-sub">상담사별 총 건수 및 주요 유형</div>
-            </div>
-            <div class="data-table-scroll" style="flex:1">
-              <table class="data-table" id="sttCounselorTable">
-                <thead><tr><th>상담사</th><th>총 건수</th><th>주요 문의 유형</th></tr></thead>
-                <tbody></tbody>
-              </table>
-            </div>
+          <div class="empty-state" style="min-height:220px;flex-direction:column;gap:8px;border-radius:6px">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted-2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span style="font-size:12px;color:var(--muted)">데이터 연동 준비 중</span>
           </div>
         </div>
 
-        <!-- 유선 차트 Row 3 -->
-        <div class="chart-row chart-row--trend">
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-card-title">평균 통화시간</div>
-              <div class="chart-card-sub">문의 유형별 · 단위: 분/건</div>
-            </div>
-            <div class="chart-area"><canvas id="sttAvgDurChart"></canvas></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-card-header">
-              <div class="chart-card-title">신뢰도 낮은 문의 목록</div>
-              <div class="chart-card-sub">신뢰도 60% 미만 · 최대 20건</div>
-            </div>
-            <div class="data-table-scroll" style="flex:1">
-              <table class="data-table" id="sttLowConfTable">
-                <thead><tr><th>날짜</th><th>상담사</th><th>문의 유형</th><th>신뢰도</th></tr></thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <hr class="section-divider" style="margin:24px 0">
-
-      <!-- ⑥ 채널톡 민원 현황 -->
-      <section class="cmp-channel-section" id="sec-channeltalk">
-        <div class="cmp-channel-header">
-          <span class="cmp-channel-badge cmp-channel-badge--chat">💬 채널톡</span>
-          <h3 class="cmp-channel-title">채널톡 민원 현황</h3>
-          <button id="ctRefreshComplaint" class="btn btn-primary" type="button" style="font-size:12px;padding:5px 12px;margin-left:auto">새로고침</button>
-        </div>
-        <div id="ctComplaintError" style="margin-bottom:8px"></div>
-        <section class="kpis" aria-label="채널톡 KPI" style="margin-bottom:12px">
-          <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
-            <div class="kpi-header"><div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="ctCmpTotal">0</span><span class="kpi-unit">건</span></div>
-            <p class="kpi-label">총 문의 수</p>
-          </article>
-          <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
-            <div class="kpi-header"><div class="kpi-icon-wrap" style="--kpi-color:var(--violet)">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--violet)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="ctCmpAvgWait" style="font-size:18px">—</span></div>
-            <p class="kpi-label">평균 대기시간</p>
-          </article>
-          <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
-            <div class="kpi-header"><div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div><span class="kpi-delta kpi-delta--flat" id="ctCmpTopTypeCount">—</span></div>
-            <div class="kpi-body"><span class="kpi-value" id="ctCmpTopType" style="font-size:18px">—</span></div>
-            <p class="kpi-label">TOP 문의 유형</p>
-          </article>
-        </section>
-        <div class="channel-tbl-scroll" style="max-height:240px">
-          <table class="channel-mini-tbl">
-            <thead><tr><th>날짜</th><th style="text-align:right">건수</th><th>평균 대기</th><th>TOP 유형</th></tr></thead>
-            <tbody id="ctCmpBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <hr class="section-divider" style="margin:24px 0">
-
-      <!-- ⑦ 1:1 문의 현황 -->
-      <section class="cmp-channel-section" id="sec-dm">
-        <div class="cmp-channel-header">
-          <span class="cmp-channel-badge cmp-channel-badge--dm">✉ 1:1 문의</span>
-          <h3 class="cmp-channel-title">1:1 문의 현황</h3>
-        </div>
-        <div class="empty-state" style="min-height:100px;flex-direction:column;gap:8px;border-radius:var(--radius)">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted-2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          <span style="font-size:13px;color:var(--muted)">1:1 문의 데이터 연동 준비 중</span>
-        </div>
-      </section>
+      </div><!-- /channel-type-grid -->
 
     </div><!-- /tab-complaint -->
   </main>
@@ -6334,264 +6236,149 @@
     }
 
     function phoneComplaintRender() {
-      // 상담사 필터 옵션 갱신
       const allAgents = [...new Set(phoneComplaintState.records.map(r => r.agent))].filter(Boolean).sort((a,b)=>a.localeCompare(b,"ko"));
       const sel = $("cmpCounselorFilter");
       if (sel) {
         const cur = sel.value;
         sel.innerHTML = '<option value="all">전체</option>' + allAgents.map(a=>`<option value="${escapeHtml(a)}"${a===cur?" selected":""}>${escapeHtml(a)}</option>`).join("");
       }
-      const records = sttGetFiltered();
-      const total = records.length;
-      const totalDur = records.reduce((s,r)=>s+r.durationMin, 0);
-      const avgDur = total > 0 ? (totalDur/total).toFixed(1) : null;
-      const typeCounts = {};
-      records.forEach(r => { typeCounts[r.type] = (typeCounts[r.type]||0)+1; });
-      const topEntry = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0];
-      const lowCount = records.filter(r=>r.confidence < COMPLAINT_LOW_CONF).length;
-
-      $("sttTotalCount").textContent = nf.format(total);
-      $("sttAvgDuration").textContent = avgDur ? `${avgDur}분` : "—";
-      $("sttTopType").textContent = topEntry ? shorten(topEntry[0], 12) : "—";
-      $("sttTopTypeCount").textContent = topEntry ? `${nf.format(topEntry[1])}건` : "—";
-      $("sttLowCount").textContent = nf.format(lowCount);
-
-      // 유형별 건수 bar
-      const sorted = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-      drawBarChart($("sttTypeCountChart"), sorted.map(e=>shorten(e[0],12)), sorted.map(e=>e[1]), "건", null);
-
-      // 유형별 비중 donut
-      const allSorted = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1]);
-      const donutItems = allSorted.slice(0,7);
-      const rest = allSorted.slice(7).reduce((s,e)=>s+e[1], 0);
-      if (rest > 0) donutItems.push(["기타", rest]);
-      drawDonutChart($("sttTypePropChart"), donutItems.map(e=>e[0]), donutItems.map(e=>e[1]), "sttTypePropLegend", "건");
-
-      // 날짜별 추이 line
-      const byDate = {};
-      records.forEach(r => { byDate[r.date] = (byDate[r.date]||0)+1; });
-      const dates = Object.keys(byDate).sort();
-      drawLineChart($("sttTrendChart"), dates, dates.map(d=>byDate[d]));
-
-      // 상담사별 table
-      const byAgent = {};
-      records.forEach(r => {
-        if (!byAgent[r.agent]) byAgent[r.agent] = { total:0, types:{} };
-        byAgent[r.agent].total++;
-        byAgent[r.agent].types[r.type] = (byAgent[r.agent].types[r.type]||0)+1;
-      });
-      const ctbl = $("sttCounselorTable")?.querySelector("tbody");
-      if (ctbl) {
-        const agRows = Object.entries(byAgent).sort((a,b)=>b[1].total-a[1].total);
-        ctbl.innerHTML = agRows.length
-          ? agRows.map(([ag, d]) => {
-              const top = Object.entries(d.types).sort((a,b)=>b[1]-a[1])[0];
-              return `<tr><td>${escapeHtml(ag)}</td><td style="text-align:right">${nf.format(d.total)}</td><td>${escapeHtml(top?top[0]:"—")}</td></tr>`;
-            }).join("")
-          : `<tr><td colspan="3" style="text-align:center;color:var(--muted)">데이터 없음</td></tr>`;
-      }
-
-      // 평균 통화시간 bar
-      const durByType = {};
-      records.forEach(r => {
-        if (!durByType[r.type]) durByType[r.type] = { sum:0, cnt:0 };
-        durByType[r.type].sum += r.durationMin; durByType[r.type].cnt++;
-      });
-      const durSorted = Object.entries(durByType).map(([t,d])=>[t, d.cnt>0?Math.round(d.sum/d.cnt*10)/10:0]).sort((a,b)=>b[1]-a[1]).slice(0,10);
-      drawBarChart($("sttAvgDurChart"), durSorted.map(e=>shorten(e[0],12)), durSorted.map(e=>e[1]), "분", null);
-
-      // 신뢰도 낮음 table
-      const lowTbl = $("sttLowConfTable")?.querySelector("tbody");
-      if (lowTbl) {
-        const lowRecs = records.filter(r=>r.confidence < COMPLAINT_LOW_CONF).slice(0,20);
-        lowTbl.innerHTML = lowRecs.length
-          ? lowRecs.map(r=>`<tr><td>${escapeHtml(r.date)}</td><td>${escapeHtml(r.agent)}</td><td>${escapeHtml(r.type)}</td><td style="color:${sttConfColor(r.confidence)};font-weight:600">${(r.confidence*100).toFixed(0)}%</td></tr>`).join("")
-          : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">없음</td></tr>`;
-      }
       renderComplaintOverview();
     }
 
     function renderCtSection() {
       if (!ctState.loaded) return;
-      const days = ctState.days;
-      let total=0, ws=0, wt=0;
-      const typeTotals = {};
-      days.forEach(d => {
-        total += d.total||0;
-        if (d.avgWaitSec!=null && d.total>0) { ws+=d.avgWaitSec*d.total; wt+=d.total; }
-        Object.entries(d.counts||{}).forEach(([k,v])=>{ typeTotals[k]=(typeTotals[k]||0)+v; });
-      });
-      const topType = Object.entries(typeTotals).sort((a,b)=>b[1]-a[1])[0];
-      $("ctCmpTotal").textContent = nf.format(total);
-      $("ctCmpAvgWait").textContent = wt>0 ? ctFormatSeconds(ws/wt) : "—";
-      $("ctCmpTopType").textContent = topType ? shorten(topType[0],12) : "—";
-      $("ctCmpTopTypeCount").textContent = topType ? `${nf.format(topType[1])}건` : "—";
-      const tbody = $("ctCmpBody");
-      if (tbody) {
-        const sorted = days.slice().sort((a,b)=>b.date.localeCompare(a.date));
-        tbody.innerHTML = sorted.length
-          ? sorted.map(d => {
-              const top = Object.entries(d.counts||{}).sort((a,b)=>b[1]-a[1])[0];
-              return `<tr><td>${escapeHtml(d.date)}</td><td style="text-align:right">${nf.format(d.total||0)}</td><td>${d.avgWaitSec!=null?ctFormatSeconds(d.avgWaitSec):"—"}</td><td>${escapeHtml(shorten(top?top[0]:"—",14))}</td></tr>`;
-            }).join("")
-          : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">데이터 없음</td></tr>`;
-      }
       renderComplaintOverview();
     }
 
     // ── 전체 민원 현황 오버뷰 ────────────────────────────────
-    let ovSortKey = "date", ovSortAsc = false;
-
     function renderComplaintOverview() {
-      const cmpStart  = $("cmpStartDate")?.value || "";
-      const cmpEnd    = $("cmpEndDate")?.value   || "";
-      const channel   = $("cmpChannelFilter")?.value || "all";
+      const cmpStart = $("cmpStartDate")?.value || "";
+      const cmpEnd   = $("cmpEndDate")?.value   || "";
 
-      // 유선 데이터 (공통 필터 적용)
+      // 유선 데이터
       const phoneRecords = sttGetFiltered();
 
-      // 채널톡 데이터 (날짜 필터만 적용)
+      // 채널톡 데이터 (날짜 필터)
       const ctDays = ctState.loaded ? ctState.days.filter(d => {
         if (cmpStart && d.date < cmpStart) return false;
         if (cmpEnd   && d.date > cmpEnd)   return false;
         return true;
       }) : [];
 
-      const phoneCount = channel === "channeltalk" || channel === "dm" ? 0 : phoneRecords.length;
-      let ctCount = 0;
-      if (channel !== "phone" && channel !== "dm") ctDays.forEach(d => ctCount += d.total || 0);
+      // 카운트
+      const phoneCount = phoneRecords.length;
+      let ctCount = 0; ctDays.forEach(d => ctCount += d.total || 0);
       const dmCount = 0;
       const totalCount = phoneCount + ctCount + dmCount;
 
-      // KPI
-      const ovTotalEl = $("ovTotalCount"); if (ovTotalEl) ovTotalEl.textContent = nf.format(totalCount);
-      const ovPhoneEl = $("ovPhoneCount"); if (ovPhoneEl) ovPhoneEl.textContent = nf.format(phoneCount);
-      const ovCtEl    = $("ovCtCount");    if (ovCtEl)    ovCtEl.textContent    = nf.format(ctCount);
-      const ovDmEl    = $("ovDmCount");    if (ovDmEl)    ovDmEl.textContent    = nf.format(dmCount);
+      // ── KPI ──────────────────────────────────────────────
+      const sel = (id, val) => { const el=$(id); if(el) el.textContent=val; };
+      sel("ovTotalCount", nf.format(totalCount));
+      sel("ovPhoneCount", nf.format(phoneCount));
+      sel("ovCtCount",    nf.format(ctCount));
+      sel("ovDmCount",    nf.format(dmCount));
 
-      // 평균 대기시간 (채널톡 기준)
-      let ws = 0, wt = 0;
-      ctDays.forEach(d => {
-        if (d.avgWaitSec != null && d.total > 0) { ws += d.avgWaitSec * d.total; wt += d.total; }
-      });
-      const ovWaitEl = $("ovAvgWait"); if (ovWaitEl) ovWaitEl.textContent = (wt > 0 && channel !== "phone" && channel !== "dm") ? ctFormatSeconds(ws / wt) : "—";
+      let ws=0, wt=0;
+      ctDays.forEach(d => { if(d.avgWaitSec!=null&&d.total>0){ws+=d.avgWaitSec*d.total;wt+=d.total;} });
+      sel("ovAvgWait", wt>0 ? ctFormatSeconds(ws/wt) : "—");
 
-      // 합산 문의 유형
-      const typeCounts = {};
-      if (channel !== "channeltalk" && channel !== "dm") {
-        phoneRecords.forEach(r => { typeCounts[r.type] = (typeCounts[r.type] || 0) + 1; });
+      // 유선 문의 유형별 집계
+      const phoneTypeCounts = {};
+      phoneRecords.forEach(r => { phoneTypeCounts[r.type]=(phoneTypeCounts[r.type]||0)+1; });
+
+      // 채널톡 문의 유형별 집계
+      const ctTypeCounts = {};
+      ctDays.forEach(d => Object.entries(d.counts||{}).forEach(([k,v])=>{ ctTypeCounts[k]=(ctTypeCounts[k]||0)+v; }));
+
+      // 합산 유형
+      const allTypes = {};
+      Object.entries(phoneTypeCounts).forEach(([t,n])=>{ if(!allTypes[t])allTypes[t]={total:0,phone:0,ct:0}; allTypes[t].total+=n; allTypes[t].phone+=n; });
+      Object.entries(ctTypeCounts).forEach(([t,n])=>{ if(!allTypes[t])allTypes[t]={total:0,phone:0,ct:0}; allTypes[t].total+=n; allTypes[t].ct+=n; });
+      const topEntry = Object.entries(allTypes).sort((a,b)=>b[1].total-a[1].total)[0];
+      sel("ovTopType",     topEntry ? shorten(topEntry[0],12) : "—");
+      sel("ovTopTypeCount",topEntry ? `${nf.format(topEntry[1].total)}건` : "—");
+
+      // ── ③ 전체 문의 유형 표 ──────────────────────────────
+      const totalAll = Object.values(allTypes).reduce((s,v)=>s+v.total,0);
+      const sortedTypes = Object.entries(allTypes).sort((a,b)=>b[1].total-a[1].total);
+      const ovTypeBody = $("ovTypeBody");
+      if (ovTypeBody) {
+        ovTypeBody.innerHTML = sortedTypes.length
+          ? sortedTypes.map(([type,d],i) => {
+              const pct = totalAll>0 ? ((d.total/totalAll)*100).toFixed(1) : "0.0";
+              const rCls = i<3 ? "rank-num top3" : "rank-num";
+              const phoneCell = d.phone>0 ? nf.format(d.phone) : `<span style="color:var(--muted-2)">—</span>`;
+              const ctCell    = d.ct>0    ? nf.format(d.ct)    : `<span style="color:var(--muted-2)">—</span>`;
+              return `<tr>
+                <td class="${rCls}">${i+1}</td>
+                <td style="font-weight:500">${escapeHtml(type)}</td>
+                <td style="text-align:right;font-weight:700;color:var(--text)">${nf.format(d.total)}건</td>
+                <td style="text-align:right;color:var(--muted)">${pct}%</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">${phoneCell}</td>
+                <td style="text-align:right;font-variant-numeric:tabular-nums">${ctCell}</td>
+                <td style="text-align:right;color:var(--muted-2)">—</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>`;
       }
-      if (channel !== "phone" && channel !== "dm") {
-        ctDays.forEach(d => Object.entries(d.counts || {}).forEach(([k, v]) => { typeCounts[k] = (typeCounts[k] || 0) + v; }));
+
+      // ── ④ 유선 문의 유형 표 ──────────────────────────────
+      const phoneTotal = Object.values(phoneTypeCounts).reduce((s,v)=>s+v,0);
+      const sortedPhone = Object.entries(phoneTypeCounts).sort((a,b)=>b[1]-a[1]);
+      const phoneTypeBody = $("phoneTypeBody");
+      if (phoneTypeBody) {
+        phoneTypeBody.innerHTML = sortedPhone.length
+          ? sortedPhone.map(([type,cnt],i) => {
+              const pct = phoneTotal>0 ? ((cnt/phoneTotal)*100).toFixed(1) : "0.0";
+              const rCls = i<3 ? "rank-num top3" : "rank-num";
+              return `<tr>
+                <td class="${rCls}">${i+1}</td>
+                <td>${escapeHtml(type)}</td>
+                <td style="text-align:right;font-weight:600">${nf.format(cnt)}건</td>
+                <td style="text-align:right;color:var(--muted)">${pct}%</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">STT 업로드 후 표시됩니다</td></tr>`;
       }
-      const topEntry = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])[0];
-      const ovTopEl = $("ovTopType"); if (ovTopEl) ovTopEl.textContent = topEntry ? shorten(topEntry[0], 12) : "—";
-      const ovTopCntEl = $("ovTopTypeCount"); if (ovTopCntEl) ovTopCntEl.textContent = topEntry ? `${nf.format(topEntry[1])}건` : "—";
 
-      // 차트: 문의 유형별 건수 bar
-      const sorted = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
-      const ovTypeC = $("ovTypeCountChart");
-      if (ovTypeC) drawBarChart(ovTypeC, sorted.map(e => shorten(e[0], 12)), sorted.map(e => e[1]), "건", null);
-
-      // 차트: 문의 유형별 비중 donut
-      const allSorted = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
-      const donutItems = allSorted.slice(0, 7);
-      const rest = allSorted.slice(7).reduce((s, e) => s + e[1], 0);
-      if (rest > 0) donutItems.push(["기타", rest]);
-      const ovTypePropC = $("ovTypePropChart");
-      if (ovTypePropC) drawDonutChart(ovTypePropC, donutItems.map(e => e[0]), donutItems.map(e => e[1]), "ovTypePropLegend", "건");
-
-      // 차트: 날짜별 추이 line
-      const byDate = {};
-      if (channel !== "channeltalk" && channel !== "dm") {
-        phoneRecords.forEach(r => { byDate[r.date] = (byDate[r.date] || 0) + 1; });
+      // ── ⑤ 채널톡 문의 유형 표 ────────────────────────────
+      const ctTotal = Object.values(ctTypeCounts).reduce((s,v)=>s+v,0);
+      const sortedCt = Object.entries(ctTypeCounts).sort((a,b)=>b[1]-a[1]);
+      const ctTypeBody = $("ctTypeBody");
+      if (ctTypeBody) {
+        ctTypeBody.innerHTML = sortedCt.length
+          ? sortedCt.map(([type,cnt],i) => {
+              const pct = ctTotal>0 ? ((cnt/ctTotal)*100).toFixed(1) : "0.0";
+              const rCls = i<3 ? "rank-num top3" : "rank-num";
+              return `<tr>
+                <td class="${rCls}">${i+1}</td>
+                <td>${escapeHtml(type)}</td>
+                <td style="text-align:right;font-weight:600">${nf.format(cnt)}건</td>
+                <td style="text-align:right;color:var(--muted)">${pct}%</td>
+              </tr>`;
+            }).join("")
+          : `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:16px">새로고침을 눌러 불러오세요</td></tr>`;
       }
-      if (channel !== "phone" && channel !== "dm") {
-        ctDays.forEach(d => { byDate[d.date] = (byDate[d.date] || 0) + (d.total || 0); });
+
+      // ── 소형 차트 ─────────────────────────────────────────
+      const sttTypeC = $("sttTypeCountChart");
+      if (sttTypeC) { const s=sortedPhone.slice(0,8); drawBarChart(sttTypeC, s.map(e=>shorten(e[0],8)), s.map(e=>e[1]), "건", null); }
+
+      const sttTrendC = $("sttTrendChart");
+      if (sttTrendC) {
+        const bd={}; phoneRecords.forEach(r=>{bd[r.date]=(bd[r.date]||0)+1;});
+        const ds=Object.keys(bd).sort(); drawLineChart(sttTrendC, ds, ds.map(d=>bd[d]));
       }
-      const dates = Object.keys(byDate).sort();
-      const ovTrendC = $("ovTrendChart");
-      if (ovTrendC) drawLineChart(ovTrendC, dates, dates.map(d => byDate[d]));
 
-      // 차트: 채널별 비중 donut
-      const ovChC = $("ovChannelChart");
-      if (ovChC) drawDonutChart(ovChC, ["유선", "채널톡", "1:1 문의"], [phoneCount, ctCount, dmCount], "ovChannelLegend", "건");
+      const ctTypeC = $("ctTypeCountChart");
+      if (ctTypeC) { const s=sortedCt.slice(0,8); drawBarChart(ctTypeC, s.map(e=>shorten(e[0],8)), s.map(e=>e[1]), "건", null); }
 
-      // 전체 민원 목록
-      renderOverviewList(phoneRecords, ctDays, channel);
+      const ctTrendC = $("ctTrendChart");
+      if (ctTrendC) {
+        const bd={}; ctDays.forEach(d=>{bd[d.date]=(bd[d.date]||0)+(d.total||0);});
+        const ds=Object.keys(bd).sort(); drawLineChart(ctTrendC, ds, ds.map(d=>bd[d]));
+      }
     }
-
-    function renderOverviewList(phoneRecords, ctDays, channel) {
-      const search = ($("cmpSearchInput")?.value || "").toLowerCase().trim();
-      const rows = [];
-
-      if (channel !== "channeltalk" && channel !== "dm") {
-        phoneRecords.forEach(r => rows.push({
-          date: r.date, channel: "phone", channelLabel: "유선",
-          agent: r.agent || "—", type: r.type,
-          duration: r.durationMin > 0 ? r.durationMin : null, wait: null
-        }));
-      }
-      if (channel !== "phone" && channel !== "dm") {
-        ctDays.forEach(d => {
-          const top = Object.entries(d.counts || {}).sort((a, b) => b[1] - a[1])[0];
-          rows.push({
-            date: d.date, channel: "channeltalk", channelLabel: "채널톡",
-            agent: "—", type: top ? top[0] : "—",
-            duration: null, wait: d.avgWaitSec != null ? d.avgWaitSec : null
-          });
-        });
-      }
-
-      const filtered = search
-        ? rows.filter(r =>
-            r.date.includes(search) ||
-            r.channelLabel.includes(search) ||
-            r.agent.toLowerCase().includes(search) ||
-            r.type.toLowerCase().includes(search))
-        : rows;
-
-      filtered.sort((a, b) => {
-        let va = a[ovSortKey], vb = b[ovSortKey];
-        if (ovSortKey === "duration") { va = va ?? -1; vb = vb ?? -1; }
-        if (ovSortKey === "wait")     { va = va ?? -1; vb = vb ?? -1; }
-        if (va < vb) return ovSortAsc ? -1 : 1;
-        if (va > vb) return ovSortAsc ? 1 : -1;
-        return 0;
-      });
-
-      const ovCntEl = $("ovListCount"); if (ovCntEl) ovCntEl.textContent = `${nf.format(filtered.length)}건`;
-      const tbody = $("ovListBody"); if (!tbody) return;
-      if (!filtered.length) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = filtered.map(r => {
-        const chClass = r.channel === "phone" ? "ch-badge--phone" : r.channel === "channeltalk" ? "ch-badge--chat" : "ch-badge--dm";
-        const durText = r.duration != null ? `${r.duration}분` : "—";
-        const waitText = r.wait != null ? ctFormatSeconds(r.wait) : "—";
-        return `<tr>
-          <td>${escapeHtml(r.date)}</td>
-          <td><span class="ch-badge ${chClass}">${escapeHtml(r.channelLabel)}</span></td>
-          <td>${escapeHtml(r.agent)}</td>
-          <td>${escapeHtml(r.type)}</td>
-          <td style="text-align:right;font-variant-numeric:tabular-nums">${durText}</td>
-          <td style="text-align:right;font-variant-numeric:tabular-nums">${waitText}</td>
-        </tr>`;
-      }).join("");
-    }
-
-    // 전체 목록 테이블 정렬
-    document.addEventListener("click", e => {
-      const th = e.target.closest("[data-ov-sort]");
-      if (!th) return;
-      const key = th.dataset.ovSort;
-      if (ovSortKey === key) { ovSortAsc = !ovSortAsc; }
-      else { ovSortKey = key; ovSortAsc = key === "date" ? false : true; }
-      document.querySelectorAll("[data-ov-sort] .sort-icon").forEach(el => el.textContent = "↕");
-      th.querySelector(".sort-icon").textContent = ovSortAsc ? "↑" : "↓";
-      renderComplaintOverview();
-    });
 
     // 공통 필터 날짜 범위
     function cmpSetDateRange(start, end) {
@@ -6619,12 +6406,17 @@
 
     document.querySelectorAll("[data-cmp-range]").forEach(btn=>btn.addEventListener("click",()=>cmpApplyShortcut(btn.dataset.cmpRange)));
     $("cmpCounselorFilter").addEventListener("change", cmpRenderAll);
-    $("cmpChannelFilter").addEventListener("change", renderComplaintOverview);
     $("cmpResetBtn").addEventListener("click", ()=>{
       document.querySelectorAll("[data-cmp-range]").forEach(b=>b.classList.remove("active"));
-      cmpSetDateRange("",""); $("cmpCounselorFilter").value="all"; $("cmpChannelFilter").value="all"; cmpRenderAll();
+      cmpSetDateRange("",""); $("cmpCounselorFilter").value="all"; cmpRenderAll();
     });
-    $("cmpSearchInput").addEventListener("input", renderComplaintOverview);
+    $("sttUploadToggle").addEventListener("click", ()=>{
+      const panel = $("sttUploadPanel");
+      if (!panel) return;
+      const open = panel.style.display !== "none";
+      panel.style.display = open ? "none" : "block";
+      $("sttUploadToggle").textContent = open ? "STT 업로드" : "닫기";
+    });
 
     $("sttFile").addEventListener("change", async event => {
       const file = event.target.files?.[0];
