@@ -6045,6 +6045,7 @@
     // ══ 민원 관리 탭 ═══════════════════════════════════════
 
     const PHONE_COMPLAINT_KEY = "mvno-phone-complaint-v1";
+    const PHONE_API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // 배포된 웹 앱 URL로 교체
     const COMPLAINT_LOW_CONF = 0.6;
 
     const COMPLAINT_TYPES_LIST = [
@@ -6108,9 +6109,25 @@
         </div>`).join("");
     }
 
-    function loadPhoneComplaints() {
+    function phoneApiConfigured() {
+      return !!PHONE_API_URL && PHONE_API_URL.indexOf("AKfycb...") === -1;
+    }
+
+    async function loadPhoneComplaints() {
       try { phoneComplaintState.records = JSON.parse(localStorage.getItem(PHONE_COMPLAINT_KEY) || "[]"); }
       catch { phoneComplaintState.records = []; }
+
+      if (!phoneApiConfigured()) return;
+      try {
+        const res = await fetch(`${PHONE_API_URL}?cacheBust=${Date.now()}`);
+        const data = await res.json();
+        if (Array.isArray(data.records)) {
+          phoneComplaintState.records = data.records;
+          localStorage.setItem(PHONE_COMPLAINT_KEY, JSON.stringify(data.records));
+        }
+      } catch (err) {
+        console.warn("유선 문의 서버 데이터 불러오기 실패, 로컬 캐시로 표시합니다:", err);
+      }
     }
 
     function savePhoneComplaints() {
@@ -6213,20 +6230,50 @@
       renderSttPreview(sttPending);
     }
 
-    function confirmSttResults() {
+    async function confirmSttResults() {
       const toAdd = sttPending.filter(r => !r.excluded);
       if (!toAdd.length) { alert("반영할 데이터가 없습니다."); return; }
-      phoneComplaintState.records = [...phoneComplaintState.records, ...toAdd.map(r => ({
+      const newRecords = toAdd.map(r => ({
         date: r.date, agent: r.agent,
         durationMin: Math.max(0, parseInt(r.durationMin) || 0),
         type: r.type, confidence: parseFloat(r.confidence) || 0, count: 1
-      }))];
-      savePhoneComplaints();
+      }));
+
+      const btn = $("sttConfirmBtn");
+      btn.disabled = true; btn.textContent = "저장 중…";
+      let syncedToServer = false;
+      try {
+        if (phoneApiConfigured()) {
+          const res = await fetch(PHONE_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ records: newRecords })
+          });
+          const data = await res.json();
+          if (!data.ok) throw new Error(data.error || "저장 실패");
+          await loadPhoneComplaints();
+          syncedToServer = true;
+        }
+      } catch (err) {
+        console.warn("유선 문의 서버 저장 실패:", err);
+      } finally {
+        btn.disabled = false; btn.textContent = "대시보드 반영";
+      }
+
+      if (!syncedToServer) {
+        phoneComplaintState.records = [...phoneComplaintState.records, ...newRecords];
+        savePhoneComplaints();
+      }
+
       $("sttFile").value = ""; $("sttResultArea").style.display = "none";
       $("sttFileName").textContent = "파일을 선택해주세요";
       sttPending = [];
       phoneComplaintRender();
-      alert(`${toAdd.length}건이 대시보드에 반영되었습니다.`);
+      alert(phoneApiConfigured()
+        ? (syncedToServer
+            ? `${newRecords.length}건이 서버에 저장되어 모든 PC에서 확인할 수 있습니다.`
+            : `${newRecords.length}건이 이 PC에만 임시로 반영되었습니다 (서버 저장 실패, 나중에 다시 시도해주세요).`)
+        : `${newRecords.length}건이 대시보드에 반영되었습니다. (서버 연동 미설정 - 이 PC에서만 보입니다)`);
     }
 
     function sttGetFiltered() {
@@ -6492,11 +6539,11 @@
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
-        if (target === "complaint") { phoneComplaintRender(); renderCtSection(); }
+        if (target === "complaint") { loadPhoneComplaints().then(phoneComplaintRender); renderCtSection(); }
       });
     });
 
-    loadPhoneComplaints();
+    loadPhoneComplaints().then(phoneComplaintRender);
     phoneComplaintRender();
     initManualForm();
     initManualRows();
