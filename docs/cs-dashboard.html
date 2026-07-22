@@ -1133,6 +1133,7 @@
           <input type="hidden" id="cmpEndDate">
         </div>
         <label>상담사<select id="cmpCounselorFilter"><option value="all">전체</option></select></label>
+        <label>문의 유형<select id="cmpTypeFilter"><option value="all">전체</option></select></label>
         <div class="filter-actions">
           <button id="cmpResetBtn" class="btn btn-ghost" type="button">초기화</button>
         </div>
@@ -1181,9 +1182,9 @@
         <!-- ③ 전체 문의 유형별 건수 -->
         <div class="cmp-overview-section cmp-overview-right">
           <div class="cmp-section-header">
-            <h2 class="cmp-section-title">전체 문의 유형별 건수<span class="cmp-chart-sub">(TOP 10)</span></h2>
-            <span class="cmp-section-sub">채널 합산 · 건수 내림차순</span>
-            <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="overview" style="margin-left:auto">전체 보기</button>
+            <h2 class="cmp-section-title"><span id="ovTypeTitleMain">전체 문의 유형별 건수</span><span class="cmp-chart-sub" id="ovTypeTitleSub">(TOP 10)</span></h2>
+            <span class="cmp-section-sub" id="ovTypeSectionSub">채널 합산 · 건수 내림차순</span>
+            <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="overview" id="ovViewAllBtn" style="margin-left:auto">전체 보기</button>
           </div>
           <div class="hbar-list" id="ovTypeBars" style="--hbar-color:var(--blue)"></div>
         </div>
@@ -6116,6 +6117,23 @@
         </div>`).join("");
     }
 
+    function renderOvTypeTrend(type, phoneRecords, ctDays) {
+      const el = $("ovTypeBars");
+      if (!el) return;
+      const dateCounts = {};
+      phoneRecords.forEach(r => { if (r.type === type) dateCounts[r.date] = (dateCounts[r.date] || 0) + 1; });
+      ctDays.forEach(d => {
+        const c = (d.counts || {})[type] || 0;
+        if (c > 0) dateCounts[d.date] = (dateCounts[d.date] || 0) + c;
+      });
+      const dates = Object.keys(dateCounts).sort();
+      el.innerHTML = '<div class="chart-area"><canvas id="ovTypeLineCanvas"></canvas></div>';
+      requestAnimationFrame(() => {
+        const canvas = $("ovTypeLineCanvas");
+        if (canvas) drawLineChart(canvas, dates, dates.map(d => dateCounts[d]));
+      });
+    }
+
     function phoneApiConfigured() {
       return !!PHONE_API_URL && PHONE_API_URL.indexOf("AKfycb...") === -1;
     }
@@ -6365,9 +6383,31 @@
       const dmTypeCounts = {};
       cmpLatestData = { allTypes, phoneTypeCounts, ctTypeCounts, dmTypeCounts, totalAll, phoneTotal, ctTotal, dmTotal: 0 };
 
-      // ── ③ 전체 문의 유형별 건수 (TOP 10) ─────────────────
+      // ── ③ 전체 문의 유형별 건수 (TOP 10) / 선택 유형 일별 추이 ──
       const sortedTypes = Object.entries(allTypes).sort((a,b)=>b[1].total-a[1].total);
-      renderHBarList("ovTypeBars", sortedTypes.slice(0,10).map(([type,d])=>[type,d.total]), { emptyMsg: "데이터 없음" });
+
+      const typeSel = $("cmpTypeFilter");
+      if (typeSel) {
+        const curType = typeSel.value;
+        const typeOptionsHtml = sortedTypes.map(([type]) =>
+          `<option value="${escapeHtml(type)}"${type===curType?" selected":""}>${escapeHtml(type)}</option>`).join("");
+        typeSel.innerHTML = '<option value="all">전체</option>' + typeOptionsHtml;
+      }
+
+      const selectedType = typeSel && typeSel.value !== "all" ? typeSel.value : null;
+      if (!selectedType) {
+        $("ovTypeTitleMain").textContent = "전체 문의 유형별 건수";
+        $("ovTypeTitleSub").style.display = "";
+        $("ovTypeSectionSub").textContent = "채널 합산 · 건수 내림차순";
+        $("ovViewAllBtn").style.display = "";
+        renderHBarList("ovTypeBars", sortedTypes.slice(0,10).map(([type,d])=>[type,d.total]), { emptyMsg: "데이터 없음" });
+      } else {
+        $("ovTypeTitleMain").textContent = `${selectedType} 일별 건수 추이`;
+        $("ovTypeTitleSub").style.display = "none";
+        $("ovTypeSectionSub").textContent = "채널 합산 · 날짜순";
+        $("ovViewAllBtn").style.display = "none";
+        renderOvTypeTrend(selectedType, phoneRecords, ctDays);
+      }
 
       // ── ④ 유선 문의 유형별 건수 (TOP 5) ──────────────────
       const sortedPhone = Object.entries(phoneTypeCounts).sort((a,b)=>b[1]-a[1]);
@@ -6502,9 +6542,10 @@
 
     document.querySelectorAll("[data-cmp-range]").forEach(btn=>btn.addEventListener("click",()=>cmpApplyShortcut(btn.dataset.cmpRange)));
     $("cmpCounselorFilter").addEventListener("change", cmpRenderAll);
+    $("cmpTypeFilter").addEventListener("change", cmpRenderAll);
     $("cmpResetBtn").addEventListener("click", ()=>{
       document.querySelectorAll("[data-cmp-range]").forEach(b=>b.classList.remove("active"));
-      cmpSetDateRange("",""); $("cmpCounselorFilter").value="all"; cmpRenderAll();
+      cmpSetDateRange("",""); $("cmpCounselorFilter").value="all"; $("cmpTypeFilter").value="all"; cmpRenderAll();
     });
     $("sttUploadToggle").addEventListener("click", ()=>{
       const panel = $("sttUploadPanel");
