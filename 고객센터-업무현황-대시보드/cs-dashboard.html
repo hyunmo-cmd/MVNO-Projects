@@ -6117,6 +6117,8 @@
         </div>`).join("");
     }
 
+    let ovTypeBarsBoxHeight = 0;
+
     function renderOvTypeTrend(type, phoneRecords, ctDays) {
       const el = $("ovTypeBars");
       if (!el) return;
@@ -6127,7 +6129,11 @@
         if (c > 0) dateCounts[d.date] = (dateCounts[d.date] || 0) + c;
       });
       const dates = Object.keys(dateCounts).sort();
-      el.innerHTML = '<div class="chart-area"><canvas id="ovTypeLineCanvas"></canvas></div>';
+      // 전체 문의 유형별 건수(TOP10) 막대그래프와 동일한 높이로 고정
+      const h = ovTypeBarsBoxHeight > 0 ? ovTypeBarsBoxHeight : 260;
+      el.style.flex = "0 0 auto";
+      el.style.height = h + "px";
+      el.innerHTML = '<div class="chart-area" style="height:100%;min-height:0"><canvas id="ovTypeLineCanvas"></canvas></div>';
       requestAnimationFrame(() => {
         const canvas = $("ovTypeLineCanvas");
         if (canvas) drawLineChart(canvas, dates, dates.map(d => dateCounts[d]));
@@ -6395,12 +6401,15 @@
       }
 
       const selectedType = typeSel && typeSel.value !== "all" ? typeSel.value : null;
+      const ovTypeBarsEl = $("ovTypeBars");
       if (!selectedType) {
         $("ovTypeTitleMain").textContent = "전체 문의 유형별 건수";
         $("ovTypeTitleSub").style.display = "";
         $("ovTypeSectionSub").textContent = "채널 합산 · 건수 내림차순";
         $("ovViewAllBtn").style.display = "";
+        if (ovTypeBarsEl) { ovTypeBarsEl.style.flex = ""; ovTypeBarsEl.style.height = ""; }
         renderHBarList("ovTypeBars", sortedTypes.slice(0,10).map(([type,d])=>[type,d.total]), { emptyMsg: "데이터 없음" });
+        if (ovTypeBarsEl) ovTypeBarsBoxHeight = ovTypeBarsEl.getBoundingClientRect().height;
       } else {
         $("ovTypeTitleMain").textContent = `${selectedType} 일별 건수 추이`;
         $("ovTypeTitleSub").style.display = "none";
