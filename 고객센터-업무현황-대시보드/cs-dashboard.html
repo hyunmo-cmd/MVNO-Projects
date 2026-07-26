@@ -666,7 +666,7 @@
       margin-bottom: 12px;
     }
     .cmp-section-header {
-      display: flex; align-items: baseline; gap: 10px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
       margin-bottom: 14px;
     }
     .cmp-section-title {
@@ -676,30 +676,92 @@
     .cmp-section-sub {
       font-size: 12px; color: var(--muted);
     }
-    .cmp-overview-row {
+    .cmp-top-grid {
       display: flex;
       gap: 12px;
       align-items: stretch;
     }
     .cmp-overview-left {
-      flex: 0 0 35%;
-      max-width: 35%;
+      flex: 0 0 30%;
+      max-width: 30%;
       display: flex;
       flex-direction: column;
     }
     .cmp-overview-right {
-      flex: 1 1 65%;
+      flex: 1 1 70%;
       min-width: 0;
       display: flex;
       flex-direction: column;
     }
-    .cmp-overview-right .hbar-list { flex: 1; }
-    .kpis--2x2 {
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: repeat(2, 1fr);
-      flex: 1;
-      margin-bottom: 0;
+    /* 민원 현황 KPI: 세로 스택 (아이콘 좌측 · 라벨/값 우측) */
+    .kpis--stack { display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 0; }
+    .kpis--stack .kpi-card {
+      display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto;
+      align-items: center; column-gap: 14px; padding: 14px 18px; flex: 1;
     }
+    .kpis--stack .kpi-header { grid-column: 1; grid-row: 1 / 3; }
+    .kpis--stack .kpi-icon-wrap { width: 40px; height: 40px; border-radius: 10px; }
+    .kpis--stack .kpi-icon-wrap svg { width: 20px; height: 20px; }
+    .kpis--stack .kpi-label { grid-column: 2; grid-row: 1; }
+    .kpis--stack .kpi-body { grid-column: 2; grid-row: 2; }
+    .kpis--stack .kpi-value { font-size: 26px; }
+
+    /* 차트 카드 내부 탭 (유형별 건수 / 일별 추이 / 월별 추이) */
+    .chart-tabs {
+      display: flex; gap: 4px; flex-shrink: 0;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 3px;
+      width: fit-content;
+    }
+    .chart-tab-btn {
+      padding: 6px 14px; background: transparent; border: none;
+      border-radius: 6px; color: var(--muted);
+      font-weight: 600; font-size: 12px; cursor: pointer;
+      white-space: nowrap; transition: all 0.15s ease;
+    }
+    .chart-tab-btn.active { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
+    .chart-tab-btn:hover:not(.active) { color: var(--text-2); }
+    .chart-tabs--sm .chart-tab-btn { padding: 5px 10px; font-size: 11px; }
+    /* 하단 채널 카드는 탭 활성 색을 카드 고유 색상(--channel-color)으로 표시 */
+    .cmp-channel-card .chart-tab-btn.active { background: var(--channel-color, var(--blue)); color: #fff; box-shadow: none; }
+
+    .cmp-chart-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* 차트 카드 내부 툴바 (채널 버튼 · 문의 유형 · 표시 개수) */
+    .chart-toolbar {
+      display: flex; align-items: center; flex-wrap: wrap;
+      gap: 10px; margin-bottom: 12px;
+    }
+    .chart-toolbar--sm { gap: 8px; margin-bottom: 10px; }
+    .channel-btn-group { display: flex; gap: 6px; }
+    .channel-btn-group .shortcut-btn { padding: 5px 12px; }
+    .chart-toolbar-select {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--muted); font-weight: 600;
+    }
+    .chart-toolbar-select select {
+      height: 30px; border: 1px solid var(--border); border-radius: 6px;
+      background: var(--panel); color: var(--text); font: inherit;
+      font-size: 12px; padding: 0 8px;
+    }
+    .chart-toolbar-select select:focus { border-color: var(--blue); }
+    #cmpTopNWrap { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+    /* 카드 내 단일 차트 영역 (막대/라인 전환) */
+    .cmp-chart-body { flex: 1; min-height: 260px; display: flex; flex-direction: column; }
+    .cmp-chart-body--sm { min-height: 200px; }
+    .hbar-list--scroll { max-height: 280px; overflow-y: auto; padding-right: 4px; }
+    .cmp-chart-body--sm.hbar-list--scroll { max-height: 200px; }
+
+    /* 더보기 / 접기 */
+    .chart-more-link {
+      display: block; width: 100%; margin-top: 8px; padding: 6px 0;
+      background: transparent; border: none; border-top: 1px solid var(--border-2);
+      color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; text-align: center;
+    }
+    .chart-more-link:hover { color: var(--text-2); }
+
+    .cmp-footnote { font-size: 11px; color: var(--muted-2); padding: 4px 2px 0; }
 
     /* Channel Type Grid (3열) */
     .channel-type-grid {
@@ -745,10 +807,16 @@
 
     /* TOP N 가로 막대 그래프 */
     .hbar-list { display: flex; flex-direction: column; gap: 10px; }
-    .hbar-row { display: grid; grid-template-columns: 92px 1fr 46px; align-items: center; gap: 8px; }
+    .hbar-row { display: grid; grid-template-columns: 20px 100px 1fr 50px; align-items: center; gap: 8px; }
+    .hbar-rank { font-size: 11px; font-weight: 700; color: var(--muted-2); text-align: center; font-variant-numeric: tabular-nums; }
+    .hbar-row:nth-child(1) .hbar-rank, .hbar-row:nth-child(2) .hbar-rank, .hbar-row:nth-child(3) .hbar-rank { color: var(--hbar-color, var(--blue)); }
     .hbar-label { font-size: 12px; font-weight: 500; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .hbar-track { background: var(--bg); border-radius: 4px; height: 16px; position: relative; overflow: hidden; }
-    .hbar-fill { position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; background: var(--hbar-color, var(--blue)); }
+    .hbar-track { background: var(--bg); border-radius: 5px; height: 16px; position: relative; overflow: hidden; }
+    .hbar-fill {
+      position: absolute; top: 0; left: 0; height: 100%; border-radius: 5px;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--hbar-color, var(--blue)) 78%, white), var(--hbar-color, var(--blue)));
+      transition: width 0.25s ease;
+    }
     .hbar-value { font-size: 12px; font-weight: 700; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
     .hbar-empty { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 0; }
 
@@ -793,7 +861,7 @@
     }
     @media (max-width: 900px) {
       .channel-type-grid { grid-template-columns: 1fr; }
-      .cmp-overview-row { flex-direction: column; }
+      .cmp-top-grid { flex-direction: column; }
       .cmp-overview-left, .cmp-overview-right { flex: 1 1 auto; max-width: none; }
     }
   </style>
@@ -1139,21 +1207,20 @@
         </div>
       </section>
 
-      <!-- ②③ 전체 민원 현황 + 전체 문의 유형별 건수 (좌 35% / 우 65%) -->
-      <section class="cmp-overview-row">
-        <!-- ② 전체 민원 현황 KPI (2x2) -->
+      <!-- ②③ 민원 현황(좌 30%) + 문의 유형 분석(우 70%) -->
+      <section class="cmp-top-grid">
+        <!-- ② 민원 현황 KPI (2x2) -->
         <div class="cmp-overview-section cmp-overview-left">
           <div class="cmp-section-header">
-            <h2 class="cmp-section-title">전체 민원 현황</h2>
-            <span class="cmp-section-sub">유선 · 채널톡 · 1:1 문의 합산</span>
+            <h2 class="cmp-section-title">민원 현황</h2>
           </div>
-          <section class="kpis kpis--2x2" aria-label="전체 민원 KPI">
+          <section class="kpis kpis--stack" aria-label="민원 현황 KPI">
             <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
               <div class="kpi-header"><div class="kpi-icon-wrap">
                 <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
               </div></div>
               <div class="kpi-body"><span class="kpi-value" id="ovTotalCount">0</span><span class="kpi-unit">건</span></div>
-              <p class="kpi-label">총 민원 건수</p>
+              <p class="kpi-label">총 문의 건수</p>
             </article>
             <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
               <div class="kpi-header"><div class="kpi-icon-wrap">
@@ -1179,25 +1246,49 @@
           </section>
         </div>
 
-        <!-- ③ 전체 문의 유형별 건수 -->
+        <!-- ③ 문의 유형 분석 (단일 차트 · 탭 전환) -->
         <div class="cmp-overview-section cmp-overview-right">
           <div class="cmp-section-header">
-            <h2 class="cmp-section-title"><span id="ovTypeTitleMain">전체 문의 유형별 건수</span><span class="cmp-chart-sub" id="ovTypeTitleSub">(TOP 10)</span></h2>
-            <span class="cmp-section-sub" id="ovTypeSectionSub">채널 합산 · 건수 내림차순</span>
-            <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="overview" id="ovViewAllBtn" style="margin-left:auto">전체 보기</button>
+            <div>
+              <h2 class="cmp-section-title">전체 문의 유형별 건수<span class="cmp-chart-sub" id="ovTopNBadge">(TOP10)</span></h2>
+              <p class="cmp-chart-hint" id="ovChartHint">막대를 클릭하면 해당 문의 유형의 일별 추이 그래프가 표시됩니다.</p>
+            </div>
+            <div class="chart-tabs" data-cmp-tabs="main" role="tablist" aria-label="문의 유형 분석 탭">
+              <button type="button" class="chart-tab-btn active" data-cmp-tab="byType">유형별 건수</button>
+              <button type="button" class="chart-tab-btn" data-cmp-tab="daily">일별 추이</button>
+              <button type="button" class="chart-tab-btn" data-cmp-tab="monthly">월별 추이</button>
+            </div>
           </div>
-          <div class="hbar-list" id="ovTypeBars" style="--hbar-color:var(--blue)"></div>
+          <div class="chart-toolbar">
+            <div class="channel-btn-group" role="group" aria-label="채널 선택">
+              <button type="button" class="shortcut-btn active" data-cmp-main-channel="all">전체</button>
+              <button type="button" class="shortcut-btn" data-cmp-main-channel="phone">유선</button>
+              <button type="button" class="shortcut-btn" data-cmp-main-channel="ct">채널톡</button>
+              <button type="button" class="shortcut-btn" data-cmp-main-channel="dm">1:1 문의</button>
+            </div>
+            <label class="chart-toolbar-select">문의 유형<select id="cmpTypeFilterLocal"><option value="all">전체</option></select></label>
+            <div id="cmpTopNWrap">
+              <select id="cmpTopNSelect">
+                <option value="5">TOP5</option>
+                <option value="10" selected>TOP10</option>
+                <option value="20">TOP20</option>
+                <option value="all">전체</option>
+              </select>
+              <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="overview" id="ovViewAllBtn">전체 보기</button>
+            </div>
+          </div>
+          <div class="hbar-list cmp-chart-body" id="ovChartBody" style="--hbar-color:var(--blue)"></div>
         </div>
       </section>
 
       <!-- ④⑤⑥ 채널별 문의 유형 (3열 동일 행) -->
       <div class="channel-type-grid">
 
-        <!-- ④ 유선 문의 유형 -->
-        <div class="cmp-channel-card">
+        <!-- ④ 유선 문의 -->
+        <div class="cmp-channel-card" style="--channel-color:var(--blue)">
           <div class="cmp-channel-header">
             <span class="cmp-channel-badge cmp-channel-badge--phone">📞 유선</span>
-            <span class="cmp-channel-title">유선 문의 유형<span class="cmp-chart-sub">(TOP 5)</span></span>
+            <span class="cmp-channel-title">유선 문의</span>
             <div class="cmp-channel-header-actions">
               <button class="btn btn-ghost" id="sttUploadToggle" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px">STT 업로드</button>
               <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="phone">전체 보기</button>
@@ -1237,15 +1328,28 @@
             </div>
           </div>
 
-          <!-- 유선 문의 유형 TOP5 그래프 -->
-          <div class="hbar-list" id="sttTypeBars" style="--hbar-color:var(--blue)"></div>
+          <div class="chart-tabs chart-tabs--sm" data-cmp-tabs="phone">
+            <button type="button" class="chart-tab-btn active" data-cmp-tab="byType">유형별 건수</button>
+            <button type="button" class="chart-tab-btn" data-cmp-tab="daily">일별 추이</button>
+            <button type="button" class="chart-tab-btn" data-cmp-tab="monthly">월별 추이</button>
+          </div>
+          <div class="chart-toolbar chart-toolbar--sm">
+            <label class="chart-toolbar-select">문의 유형<select id="sttTypeFilterLocal" data-cmp-card-type="phone"><option value="all">전체</option></select></label>
+            <label class="chart-toolbar-select" style="margin-left:auto">표시<select id="sttTopNSelect" data-cmp-card-topn="phone">
+              <option value="5">TOP5</option>
+              <option value="10">TOP10</option>
+              <option value="all">전체</option>
+            </select></label>
+          </div>
+          <div class="hbar-list cmp-chart-body cmp-chart-body--sm" id="sttChartBody" style="--hbar-color:var(--blue)"></div>
+          <button type="button" class="chart-more-link" data-cmp-more="phone">더보기 ⌄</button>
         </div>
 
-        <!-- ⑤ 채널톡 문의 유형 -->
-        <div class="cmp-channel-card">
+        <!-- ⑤ 채널톡 문의 -->
+        <div class="cmp-channel-card" style="--channel-color:var(--green)">
           <div class="cmp-channel-header">
             <span class="cmp-channel-badge cmp-channel-badge--chat">💬 채널톡</span>
-            <span class="cmp-channel-title">채널톡 문의 유형<span class="cmp-chart-sub">(TOP 5)</span></span>
+            <span class="cmp-channel-title">채널톡 문의</span>
             <div class="cmp-channel-header-actions">
               <button id="ctRefreshComplaint" class="btn btn-primary" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px">새로고침</button>
               <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="ct">전체 보기</button>
@@ -1253,25 +1357,52 @@
           </div>
           <div id="ctComplaintError" style="margin-bottom:6px"></div>
 
-          <!-- 채널톡 문의 유형 TOP5 그래프 -->
-          <div class="hbar-list" id="ctTypeBars" style="--hbar-color:var(--green)"></div>
+          <div class="chart-tabs chart-tabs--sm" data-cmp-tabs="ct">
+            <button type="button" class="chart-tab-btn active" data-cmp-tab="byType">유형별 건수</button>
+            <button type="button" class="chart-tab-btn" data-cmp-tab="daily">일별 추이</button>
+            <button type="button" class="chart-tab-btn" data-cmp-tab="monthly">월별 추이</button>
+          </div>
+          <div class="chart-toolbar chart-toolbar--sm">
+            <label class="chart-toolbar-select">문의 유형<select id="ctTypeFilterLocal" data-cmp-card-type="ct"><option value="all">전체</option></select></label>
+            <label class="chart-toolbar-select" style="margin-left:auto">표시<select id="ctTopNSelect" data-cmp-card-topn="ct">
+              <option value="5">TOP5</option>
+              <option value="10">TOP10</option>
+              <option value="all">전체</option>
+            </select></label>
+          </div>
+          <div class="hbar-list cmp-chart-body cmp-chart-body--sm" id="ctChartBody" style="--hbar-color:var(--green)"></div>
+          <button type="button" class="chart-more-link" data-cmp-more="ct">더보기 ⌄</button>
         </div>
 
-        <!-- ⑥ 1:1 문의 유형 -->
-        <div class="cmp-channel-card">
+        <!-- ⑥ 1:1 문의 -->
+        <div class="cmp-channel-card" style="--channel-color:var(--amber)">
           <div class="cmp-channel-header">
             <span class="cmp-channel-badge cmp-channel-badge--dm">✉ 1:1</span>
-            <span class="cmp-channel-title">1:1 문의 유형<span class="cmp-chart-sub">(TOP 5)</span></span>
+            <span class="cmp-channel-title">1:1 문의</span>
             <div class="cmp-channel-header-actions">
               <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="dm">전체 보기</button>
             </div>
           </div>
 
-          <!-- 1:1 문의 유형 TOP5 그래프 -->
-          <div class="hbar-list" id="dmTypeBars" style="--hbar-color:var(--amber)"></div>
+          <div class="chart-tabs chart-tabs--sm" data-cmp-tabs="dm">
+            <button type="button" class="chart-tab-btn active" data-cmp-tab="byType">유형별 건수</button>
+            <button type="button" class="chart-tab-btn" data-cmp-tab="daily">일별 추이</button>
+            <button type="button" class="chart-tab-btn" data-cmp-tab="monthly">월별 추이</button>
+          </div>
+          <div class="chart-toolbar chart-toolbar--sm">
+            <label class="chart-toolbar-select">문의 유형<select id="dmTypeFilterLocal" data-cmp-card-type="dm"><option value="all">전체</option></select></label>
+            <label class="chart-toolbar-select" style="margin-left:auto">표시<select id="dmTopNSelect" data-cmp-card-topn="dm">
+              <option value="5">TOP5</option>
+              <option value="10">TOP10</option>
+              <option value="all">전체</option>
+            </select></label>
+          </div>
+          <div class="hbar-list cmp-chart-body cmp-chart-body--sm" id="dmChartBody" style="--hbar-color:var(--amber)"></div>
+          <button type="button" class="chart-more-link" data-cmp-more="dm">더보기 ⌄</button>
         </div>
 
       </div><!-- /channel-type-grid -->
+      <p class="cmp-footnote">※ 문의 유형은 상담 내용 분석을 기반으로 자동 분류됩니다. 분류 기준은 변경될 수 있으며, 정확도 향상을 위해 주기적으로 모델을 업데이트합니다.</p>
 
       <!-- 전체 보기 모달 -->
       <div class="cmp-modal-overlay" id="cmpModalOverlay" style="display:none">
@@ -5440,7 +5571,16 @@
       ctx.stroke();
     }
 
-    function drawLineChart(canvas, labels, values) {
+    function hexToRgb(hex) {
+      const h = String(hex || "#2563EB").replace("#", "");
+      const full = h.length === 3 ? h.split("").map(c => c + c).join("") : h;
+      const n = parseInt(full, 16);
+      return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+    }
+
+    function drawLineChart(canvas, labels, values, color) {
+      color = color || "#2563EB";
+      const { r, g, b } = hexToRgb(color);
       const { ctx, width, height } = canvasSetup(canvas);
       ctx.clearRect(0, 0, width, height);
       if (!values.length) return drawEmpty(ctx, width, height);
@@ -5459,8 +5599,8 @@
       if (labels.length < 2) {
         const x = (left + right) / 2;
         const y = bottom - (values[0] / max) * (bottom - top);
-        ctx.fillStyle = "#EFF6FF"; ctx.fillRect(x - 2, y, 4, bottom - y);
-        ctx.fillStyle = "#2563EB"; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(${r},${g},${b},0.12)`; ctx.fillRect(x - 2, y, 4, bottom - y);
+        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
         drawLabels(ctx, labels, left, right, bottom, width);
         drawScale(ctx, max, left, top, bottom);
         return;
@@ -5471,8 +5611,8 @@
 
       // Area fill
       const grad = ctx.createLinearGradient(0, top, 0, bottom);
-      grad.addColorStop(0, "rgba(37,99,235,0.12)");
-      grad.addColorStop(1, "rgba(37,99,235,0)");
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.16)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.moveTo(pts[0][0], bottom);
@@ -5481,7 +5621,7 @@
       ctx.closePath(); ctx.fill();
 
       // Line
-      ctx.strokeStyle = "#2563EB"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+      ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
       ctx.beginPath();
       pts.forEach(([x, y], i) => i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y));
       ctx.stroke();
@@ -5489,7 +5629,7 @@
       // Dots (only if few points)
       if (labels.length <= 20) {
         pts.forEach(([x, y]) => {
-          ctx.fillStyle = "#fff"; ctx.strokeStyle = "#2563EB"; ctx.lineWidth = 2;
+          ctx.fillStyle = "#fff"; ctx.strokeStyle = color; ctx.lineWidth = 2;
           ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         });
       }
@@ -5519,6 +5659,89 @@
       });
       drawLabels(ctx, labels, left + barW / 2, right - barW / 2, bottom, width);
       drawScale(ctx, max, left, top, bottom);
+    }
+
+    // 축이 있는 가로 막대 차트 (민원 관리 · 문의 유형 분석 카드 전용)
+    function niceAxisTicks(maxVal, count) {
+      count = count || 5;
+      if (maxVal <= 0) return { step: 1, max: count };
+      const rawStep = maxVal / count;
+      const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      const residual = rawStep / magnitude;
+      const niceResidual = [1, 2, 3, 5, 10].find(c => c >= residual) || 10;
+      const step = niceResidual * magnitude;
+      return { step, max: step * count };
+    }
+
+    function fillRoundedBar(ctx, x, y, w, h, r) {
+      const w2 = Math.max(w, 1);
+      const radius = Math.max(0, Math.min(r, h / 2, w2 / 2));
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(x, y, w2, h, radius);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x, y, w2, h);
+      }
+    }
+
+    function drawHBarChart(canvas, labels, values, opts) {
+      opts = opts || {};
+      const color = opts.color || "#2563EB";
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      canvas.onclick = null;
+      canvas.style.cursor = "default";
+      if (!values.length) return drawEmpty(ctx, width, height);
+
+      const n = values.length;
+      const maxVal = Math.max(...values, 1);
+      const { step, max: axisMax } = niceAxisTicks(maxVal, 5);
+
+      const left = 132, right = width - 50, top = 8, bottom = height - 24;
+      const rowH = (bottom - top) / n;
+      const barH = Math.max(6, Math.min(22, rowH * 0.55));
+
+      ctx.font = "11px 'Segoe UI', sans-serif";
+      for (let v = 0; v <= axisMax + 0.0001; v += step) {
+        const x = left + (right - left) * (v / axisMax);
+        ctx.strokeStyle = "#F3F4F6"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+        ctx.fillStyle = "#9CA3AF"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        ctx.fillText(nf.format(Math.round(v)), x, bottom + 6);
+      }
+      ctx.strokeStyle = "#E5E7EB"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(left, top); ctx.lineTo(left, bottom); ctx.stroke();
+
+      const bars = [];
+      values.forEach((v, i) => {
+        const rowTop = top + rowH * i, rowBottom = rowTop + rowH;
+        const cy = rowTop + rowH / 2;
+        const barW = Math.max(2, (right - left) * (v / axisMax));
+
+        ctx.fillStyle = "#374151"; ctx.font = "12px 'Segoe UI', sans-serif";
+        ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        ctx.fillText(shorten(labels[i], 13), left - 10, cy);
+
+        ctx.fillStyle = color;
+        fillRoundedBar(ctx, left, cy - barH / 2, barW, barH, barH / 2);
+
+        ctx.fillStyle = "#111827"; ctx.font = "600 12px 'Segoe UI', sans-serif";
+        ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillText(nf.format(v), left + barW + 8, cy);
+
+        bars.push({ rowTop, rowBottom, index: i });
+      });
+
+      if (typeof opts.onBarClick === "function") {
+        canvas.onclick = e => {
+          const rect = canvas.getBoundingClientRect();
+          const y = e.clientY - rect.top;
+          const hit = bars.find(b => y >= b.rowTop && y < b.rowBottom);
+          if (hit) opts.onBarClick(labels[hit.index]);
+        };
+        canvas.style.cursor = "pointer";
+      }
     }
 
     function drawPieChart(canvas, labels, values) {
@@ -5847,12 +6070,12 @@
         start = dateKey(new Date(today.getFullYear(), today.getMonth() - 1, 1));
         end = dateKey(new Date(today.getFullYear(), today.getMonth(), 0));
       }
-      document.querySelectorAll(".shortcut-btn").forEach((b) => b.classList.toggle("active", b.dataset.range === range));
+      document.querySelectorAll("[data-range]").forEach((b) => b.classList.toggle("active", b.dataset.range === range));
       setDateRange(start, end);
       applyFilters();
     }
 
-    document.querySelectorAll(".shortcut-btn").forEach((btn) => {
+    document.querySelectorAll("[data-range]").forEach((btn) => {
       btn.addEventListener("click", () => applyShortcut(btn.dataset.range));
     });
 
@@ -6101,7 +6324,17 @@
     // 전체보기 모달용 최신 집계 데이터
     let cmpLatestData = { allTypes: {}, phoneTypeCounts: {}, ctTypeCounts: {}, dmTypeCounts: {}, totalAll: 0, phoneTotal: 0, ctTotal: 0, dmTotal: 0 };
     let cmpModalState = { channel: null, sortKey: "count", sortDir: "desc", search: "" };
-    const CMP_CHANNEL_LABEL = { overview: "전체 문의 유형", phone: "유선 문의 유형", ct: "채널톡 문의 유형", dm: "1:1 문의 유형" };
+    const CMP_CHANNEL_LABEL = { overview: "문의 유형", phone: "유선 문의 유형", ct: "채널톡 문의 유형", dm: "1:1 문의 유형" };
+
+    // ── 채널 레지스트리 ────────────────────────────────────
+    // 새로운 채널(예: 카카오톡, 이메일 등)을 추가할 때는 이 객체와
+    // cmpChannelTypeCounts / cmpChannelDateCounts 의 분기만 확장하면 된다.
+    const CMP_CHANNELS = {
+      all:   { label: "전체",   hex: "#2563EB" },
+      phone: { label: "유선",   hex: "#2563EB" },
+      ct:    { label: "채널톡", hex: "#059669" },
+      dm:    { label: "1:1",   hex: "#D97706" },
+    };
 
     function renderHBarList(containerId, entries, opts) {
       const el = $(containerId);
@@ -6109,34 +6342,122 @@
       opts = opts || {};
       if (!entries.length) { el.innerHTML = `<div class="hbar-empty">${opts.emptyMsg || "데이터 없음"}</div>`; return; }
       const max = Math.max(...entries.map(e => e[1]), 1);
-      el.innerHTML = entries.map(([type, cnt]) => `
+      el.innerHTML = entries.map(([type, cnt], i) => `
         <div class="hbar-row">
+          <span class="hbar-rank">${i + 1}</span>
           <span class="hbar-label" title="${escapeHtml(type)}">${escapeHtml(shorten(type, 10))}</span>
           <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(2, (cnt / max) * 100)}%"></div></div>
           <span class="hbar-value">${nf.format(cnt)}</span>
         </div>`).join("");
     }
 
-    let ovTypeBarsBoxHeight = 0;
-
-    function renderOvTypeTrend(type, phoneRecords, ctDays) {
-      const el = $("ovTypeBars");
-      if (!el) return;
+    // ── 채널별 문의 유형 집계 (재사용 가능한 데이터 함수) ──
+    function cmpPhoneTypeCounts(records) {
+      const m = {};
+      records.forEach(r => { m[r.type] = (m[r.type] || 0) + 1; });
+      return m;
+    }
+    function cmpCtTypeCounts(days) {
+      const m = {};
+      days.forEach(d => Object.entries(d.counts || {}).forEach(([k, v]) => { m[k] = (m[k] || 0) + v; }));
+      return m;
+    }
+    function cmpMergeTypeCounts(...maps) {
+      const out = {};
+      maps.forEach(m => Object.entries(m).forEach(([k, v]) => { out[k] = (out[k] || 0) + v; }));
+      return out;
+    }
+    // channel: 'all' | 'phone' | 'ct' | 'dm', ctx: { phoneRecords, ctDays }
+    function cmpChannelTypeCounts(channel, ctx) {
+      if (channel === "phone") return cmpPhoneTypeCounts(ctx.phoneRecords);
+      if (channel === "ct") return cmpCtTypeCounts(ctx.ctDays);
+      if (channel === "dm") return {}; // 1:1 데이터 연동 준비 중
+      return cmpMergeTypeCounts(cmpPhoneTypeCounts(ctx.phoneRecords), cmpCtTypeCounts(ctx.ctDays));
+    }
+    // 날짜별 건수 집계 (일별 추이용). channel === 'all'이면 유선+채널톡 합산
+    // type이 'all'이 아니면 해당 문의 유형 하나만의 추이를 뽑는다 (카드별 로컬 문의 유형 필터)
+    function cmpChannelDateCounts(channel, ctx, type) {
+      type = type || "all";
       const dateCounts = {};
-      phoneRecords.forEach(r => { if (r.type === type) dateCounts[r.date] = (dateCounts[r.date] || 0) + 1; });
-      ctDays.forEach(d => {
-        const c = (d.counts || {})[type] || 0;
+      const addPhone = () => ctx.phoneRecords.forEach(r => {
+        if (type !== "all" && r.type !== type) return;
+        dateCounts[r.date] = (dateCounts[r.date] || 0) + 1;
+      });
+      const addCt = () => ctx.ctDays.forEach(d => {
+        const c = type === "all" ? (d.total || 0) : ((d.counts || {})[type] || 0);
         if (c > 0) dateCounts[d.date] = (dateCounts[d.date] || 0) + c;
       });
-      const dates = Object.keys(dateCounts).sort();
-      // 전체 문의 유형별 건수(TOP10) 막대그래프와 동일한 높이로 고정
-      const h = ovTypeBarsBoxHeight > 0 ? ovTypeBarsBoxHeight : 260;
-      el.style.flex = "0 0 auto";
-      el.style.height = h + "px";
-      el.innerHTML = '<div class="chart-area" style="height:100%;min-height:0"><canvas id="ovTypeLineCanvas"></canvas></div>';
+      if (channel === "phone") addPhone();
+      else if (channel === "ct") addCt();
+      else if (channel === "dm") { /* 데이터 없음 */ }
+      else { addPhone(); addCt(); }
+      return dateCounts;
+    }
+    function cmpToMonthlyCounts(dateCounts) {
+      const m = {};
+      Object.entries(dateCounts).forEach(([d, c]) => { const mk = d.slice(0, 7); m[mk] = (m[mk] || 0) + c; });
+      return m;
+    }
+
+    // ── 카드 하나의 차트 영역을 탭 상태에 따라 렌더링 ──────
+    // tab: 'byType'(가로 막대) | 'daily' | 'monthly'(단일 canvas 재사용)
+    function cmpRenderCardChart(containerId, canvasId, tab, typeCounts, dateCounts, opts) {
+      const el = $(containerId);
+      if (!el) return;
+      opts = opts || {};
+      el.style.setProperty("--hbar-color", opts.hex || "var(--blue)");
+
+      if (tab === "byType") {
+        const sorted = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+        const topN = opts.topN;
+        const limited = topN === "all" ? sorted : sorted.slice(0, topN || 5);
+
+        if (opts.axisChart) {
+          // 상단 통합 카드: 축이 있는 canvas 가로 막대 차트 (막대 클릭 시 일별 추이로 드릴다운)
+          const scroll = topN === "all" && sorted.length > 10;
+          el.style.overflowY = scroll ? "auto" : "";
+          el.style.maxHeight = scroll ? "420px" : "";
+          if (el.dataset.mode !== "canvas") {
+            el.innerHTML = `<div class="chart-area"><canvas id="${canvasId}"></canvas></div>`;
+            el.dataset.mode = "canvas";
+          }
+          const wrap = el.querySelector(".chart-area");
+          if (wrap) wrap.style.height = scroll ? Math.max(sorted.length * 30, 260) + "px" : "";
+          requestAnimationFrame(() => {
+            const canvas = $(canvasId);
+            if (canvas) drawHBarChart(canvas, limited.map(e => e[0]), limited.map(e => e[1]), {
+              color: opts.hex, emptyMsg: opts.emptyMsg, onBarClick: opts.onBarClick
+            });
+          });
+          return;
+        }
+
+        el.dataset.mode = "bar";
+        el.classList.toggle("hbar-list--scroll", topN === "all" && sorted.length > 8);
+        renderHBarList(containerId, limited, { emptyMsg: opts.emptyMsg });
+        return;
+      }
+
+      el.classList.remove("hbar-list--scroll");
+      el.style.overflowY = ""; el.style.maxHeight = "";
+      if (el.dataset.mode !== "canvas") {
+        el.innerHTML = `<div class="chart-area"><canvas id="${canvasId}"></canvas></div>`;
+        el.dataset.mode = "canvas";
+      }
+      const wrap = el.querySelector(".chart-area");
+      if (wrap) wrap.style.height = "";
+      let labels, values;
+      if (tab === "monthly") {
+        const monthly = cmpToMonthlyCounts(dateCounts);
+        labels = Object.keys(monthly).sort();
+        values = labels.map(m => monthly[m]);
+      } else {
+        labels = Object.keys(dateCounts).sort();
+        values = labels.map(d => dateCounts[d]);
+      }
       requestAnimationFrame(() => {
-        const canvas = $("ovTypeLineCanvas");
-        if (canvas) drawLineChart(canvas, dates, dates.map(d => dateCounts[d]));
+        const canvas = $(canvasId);
+        if (canvas) drawLineChart(canvas, labels, values, opts.hex);
       });
     }
 
@@ -6311,12 +6632,54 @@
       const start = $("cmpStartDate")?.value || "";
       const end   = $("cmpEndDate")?.value   || "";
       const agent = $("cmpCounselorFilter")?.value || "all";
+      const type  = $("cmpTypeFilter")?.value || "all";
       return phoneComplaintState.records.filter(r => {
+        if (start && r.date < start) return false;
+        if (end   && r.date > end)   return false;
+        if (agent !== "all" && r.agent !== agent) return false;
+        if (type  !== "all" && r.type  !== type)  return false;
+        return true;
+      });
+    }
+
+    // 날짜 범위만 반영한 채널톡 일자 목록. type이 'all'이 아니면 해당 유형 건수만 남긴다.
+    function ctGetFilteredDays(start, end, type) {
+      if (!ctState.loaded) return [];
+      return ctState.days.filter(d => {
+        if (start && d.date < start) return false;
+        if (end   && d.date > end)   return false;
+        return true;
+      }).map(d => {
+        if (type === "all") return d;
+        const c = (d.counts || {})[type] || 0;
+        return { ...d, total: c, counts: c > 0 ? { [type]: c } : {} };
+      });
+    }
+
+    // 문의 유형 드롭다운의 선택지 기준 데이터 (기간·상담사만 반영, 유형 자체는 제외해야 옵션이 사라지지 않는다)
+    function cmpGetTypeOptionsBasis() {
+      const start = $("cmpStartDate")?.value || "";
+      const end   = $("cmpEndDate")?.value   || "";
+      const agent = $("cmpCounselorFilter")?.value || "all";
+      const phoneRecs = phoneComplaintState.records.filter(r => {
         if (start && r.date < start) return false;
         if (end   && r.date > end)   return false;
         if (agent !== "all" && r.agent !== agent) return false;
         return true;
       });
+      const ctDays = ctGetFilteredDays(start, end, "all");
+      return cmpMergeTypeCounts(cmpPhoneTypeCounts(phoneRecs), cmpCtTypeCounts(ctDays));
+    }
+
+    function cmpSyncTypeSelects(sortedTypeOptions, current) {
+      const build = selectEl => {
+        if (!selectEl) return;
+        const optsHtml = sortedTypeOptions.map(([type]) =>
+          `<option value="${escapeHtml(type)}"${type === current ? " selected" : ""}>${escapeHtml(type)}</option>`).join("");
+        selectEl.innerHTML = `<option value="all"${current === "all" ? " selected" : ""}>전체</option>` + optsHtml;
+      };
+      build($("cmpTypeFilter"));
+      build($("cmpTypeFilterLocal"));
     }
 
     function phoneComplaintRender() {
@@ -6334,100 +6697,145 @@
       renderComplaintOverview();
     }
 
-    // ── 전체 민원 현황 오버뷰 ────────────────────────────────
+    // ── 상단 통합 카드 (문의 유형 분석) ───────────────────────
+    // channel: 이 카드 안에서만 쓰는 로컬 상태 / tab, topN 도 로컬 상태
+    let cmpMainChart = { tab: "byType", channel: "all", topN: 10 };
+    // 하단 3개 채널 카드는 채널이 고정이라 tab · 로컬 문의유형 · 표시개수 · 더보기 상태를 갖는다
+    let cmpChannelChart = {
+      phone: { tab: "byType", type: "all", expanded: false },
+      ct:    { tab: "byType", type: "all", expanded: false },
+      dm:    { tab: "byType", type: "all", expanded: false },
+    };
+
+    // 막대를 클릭하면 해당 문의 유형의 일별 추이로 드릴다운
+    function cmpOnMainBarClick(type) {
+      cmpMainChart.tab = "daily";
+      document.querySelectorAll('[data-cmp-tabs="main"] [data-cmp-tab]').forEach(b => b.classList.toggle("active", b.dataset.cmpTab === "daily"));
+      cmpOnTypeChange(type);
+    }
+
+    function renderCmpMainCard(ctx) {
+      const typeCounts = cmpChannelTypeCounts(cmpMainChart.channel, ctx);
+      const dateCounts = cmpMainChart.tab === "byType" ? null : cmpChannelDateCounts(cmpMainChart.channel, ctx);
+      const isByType = cmpMainChart.tab === "byType";
+
+      const topNWrap = $("cmpTopNWrap");
+      if (topNWrap) topNWrap.style.display = isByType ? "" : "none";
+      const hintEl = $("ovChartHint");
+      if (hintEl) hintEl.style.display = isByType ? "" : "none";
+
+      const topNRaw = $("cmpTopNSelect")?.value || "10";
+      const topN = topNRaw === "all" ? "all" : parseInt(topNRaw, 10);
+      const badge = $("ovTopNBadge");
+      if (badge) badge.textContent = topN === "all" ? "(전체)" : `(TOP${topN})`;
+
+      cmpRenderCardChart("ovChartBody", "ovTrendCanvas", cmpMainChart.tab, typeCounts, dateCounts, {
+        topN, hex: CMP_CHANNELS[cmpMainChart.channel].hex, emptyMsg: "데이터 없음",
+        axisChart: true, onBarClick: cmpOnMainBarClick
+      });
+    }
+
+    // ── 하단 채널별 카드 (유선 / 채널톡 / 1:1) ────────────────
+    const CMP_CHANNEL_EMPTY     = { phone: "STT 업로드 후 표시됩니다", ct: "새로고침을 눌러 불러오세요", dm: "데이터 연동 준비 중" };
+    const CMP_CHANNEL_BODY_ID   = { phone: "sttChartBody", ct: "ctChartBody", dm: "dmChartBody" };
+    const CMP_CHANNEL_CANVAS_ID = { phone: "sttTrendCanvas", ct: "ctTrendCanvas", dm: "dmTrendCanvas" };
+    const CMP_CHANNEL_TYPE_ID   = { phone: "sttTypeFilterLocal", ct: "ctTypeFilterLocal", dm: "dmTypeFilterLocal" };
+    const CMP_CHANNEL_TOPN_ID   = { phone: "sttTopNSelect", ct: "ctTopNSelect", dm: "dmTopNSelect" };
+    const CMP_CHANNEL_MORE_SEL  = { phone: '[data-cmp-more="phone"]', ct: '[data-cmp-more="ct"]', dm: '[data-cmp-more="dm"]' };
+
+    function cmpSyncChannelTypeSelects(sortedTypeOptions) {
+      ["phone", "ct", "dm"].forEach(ch => {
+        const sel = $(CMP_CHANNEL_TYPE_ID[ch]);
+        if (!sel) return;
+        const cur = cmpChannelChart[ch].type;
+        const optsHtml = sortedTypeOptions.map(([type]) =>
+          `<option value="${escapeHtml(type)}"${type === cur ? " selected" : ""}>${escapeHtml(type)}</option>`).join("");
+        sel.innerHTML = `<option value="all"${cur === "all" ? " selected" : ""}>전체</option>` + optsHtml;
+      });
+    }
+
+    function renderCmpChannelCard(channel, ctx) {
+      const state = cmpChannelChart[channel];
+      const isByType = state.tab === "byType";
+      let typeCounts = cmpChannelTypeCounts(channel, ctx);
+      if (state.type !== "all") {
+        typeCounts = typeCounts[state.type] != null ? { [state.type]: typeCounts[state.type] } : {};
+      }
+      const dateCounts = isByType ? null : cmpChannelDateCounts(channel, ctx, state.type);
+
+      const viewAllBtn = document.querySelector(`[data-cmp-viewall="${channel}"]`);
+      if (viewAllBtn) viewAllBtn.style.display = isByType ? "" : "none";
+
+      const topNSelectEl = $(CMP_CHANNEL_TOPN_ID[channel]);
+      const topNLabel = topNSelectEl?.closest("label");
+      if (topNLabel) topNLabel.style.display = isByType ? "" : "none";
+
+      const rawTopN = state.expanded ? "all" : (topNSelectEl?.value || "5");
+      const effectiveTopN = rawTopN === "all" ? "all" : parseInt(rawTopN, 10);
+
+      const moreBtn = document.querySelector(CMP_CHANNEL_MORE_SEL[channel]);
+      if (moreBtn) {
+        const canExpand = rawTopN !== "all" && Object.keys(typeCounts).length > effectiveTopN;
+        moreBtn.style.display = isByType && (canExpand || state.expanded) ? "" : "none";
+        moreBtn.textContent = state.expanded ? "접기 ⌃" : "더보기 ⌄";
+      }
+
+      cmpRenderCardChart(CMP_CHANNEL_BODY_ID[channel], CMP_CHANNEL_CANVAS_ID[channel], state.tab, typeCounts, dateCounts, {
+        topN: effectiveTopN, hex: CMP_CHANNELS[channel].hex, emptyMsg: CMP_CHANNEL_EMPTY[channel]
+      });
+    }
+
+    // ── 전체보기 모달용 채널 합산 데이터 (전역 필터만 반영, 로컬 채널 토글과 무관) ──
+    function cmpBuildLatestData(ctx) {
+      const phoneTypeCounts = cmpPhoneTypeCounts(ctx.phoneRecords);
+      const ctTypeCounts = cmpCtTypeCounts(ctx.ctDays);
+      const dmTypeCounts = {};
+      const allTypes = {};
+      Object.entries(phoneTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0})).total += n; allTypes[t].phone += n; });
+      Object.entries(ctTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0})).total += n; allTypes[t].ct += n; });
+      const totalAll = Object.values(allTypes).reduce((s,v)=>s+v.total,0);
+      const phoneTotal = Object.values(phoneTypeCounts).reduce((s,v)=>s+v,0);
+      const ctTotal = Object.values(ctTypeCounts).reduce((s,v)=>s+v,0);
+      return { allTypes, phoneTypeCounts, ctTypeCounts, dmTypeCounts, totalAll, phoneTotal, ctTotal, dmTotal: 0 };
+    }
+
+    // ── 민원 관리 탭 전체 렌더 진입점 ─────────────────────────
     function renderComplaintOverview() {
       const cmpStart = $("cmpStartDate")?.value || "";
       const cmpEnd   = $("cmpEndDate")?.value   || "";
+      const globalType = $("cmpTypeFilter")?.value || "all";
 
-      // 유선 데이터
       const phoneRecords = sttGetFiltered();
+      const ctDays = ctGetFilteredDays(cmpStart, cmpEnd, globalType);
+      const ctx = { phoneRecords, ctDays };
 
-      // 채널톡 데이터 (날짜 필터)
-      const ctDays = ctState.loaded ? ctState.days.filter(d => {
-        if (cmpStart && d.date < cmpStart) return false;
-        if (cmpEnd   && d.date > cmpEnd)   return false;
-        return true;
-      }) : [];
-
-      // 카운트
+      // ── KPI (2x2) ────────────────────────────────────────
       const phoneCount = phoneRecords.length;
       let ctCount = 0; ctDays.forEach(d => ctCount += d.total || 0);
       const dmCount = 0;
       const totalCount = phoneCount + ctCount + dmCount;
-
-      // ── KPI ──────────────────────────────────────────────
-      const sel = (id, val) => { const el=$(id); if(el) el.textContent=val; };
+      const sel = (id, val) => { const el = $(id); if (el) el.textContent = val; };
       sel("ovTotalCount", nf.format(totalCount));
       sel("ovPhoneCount", nf.format(phoneCount));
       sel("ovCtCount",    nf.format(ctCount));
       sel("ovDmCount",    nf.format(dmCount));
 
-      let ws=0, wt=0;
-      ctDays.forEach(d => { if(d.avgWaitSec!=null&&d.total>0){ws+=d.avgWaitSec*d.total;wt+=d.total;} });
-      sel("ovAvgWait", wt>0 ? ctFormatSeconds(ws/wt) : "—");
+      // ── 문의 유형 드롭다운 동기화 (상단 필터 · 그래프 내부 필터) ──
+      const optionBasis = cmpGetTypeOptionsBasis();
+      const sortedTypeOptions = Object.entries(optionBasis).sort((a,b) => b[1]-a[1]);
+      cmpSyncTypeSelects(sortedTypeOptions, globalType);
+      cmpSyncChannelTypeSelects(sortedTypeOptions);
 
-      // 유선 문의 유형별 집계
-      const phoneTypeCounts = {};
-      phoneRecords.forEach(r => { phoneTypeCounts[r.type]=(phoneTypeCounts[r.type]||0)+1; });
+      // ── 전체보기 모달용 최신 집계 ──────────────────────────
+      cmpLatestData = cmpBuildLatestData(ctx);
 
-      // 채널톡 문의 유형별 집계
-      const ctTypeCounts = {};
-      ctDays.forEach(d => Object.entries(d.counts||{}).forEach(([k,v])=>{ ctTypeCounts[k]=(ctTypeCounts[k]||0)+v; }));
+      // ── ③ 문의 유형 분석 (통합 카드) ───────────────────────
+      renderCmpMainCard(ctx);
 
-      // 합산 유형
-      const allTypes = {};
-      Object.entries(phoneTypeCounts).forEach(([t,n])=>{ if(!allTypes[t])allTypes[t]={total:0,phone:0,ct:0}; allTypes[t].total+=n; allTypes[t].phone+=n; });
-      Object.entries(ctTypeCounts).forEach(([t,n])=>{ if(!allTypes[t])allTypes[t]={total:0,phone:0,ct:0}; allTypes[t].total+=n; allTypes[t].ct+=n; });
-      const topEntry = Object.entries(allTypes).sort((a,b)=>b[1].total-a[1].total)[0];
-      sel("ovTopType",     topEntry ? shorten(topEntry[0],12) : "—");
-      sel("ovTopTypeCount",topEntry ? `${nf.format(topEntry[1].total)}건` : "—");
-
-      // ── 채널별/전체 합산 집계 (전체보기 모달용으로 저장) ──
-      const totalAll = Object.values(allTypes).reduce((s,v)=>s+v.total,0);
-      const phoneTotal = Object.values(phoneTypeCounts).reduce((s,v)=>s+v,0);
-      const ctTotal = Object.values(ctTypeCounts).reduce((s,v)=>s+v,0);
-      const dmTypeCounts = {};
-      cmpLatestData = { allTypes, phoneTypeCounts, ctTypeCounts, dmTypeCounts, totalAll, phoneTotal, ctTotal, dmTotal: 0 };
-
-      // ── ③ 전체 문의 유형별 건수 (TOP 10) / 선택 유형 일별 추이 ──
-      const sortedTypes = Object.entries(allTypes).sort((a,b)=>b[1].total-a[1].total);
-
-      const typeSel = $("cmpTypeFilter");
-      if (typeSel) {
-        const curType = typeSel.value;
-        const typeOptionsHtml = sortedTypes.map(([type]) =>
-          `<option value="${escapeHtml(type)}"${type===curType?" selected":""}>${escapeHtml(type)}</option>`).join("");
-        typeSel.innerHTML = '<option value="all">전체</option>' + typeOptionsHtml;
-      }
-
-      const selectedType = typeSel && typeSel.value !== "all" ? typeSel.value : null;
-      const ovTypeBarsEl = $("ovTypeBars");
-      if (!selectedType) {
-        $("ovTypeTitleMain").textContent = "전체 문의 유형별 건수";
-        $("ovTypeTitleSub").style.display = "";
-        $("ovTypeSectionSub").textContent = "채널 합산 · 건수 내림차순";
-        $("ovViewAllBtn").style.display = "";
-        if (ovTypeBarsEl) { ovTypeBarsEl.style.flex = ""; ovTypeBarsEl.style.height = ""; }
-        renderHBarList("ovTypeBars", sortedTypes.slice(0,10).map(([type,d])=>[type,d.total]), { emptyMsg: "데이터 없음" });
-        if (ovTypeBarsEl) ovTypeBarsBoxHeight = ovTypeBarsEl.getBoundingClientRect().height;
-      } else {
-        $("ovTypeTitleMain").textContent = `${selectedType} 일별 건수 추이`;
-        $("ovTypeTitleSub").style.display = "none";
-        $("ovTypeSectionSub").textContent = "채널 합산 · 날짜순";
-        $("ovViewAllBtn").style.display = "none";
-        renderOvTypeTrend(selectedType, phoneRecords, ctDays);
-      }
-
-      // ── ④ 유선 문의 유형별 건수 (TOP 5) ──────────────────
-      const sortedPhone = Object.entries(phoneTypeCounts).sort((a,b)=>b[1]-a[1]);
-      renderHBarList("sttTypeBars", sortedPhone.slice(0,5), { emptyMsg: "STT 업로드 후 표시됩니다" });
-
-      // ── ⑤ 채널톡 문의 유형별 건수 (TOP 5) ────────────────
-      const sortedCt = Object.entries(ctTypeCounts).sort((a,b)=>b[1]-a[1]);
-      renderHBarList("ctTypeBars", sortedCt.slice(0,5), { emptyMsg: "새로고침을 눌러 불러오세요" });
-
-      // ── ⑥ 1:1 문의 유형별 건수 (TOP 5) ───────────────────
-      renderHBarList("dmTypeBars", [], { emptyMsg: "데이터 연동 준비 중" });
+      // ── ④⑤⑥ 채널별 카드 ───────────────────────────────────
+      renderCmpChannelCard("phone", ctx);
+      renderCmpChannelCard("ct", ctx);
+      renderCmpChannelCard("dm", ctx);
 
       // 전체보기 모달이 열려 있으면 최신 데이터로 갱신
       if (cmpModalState.channel) renderCmpModalContent();
@@ -6551,11 +6959,80 @@
 
     document.querySelectorAll("[data-cmp-range]").forEach(btn=>btn.addEventListener("click",()=>cmpApplyShortcut(btn.dataset.cmpRange)));
     $("cmpCounselorFilter").addEventListener("change", cmpRenderAll);
-    $("cmpTypeFilter").addEventListener("change", cmpRenderAll);
+
+    // 상단 필터 문의 유형 select ↔ 그래프 카드 내부 문의 유형 select는 하나의 값을 공유한다
+    function cmpOnTypeChange(value) {
+      $("cmpTypeFilter").value = value;
+      $("cmpTypeFilterLocal").value = value;
+      cmpRenderAll();
+    }
+    $("cmpTypeFilter").addEventListener("change", e => cmpOnTypeChange(e.target.value));
+    $("cmpTypeFilterLocal").addEventListener("change", e => cmpOnTypeChange(e.target.value));
+
+    // 문의 유형 분석 카드 전용 컨트롤 (채널 버튼 · 표시 개수)
+    document.querySelectorAll("[data-cmp-main-channel]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        cmpMainChart.channel = btn.dataset.cmpMainChannel;
+        document.querySelectorAll("[data-cmp-main-channel]").forEach(b => b.classList.toggle("active", b === btn));
+        renderComplaintOverview();
+      });
+    });
+    $("cmpTopNSelect").addEventListener("change", renderComplaintOverview);
+
+    // 카드별 탭 전환 ([유형별 건수] / [일별 추이] / [월별 추이])
+    document.querySelectorAll("[data-cmp-tabs]").forEach(group => {
+      group.querySelectorAll("[data-cmp-tab]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const groupKey = group.dataset.cmpTabs; // "main" | "phone" | "ct" | "dm"
+          group.querySelectorAll("[data-cmp-tab]").forEach(b => b.classList.toggle("active", b === btn));
+          if (groupKey === "main") cmpMainChart.tab = btn.dataset.cmpTab;
+          else cmpChannelChart[groupKey].tab = btn.dataset.cmpTab;
+          renderComplaintOverview();
+        });
+      });
+    });
+
+    // 하단 채널 카드 전용 컨트롤 (로컬 문의 유형 · 표시 개수 · 더보기)
+    document.querySelectorAll("[data-cmp-card-type]").forEach(sel => {
+      sel.addEventListener("change", () => {
+        cmpChannelChart[sel.dataset.cmpCardType].type = sel.value;
+        renderComplaintOverview();
+      });
+    });
+    document.querySelectorAll("[data-cmp-card-topn]").forEach(sel => {
+      sel.addEventListener("change", () => {
+        cmpChannelChart[sel.dataset.cmpCardTopn].expanded = false;
+        renderComplaintOverview();
+      });
+    });
+    document.querySelectorAll("[data-cmp-more]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const state = cmpChannelChart[btn.dataset.cmpMore];
+        state.expanded = !state.expanded;
+        renderComplaintOverview();
+      });
+    });
+
     $("cmpResetBtn").addEventListener("click", ()=>{
       document.querySelectorAll("[data-cmp-range]").forEach(b=>b.classList.remove("active"));
-      cmpSetDateRange("",""); $("cmpCounselorFilter").value="all"; $("cmpTypeFilter").value="all"; cmpRenderAll();
+      cmpSetDateRange("",""); $("cmpCounselorFilter").value="all";
+      cmpOnTypeChangeSilent();
+      // 그래프 내부 로컬 상태 초기화
+      cmpMainChart = { tab: "byType", channel: "all", topN: 10 };
+      cmpChannelChart = {
+        phone: { tab: "byType", type: "all", expanded: false },
+        ct:    { tab: "byType", type: "all", expanded: false },
+        dm:    { tab: "byType", type: "all", expanded: false },
+      };
+      document.querySelectorAll("[data-cmp-main-channel]").forEach(b => b.classList.toggle("active", b.dataset.cmpMainChannel === "all"));
+      document.querySelectorAll("[data-cmp-tabs]").forEach(group => {
+        group.querySelectorAll("[data-cmp-tab]").forEach(b => b.classList.toggle("active", b.dataset.cmpTab === "byType"));
+      });
+      $("cmpTopNSelect").value = "10";
+      document.querySelectorAll("[data-cmp-card-topn]").forEach(sel => { sel.value = "5"; });
+      cmpRenderAll();
     });
+    function cmpOnTypeChangeSilent() { $("cmpTypeFilter").value = "all"; $("cmpTypeFilterLocal").value = "all"; }
     $("sttUploadToggle").addEventListener("click", ()=>{
       const panel = $("sttUploadPanel");
       if (!panel) return;
