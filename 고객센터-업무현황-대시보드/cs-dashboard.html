@@ -893,6 +893,11 @@
     #tab-complaint .hbar-list--scroll { max-height: 220px; }
     #tab-complaint .cmp-chart-body--sm.hbar-list--scroll { max-height: 140px; }
 
+    /* 전체 문의 유형별 건수(축 있는 canvas 차트)가 min-height를 무시하고
+       내용(canvas) 크기만큼 부모를 부풀리는 flex 자동 최소 크기 문제 방지 */
+    #tab-complaint #ovChartBody { height: 145px; min-height: 0; overflow: hidden; }
+    #tab-complaint #ovChartBody .chart-area { min-height: 0; }
+
     #tab-complaint .channel-type-grid { gap: 10px; margin-bottom: 8px; }
     #tab-complaint .cmp-channel-card { padding: 11px 13px; }
     #tab-complaint .cmp-channel-header { margin-bottom: 8px; }
