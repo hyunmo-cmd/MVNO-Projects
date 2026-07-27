@@ -706,6 +706,9 @@
     .kpis--stack .kpi-body { grid-column: 2; grid-row: 2; }
     .kpis--stack .kpi-value { font-size: 26px; }
 
+    /* 민원 현황 KPI: 2x2 그리드 (아이콘 상단 · 건수/라벨 하단) */
+    .kpis--grid2 { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; flex: 1; margin-bottom: 0; }
+
     /* 차트 카드 내부 탭 (유형별 건수 / 일별 추이 / 월별 추이) */
     .chart-tabs {
       display: flex; gap: 4px; flex-shrink: 0;
@@ -866,11 +869,11 @@
     #tab-complaint .cmp-section-sub { font-size: 11px; }
     #tab-complaint .cmp-chart-hint { font-size: 10px; }
 
-    #tab-complaint .kpis--stack { gap: 6px; }
-    #tab-complaint .kpis--stack .kpi-card { padding: 10px 13px; grid-template-columns: 34px 1fr; column-gap: 10px; }
-    #tab-complaint .kpis--stack .kpi-icon-wrap { width: 30px; height: 30px; border-radius: 8px; }
-    #tab-complaint .kpis--stack .kpi-icon-wrap svg { width: 15px; height: 15px; }
-    #tab-complaint .kpis--stack .kpi-value { font-size: 21px; }
+    #tab-complaint .kpis--grid2 { gap: 8px; }
+    #tab-complaint .kpis--grid2 .kpi-card { padding: 10px 12px; gap: 6px; }
+    #tab-complaint .kpis--grid2 .kpi-icon-wrap { width: 26px; height: 26px; border-radius: 7px; }
+    #tab-complaint .kpis--grid2 .kpi-icon-wrap svg { width: 13px; height: 13px; }
+    #tab-complaint .kpis--grid2 .kpi-value { font-size: 22px; }
     #tab-complaint .kpi-unit { font-size: 11px; }
     #tab-complaint .kpi-label { font-size: 11px; }
 
@@ -1264,7 +1267,7 @@
           <div class="cmp-section-header">
             <h2 class="cmp-section-title">민원 현황</h2>
           </div>
-          <section class="kpis kpis--stack" aria-label="민원 현황 KPI">
+          <section class="kpis kpis--grid2" aria-label="민원 현황 KPI">
             <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
               <div class="kpi-header"><div class="kpi-icon-wrap">
                 <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
