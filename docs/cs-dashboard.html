@@ -6498,15 +6498,17 @@
 
         if (opts.axisChart) {
           // 상단 통합 카드: 축이 있는 canvas 가로 막대 차트 (막대 클릭 시 일별 추이로 드릴다운)
+          // 카드 높이가 좌측 민원 현황과 stretch 되면서 canvas가 그 높이를 다시 intrinsic 크기로
+          // 굳혀버리는 순환 확대를 막기 위해 항상 명시적인 max-height를 지정한다 (민원 현황 카드 높이 기준).
           const scroll = topN === "all" && sorted.length > 10;
           el.style.overflowY = scroll ? "auto" : "";
-          el.style.maxHeight = scroll ? "420px" : "";
+          el.style.maxHeight = scroll ? "420px" : "260px";
           if (el.dataset.mode !== "canvas") {
             el.innerHTML = `<div class="chart-area"><canvas id="${canvasId}"></canvas></div>`;
             el.dataset.mode = "canvas";
           }
           const wrap = el.querySelector(".chart-area");
-          if (wrap) wrap.style.height = scroll ? Math.max(sorted.length * 30, 260) + "px" : "";
+          if (wrap) wrap.style.height = scroll ? Math.max(sorted.length * 30, 260) + "px" : "260px";
           requestAnimationFrame(() => {
             const canvas = $(canvasId);
             if (canvas) drawHBarChart(canvas, limited.map(e => e[0]), limited.map(e => e[1]), {
