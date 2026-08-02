@@ -692,6 +692,7 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
+      align-self: flex-start;
     }
     /* 민원 현황 KPI: 세로 스택 (아이콘 좌측 · 라벨/값 우측) */
     .kpis--stack { display: flex; flex-direction: column; gap: 10px; flex: 1; margin-bottom: 0; }
@@ -921,6 +922,7 @@
       .channel-type-grid { grid-template-columns: 1fr; }
       .cmp-top-grid { flex-direction: column; }
       .cmp-overview-left, .cmp-overview-right { flex: 1 1 auto; max-width: none; }
+      .cmp-overview-right { align-self: stretch; }
     }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
