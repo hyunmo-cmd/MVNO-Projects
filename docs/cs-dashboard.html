@@ -363,7 +363,7 @@
     .input-subtab-btn.active { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
     .input-subtab-btn:hover:not(.active) { color: var(--text-2); }
     .input-subtab-panel.hidden { display: none; }
-    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .upload-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
     .upload-slot {
       background: var(--bg); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 14px; display: grid; gap: 8px;
@@ -956,9 +956,11 @@
 
     @media (max-width: 1200px) {
       .channel-type-grid { grid-template-columns: 1fr 1fr; }
+      .upload-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 900px) {
       .channel-type-grid { grid-template-columns: 1fr; }
+      .upload-grid { grid-template-columns: 1fr; }
       .cmp-top-grid { flex-direction: column; }
       .cmp-overview-left, .cmp-overview-right { flex: 1 1 auto; max-width: none; }
       .cmp-overview-right { align-self: stretch; }
@@ -1005,7 +1007,7 @@
         </div>
 
         <div class="input-subtab-panel hidden" id="inputSubtab-upload">
-          <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡</span></p>
+          <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡 · 1:1 문의</span></p>
           <div class="upload-grid">
             <div class="upload-slot">
               <p class="upload-slot-title">유선 문의 CSV <span class="upload-slot-ext">.csv</span></p>
@@ -1040,6 +1042,22 @@
               <div class="preview-wrap" id="channelPreviewWrap">
                 <div class="preview-label">미리보기 (최대 5행)</div>
                 <div class="preview-scroll"><table class="preview-table" id="channelPreviewTable"></table></div>
+              </div>
+            </div>
+            <div class="upload-slot">
+              <p class="upload-slot-title">1:1 문의 Excel <span class="upload-slot-ext">.xlsx</span></p>
+              <label class="upload-dropzone" id="dmWorkDropzone">
+                <svg class="upload-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span class="upload-dropzone-text">클릭하거나 파일을 끌어다 놓으세요</span>
+                <input id="dmWorkFile" type="file" accept=".xlsx">
+              </label>
+              <div class="upload-file-row">
+                <div class="upload-filename" id="dmWorkFileName">파일을 선택해주세요</div>
+                <button id="dmWorkClearBtn" class="upload-file-clear" type="button" title="파일 취소" style="display:none">×</button>
+              </div>
+              <div class="preview-wrap" id="dmWorkPreviewWrap">
+                <div class="preview-label">미리보기 (최대 5행)</div>
+                <div class="preview-scroll"><table class="preview-table" id="dmWorkPreviewTable"></table></div>
               </div>
             </div>
           </div>
@@ -1484,7 +1502,39 @@
             <span class="cmp-channel-badge cmp-channel-badge--dm">✉ 1:1</span>
             <span class="cmp-channel-title">1:1 문의</span>
             <div class="cmp-channel-header-actions">
+              <button class="btn btn-ghost" id="dmUploadToggle" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px">Excel 업로드</button>
               <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="dm">전체 보기</button>
+            </div>
+          </div>
+
+          <!-- 1:1 문의 Excel 업로드 패널 (토글) -->
+          <div id="dmUploadPanel" style="display:none;margin-bottom:12px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+            <p class="ai-desc" style="margin-bottom:8px">1:1 문의 처리 Excel(.xlsx)을 업로드하면 처리 완료 건이 문의 유형별로 집계됩니다.</p>
+            <div class="upload-slot" style="margin-bottom:0">
+              <label>1:1 문의 Excel <small>(.xlsx)</small>
+                <input id="dmFile" type="file" accept=".xlsx">
+              </label>
+              <div class="upload-filename" id="dmFileName">파일을 선택해주세요</div>
+            </div>
+            <div id="dmResultArea" style="display:none;margin-top:12px">
+              <div class="ai-result-header">
+                <div><span class="ai-result-title">분석 결과</span><span id="dmResultStats" class="ai-stats"></span></div>
+              </div>
+              <p id="dmResultSummary" class="cmp-chart-hint" style="margin-bottom:8px"></p>
+              <div class="ai-result-table-wrap">
+                <table class="ai-result-table">
+                  <thead><tr>
+                    <th>날짜</th><th>상담사</th><th>문의 유형</th>
+                    <th style="width:60px;text-align:right">건수</th>
+                    <th style="width:36px">제외</th>
+                  </tr></thead>
+                  <tbody id="dmResultBody"></tbody>
+                </table>
+              </div>
+              <div class="ai-result-footer">
+                <span id="dmResultWarning" class="ai-warning"></span>
+                <button class="btn btn-primary" id="dmConfirmBtn" type="button">민원 데이터 반영</button>
+              </div>
             </div>
           </div>
 
@@ -6095,7 +6145,7 @@
     }
 
 
-    const pending = { phone: null, channel: null };
+    const pending = { phone: null, channel: null, dm: null };
 
     function showUploadMsg(type, text) {
       const el = $("uploadMsg");
@@ -6277,6 +6327,31 @@
         showUploadMsg("error", `채널톡 Excel 오류: ${error.message}`);
       }
     });
+    $("dmWorkFile").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      $("dmWorkFileName").textContent = file.name;
+      $("dmWorkClearBtn").style.display = "inline-flex";
+      try {
+        // 업무 입력 탭은 날짜+상담사별 합산 건수만 필요하고, mergeUploadedRows가
+        // 같은 (날짜·상담사·소분류) 조합을 덮어쓰는 방식이라 재업로드 시 자동으로
+        // 중복 없이 갱신된다. 그래서 세션 한정(빈 Set) dedup만 적용한다.
+        const parsed = parseOneToOneXlsx(await file.arrayBuffer(), new Set());
+        const newRows = parsed.dailyTotals.map(g => ({
+          dateText: g.date, date: parseDate(g.date), month: monthLabel(parseDate(g.date)),
+          counselor: g.counselor, main: "고객 상담 업무", sub: "1:1 문의", count: g.count, minutes: 0, source: "one_to_one_excel"
+        }));
+        if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. (처리 완료 · 상담사 매핑된 행 없음)");
+        pending.dm = { rows: newRows, name: file.name, summary: parsed.summary };
+        renderPreview(newRows, "dmWorkPreviewTable", "dmWorkPreviewWrap");
+        const s = parsed.summary;
+        showUploadMsg("success", `1:1 문의 Excel 로드 완료 (전체 ${nf.format(s.totalRows)}행 · 처리대상 ${nf.format(s.validRows)}건 · 접수제외 ${nf.format(s.receptionExcluded)} · 미매핑 ${nf.format(s.unmappedCounselor)}) — 반영하기 버튼을 눌러 적용하세요.`);
+      } catch (error) {
+        pending.dm = null;
+        renderPreview(null, "dmWorkPreviewTable", "dmWorkPreviewWrap");
+        showUploadMsg("error", `1:1 문의 Excel 오류: ${error.message}`);
+      }
+    });
 
     // 파일 업로드 드롭존: 클릭은 label-input 연결로 처리되고, 드래그&드롭만 여기서 보강한다
     function wireUploadDropzone(dropzoneId, inputId) {
@@ -6297,9 +6372,10 @@
     }
     wireUploadDropzone("phoneDropzone", "phoneFile");
     wireUploadDropzone("channelDropzone", "channelFile");
+    wireUploadDropzone("dmWorkDropzone", "dmWorkFile");
 
     $("applyBtn").addEventListener("click", () => {
-      if (!pending.phone && !pending.channel) {
+      if (!pending.phone && !pending.channel && !pending.dm) {
         showUploadMsg("error", "반영할 파일이 없습니다. 파일을 먼저 선택해주세요.");
         return;
       }
@@ -6321,6 +6397,11 @@
           state.rows = mergeUploadedRows(pending.channel.rows, "채널톡");
           labels.push(`채널톡: ${pending.channel.name}`);
           pending.channel = null;
+        }
+        if (pending.dm) {
+          state.rows = mergeUploadedRows(pending.dm.rows, "1:1 문의");
+          labels.push(`1:1 문의: ${pending.dm.name}`);
+          pending.dm = null;
         }
         setFilters(state.rows);
         applyFilters();
@@ -6473,6 +6554,106 @@
     let sttPending = [], sttIdCounter = 1;
     let sttFp = null, sttFpSuppress = false;
 
+    // ── 1:1 문의 Excel 업로드 (민원 관리 탭 + 업무 입력 탭 공용 파서) ──
+    const DM_COMPLAINT_KEY = "mvno-dm-complaint-v1";
+    const DM_DEDUP_KEYS_KEY = "mvno-dm-complaint-keys-v1";
+    const DM_COUNSELOR_MAP = { junakira: "김순옥", wlstnwls12: "진수진" };
+
+    let dmComplaintState = { records: [] }; // [{date, counselor, type, count}] · 문의 유형별 합산 데이터
+    let dmDedupKeys = new Set();            // 민원 관리 탭에 이미 반영된 (NO|처리일|처리자) 식별키 (누적)
+    let dmPendingGroups = [];               // 민원 관리 탭 업로드 미리보기 (반영 전)
+    let dmPendingSummary = null;
+
+    function loadDmComplaints() {
+      try { dmComplaintState.records = JSON.parse(localStorage.getItem(DM_COMPLAINT_KEY) || "[]"); }
+      catch { dmComplaintState.records = []; }
+      try { dmDedupKeys = new Set(JSON.parse(localStorage.getItem(DM_DEDUP_KEYS_KEY) || "[]")); }
+      catch { dmDedupKeys = new Set(); }
+    }
+    function saveDmComplaints() {
+      localStorage.setItem(DM_COMPLAINT_KEY, JSON.stringify(dmComplaintState.records));
+      localStorage.setItem(DM_DEDUP_KEYS_KEY, JSON.stringify([...dmDedupKeys]));
+    }
+
+    // 1:1 문의 처리 Excel 공용 파서.
+    // C=NO, D=등록일(미사용), E=상담유형, F~I=개인정보(미사용), J=처리구분, K=처리일, L=처리자
+    // persistedDedupKeys: 이미 반영 완료로 간주할 (NO|처리일|처리자) 식별키 집합. 호출부에서
+    // 민원 관리 탭은 누적된 dmDedupKeys를, 업무 입력 탭은 매번 새 Set()을 넘겨 서로 간섭하지 않는다.
+    function parseOneToOneXlsx(arrayBuffer, persistedDedupKeys) {
+      if (typeof XLSX === "undefined") throw new Error("Excel 파싱 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.");
+      const wb = XLSX.read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      if (!ws || !ws["!ref"]) throw new Error("시트를 읽을 수 없습니다.");
+      const range = XLSX.utils.decode_range(ws["!ref"]);
+      const cellText = (col, rowNum) => {
+        const cell = ws[col + rowNum];
+        if (!cell) return "";
+        if (cell.w !== undefined) return String(cell.w).trim();
+        if (cell.v !== undefined) return String(cell.v).trim();
+        return "";
+      };
+
+      let totalRows = 0, validRows = 0, receptionExcluded = 0, duplicateExcluded = 0, unmappedCounselor = 0;
+      const unmappedBreakdown = {};
+      const groupMap = new Map();   // date|counselor|type -> {count, keys[]} (민원 관리 탭용)
+      const dailyMap = new Map();   // date|counselor -> count (업무 입력 탭용)
+      const sessionSeenKeys = new Set();
+      const newDedupKeys = [];
+
+      for (let r = 3; r <= range.e.r + 1; r++) {
+        const no = cellText("C", r);
+        const type = cellText("E", r);
+        const jval = cellText("J", r);
+        const kraw = cellText("K", r);
+        const lval = cellText("L", r);
+        if (!no && !type && !jval && !kraw && !lval) continue; // 완전 빈 행
+        totalRows++;
+
+        if (jval === "접수") { receptionExcluded++; continue; }
+        if (jval !== "처리" || !kraw || !lval || !type) continue; // 조건 미충족
+
+        validRows++;
+
+        const m = kraw.match(/(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+        if (!m) continue;
+        const date = `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+
+        const dedupKey = `${no}|${date}|${lval}`;
+        if (persistedDedupKeys.has(dedupKey) || sessionSeenKeys.has(dedupKey)) { duplicateExcluded++; continue; }
+        sessionSeenKeys.add(dedupKey);
+
+        const counselor = DM_COUNSELOR_MAP[lval];
+        if (!counselor) {
+          unmappedCounselor++;
+          unmappedBreakdown[lval] = (unmappedBreakdown[lval] || 0) + 1;
+          continue;
+        }
+
+        const gk = `${date}|${counselor}|${type}`;
+        const g = groupMap.get(gk) || { count: 0, keys: [] };
+        g.count++; g.keys.push(dedupKey);
+        groupMap.set(gk, g);
+        const dk = `${date}|${counselor}`;
+        dailyMap.set(dk, (dailyMap.get(dk) || 0) + 1);
+        newDedupKeys.push(dedupKey);
+      }
+
+      const groups = [...groupMap.entries()].map(([key, g]) => {
+        const [date, counselor, type] = key.split("|");
+        return { date, counselor, type, count: g.count, keys: g.keys, excluded: false };
+      }).sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.counselor.localeCompare(b.counselor, "ko"));
+
+      const dailyTotals = [...dailyMap.entries()].map(([key, count]) => {
+        const [date, counselor] = key.split("|");
+        return { date, counselor, count };
+      });
+
+      return {
+        summary: { totalRows, validRows, receptionExcluded, duplicateExcluded, unmappedCounselor, unmappedBreakdown },
+        groups, dailyTotals, dedupKeys: newDedupKeys
+      };
+    }
+
     // 전체보기 모달용 최신 집계 데이터
     let cmpLatestData = { allTypes: {}, phoneTypeCounts: {}, ctTypeCounts: {}, dmTypeCounts: {}, totalAll: 0, phoneTotal: 0, ctTotal: 0, dmTotal: 0 };
     let cmpModalState = { channel: null, sortKey: "count", sortDir: "desc", search: "" };
@@ -6514,19 +6695,25 @@
       days.forEach(d => Object.entries(d.counts || {}).forEach(([k, v]) => { m[k] = (m[k] || 0) + v; }));
       return m;
     }
+    // dm 레코드는 이미 (날짜·상담사·유형)별로 합산된 상태라 건수(count)를 그대로 더한다
+    function cmpDmTypeCounts(records) {
+      const m = {};
+      records.forEach(r => { m[r.type] = (m[r.type] || 0) + r.count; });
+      return m;
+    }
     function cmpMergeTypeCounts(...maps) {
       const out = {};
       maps.forEach(m => Object.entries(m).forEach(([k, v]) => { out[k] = (out[k] || 0) + v; }));
       return out;
     }
-    // channel: 'all' | 'phone' | 'ct' | 'dm', ctx: { phoneRecords, ctDays }
+    // channel: 'all' | 'phone' | 'ct' | 'dm', ctx: { phoneRecords, ctDays, dmRecords }
     function cmpChannelTypeCounts(channel, ctx) {
       if (channel === "phone") return cmpPhoneTypeCounts(ctx.phoneRecords);
       if (channel === "ct") return cmpCtTypeCounts(ctx.ctDays);
-      if (channel === "dm") return {}; // 1:1 데이터 연동 준비 중
-      return cmpMergeTypeCounts(cmpPhoneTypeCounts(ctx.phoneRecords), cmpCtTypeCounts(ctx.ctDays));
+      if (channel === "dm") return cmpDmTypeCounts(ctx.dmRecords);
+      return cmpMergeTypeCounts(cmpPhoneTypeCounts(ctx.phoneRecords), cmpCtTypeCounts(ctx.ctDays), cmpDmTypeCounts(ctx.dmRecords));
     }
-    // 날짜별 건수 집계 (일별 추이용). channel === 'all'이면 유선+채널톡 합산
+    // 날짜별 건수 집계 (일별 추이용). channel === 'all'이면 유선+채널톡+1:1 합산
     // type이 'all'이 아니면 해당 문의 유형 하나만의 추이를 뽑는다 (카드별 로컬 문의 유형 필터)
     function cmpChannelDateCounts(channel, ctx, type) {
       type = type || "all";
@@ -6539,10 +6726,14 @@
         const c = type === "all" ? (d.total || 0) : ((d.counts || {})[type] || 0);
         if (c > 0) dateCounts[d.date] = (dateCounts[d.date] || 0) + c;
       });
+      const addDm = () => ctx.dmRecords.forEach(r => {
+        if (type !== "all" && r.type !== type) return;
+        dateCounts[r.date] = (dateCounts[r.date] || 0) + r.count;
+      });
       if (channel === "phone") addPhone();
       else if (channel === "ct") addCt();
-      else if (channel === "dm") { /* 데이터 없음 */ }
-      else { addPhone(); addCt(); }
+      else if (channel === "dm") addDm();
+      else { addPhone(); addCt(); addDm(); }
       return dateCounts;
     }
     function cmpToMonthlyCounts(dateCounts) {
@@ -6796,6 +6987,65 @@
       });
     }
 
+    // 1:1 문의 (민원 관리 탭) 업로드 미리보기 · 반영
+    function renderDmPreview(groups) {
+      dmPendingGroups = groups;
+      const area = $("dmResultArea");
+      if (!area) return;
+      if (!groups.length) { area.style.display = "none"; return; }
+      area.style.display = "block";
+      const activeTotal = groups.reduce((s, g) => s + (g.excluded ? 0 : g.count), 0);
+      $("dmResultStats").textContent = `${groups.length}개 그룹 · ${nf.format(activeTotal)}건`;
+      $("dmResultBody").innerHTML = groups.map((g, i) => `
+        <tr style="${g.excluded ? "opacity:0.4" : ""}">
+          <td>${escapeHtml(g.date)}</td>
+          <td>${escapeHtml(g.counselor)}</td>
+          <td>${escapeHtml(g.type)}</td>
+          <td style="text-align:right">${nf.format(g.count)}</td>
+          <td><button type="button" class="del-btn" style="color:${g.excluded ? "var(--green)" : "var(--red)"}" onclick="dmToggleExclude(${i})" title="${g.excluded ? "포함" : "제외"}">${g.excluded ? "↩" : "×"}</button></td>
+        </tr>`).join("");
+    }
+
+    function dmToggleExclude(idx) {
+      const g = dmPendingGroups[idx];
+      if (g) g.excluded = !g.excluded;
+      renderDmPreview(dmPendingGroups);
+    }
+
+    function confirmDmResults() {
+      const toAdd = dmPendingGroups.filter(g => !g.excluded);
+      if (!toAdd.length) { alert("반영할 데이터가 없습니다."); return; }
+
+      toAdd.forEach(g => {
+        const existing = dmComplaintState.records.find(r => r.date === g.date && r.counselor === g.counselor && r.type === g.type);
+        if (existing) existing.count += g.count;
+        else dmComplaintState.records.push({ date: g.date, counselor: g.counselor, type: g.type, count: g.count });
+        (g.keys || []).forEach(k => dmDedupKeys.add(k));
+      });
+      saveDmComplaints();
+
+      const addedCount = toAdd.reduce((s, g) => s + g.count, 0);
+      $("dmFile").value = ""; $("dmResultArea").style.display = "none";
+      $("dmFileName").textContent = "파일을 선택해주세요";
+      dmPendingGroups = []; dmPendingSummary = null;
+      renderComplaintOverview();
+      alert(`${nf.format(addedCount)}건이 1:1 문의 데이터에 반영되었습니다.`);
+    }
+
+    function dmGetFiltered() {
+      const start = $("cmpStartDate")?.value || "";
+      const end   = $("cmpEndDate")?.value   || "";
+      const agent = $("cmpCounselorFilter")?.value || "all";
+      const type  = $("cmpTypeFilter")?.value || "all";
+      return dmComplaintState.records.filter(r => {
+        if (start && r.date < start) return false;
+        if (end   && r.date > end)   return false;
+        if (agent !== "all" && r.counselor !== agent) return false;
+        if (type  !== "all" && r.type !== type) return false;
+        return true;
+      });
+    }
+
     // 날짜 범위만 반영한 채널톡 일자 목록. type이 'all'이 아니면 해당 유형 건수만 남긴다.
     function ctGetFilteredDays(start, end, type) {
       if (!ctState.loaded) return [];
@@ -6822,7 +7072,13 @@
         return true;
       });
       const ctDays = ctGetFilteredDays(start, end, "all");
-      return cmpMergeTypeCounts(cmpPhoneTypeCounts(phoneRecs), cmpCtTypeCounts(ctDays));
+      const dmRecs = dmComplaintState.records.filter(r => {
+        if (start && r.date < start) return false;
+        if (end   && r.date > end)   return false;
+        if (agent !== "all" && r.counselor !== agent) return false;
+        return true;
+      });
+      return cmpMergeTypeCounts(cmpPhoneTypeCounts(phoneRecs), cmpCtTypeCounts(ctDays), cmpDmTypeCounts(dmRecs));
     }
 
     function cmpSyncTypeSelects(sortedTypeOptions, current) {
@@ -6837,7 +7093,10 @@
     }
 
     function phoneComplaintRender() {
-      const allAgents = [...new Set(phoneComplaintState.records.map(r => r.agent))].filter(Boolean).sort((a,b)=>a.localeCompare(b,"ko"));
+      const allAgents = [...new Set([
+        ...phoneComplaintState.records.map(r => r.agent),
+        ...dmComplaintState.records.map(r => r.counselor)
+      ])].filter(Boolean).sort((a,b)=>a.localeCompare(b,"ko"));
       const sel = $("cmpCounselorFilter");
       if (sel) {
         const cur = sel.value;
@@ -6943,14 +7202,16 @@
     function cmpBuildLatestData(ctx) {
       const phoneTypeCounts = cmpPhoneTypeCounts(ctx.phoneRecords);
       const ctTypeCounts = cmpCtTypeCounts(ctx.ctDays);
-      const dmTypeCounts = {};
+      const dmTypeCounts = cmpDmTypeCounts(ctx.dmRecords);
       const allTypes = {};
-      Object.entries(phoneTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0})).total += n; allTypes[t].phone += n; });
-      Object.entries(ctTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0})).total += n; allTypes[t].ct += n; });
+      Object.entries(phoneTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0,dm:0})).total += n; allTypes[t].phone += n; });
+      Object.entries(ctTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0,dm:0})).total += n; allTypes[t].ct += n; });
+      Object.entries(dmTypeCounts).forEach(([t,n]) => { (allTypes[t] || (allTypes[t] = {total:0,phone:0,ct:0,dm:0})).total += n; allTypes[t].dm += n; });
       const totalAll = Object.values(allTypes).reduce((s,v)=>s+v.total,0);
       const phoneTotal = Object.values(phoneTypeCounts).reduce((s,v)=>s+v,0);
       const ctTotal = Object.values(ctTypeCounts).reduce((s,v)=>s+v,0);
-      return { allTypes, phoneTypeCounts, ctTypeCounts, dmTypeCounts, totalAll, phoneTotal, ctTotal, dmTotal: 0 };
+      const dmTotal = Object.values(dmTypeCounts).reduce((s,v)=>s+v,0);
+      return { allTypes, phoneTypeCounts, ctTypeCounts, dmTypeCounts, totalAll, phoneTotal, ctTotal, dmTotal };
     }
 
     // ── 민원 관리 탭 전체 렌더 진입점 ─────────────────────────
@@ -6961,12 +7222,13 @@
 
       const phoneRecords = sttGetFiltered();
       const ctDays = ctGetFilteredDays(cmpStart, cmpEnd, globalType);
-      const ctx = { phoneRecords, ctDays };
+      const dmRecords = dmGetFiltered();
+      const ctx = { phoneRecords, ctDays, dmRecords };
 
       // ── KPI (2x2) ────────────────────────────────────────
       const phoneCount = phoneRecords.length;
       let ctCount = 0; ctDays.forEach(d => ctCount += d.total || 0);
-      const dmCount = 0;
+      const dmCount = dmRecords.reduce((s, r) => s + r.count, 0);
       const totalCount = phoneCount + ctCount + dmCount;
       const sel = (id, val) => { const el = $(id); if (el) el.textContent = val; };
       sel("ovTotalCount", nf.format(totalCount));
@@ -6999,7 +7261,7 @@
     function cmpGetChannelEntries(channel) {
       const d = cmpLatestData;
       if (channel === "overview") {
-        return Object.entries(d.allTypes).map(([type,v]) => ({ type, count: v.total, phone: v.phone, ct: v.ct }));
+        return Object.entries(d.allTypes).map(([type,v]) => ({ type, count: v.total, phone: v.phone, ct: v.ct, dm: v.dm }));
       }
       const map = channel === "phone" ? d.phoneTypeCounts : channel === "ct" ? d.ctTypeCounts : d.dmTypeCounts;
       return Object.entries(map).map(([type,count]) => ({ type, count }));
@@ -7031,7 +7293,7 @@
 
       const isOverview = channel === "overview";
       const cols = isOverview
-        ? [["rank","순위"],["type","문의 유형"],["count","총 건수"],["pct","비율"],["phone","📞 유선"],["ct","💬 채널톡"]]
+        ? [["rank","순위"],["type","문의 유형"],["count","총 건수"],["pct","비율"],["phone","📞 유선"],["ct","💬 채널톡"],["dm","✉ 1:1"]]
         : [["rank","순위"],["type","문의 유형"],["count","건수"],["pct","비율"]];
 
       $("cmpModalThead").innerHTML = cols.map(([key,label]) => {
@@ -7066,6 +7328,7 @@
         if (isOverview) {
           cells.push(`<td style="text-align:right">${e.phone>0?nf.format(e.phone):"—"}</td>`);
           cells.push(`<td style="text-align:right">${e.ct>0?nf.format(e.ct):"—"}</td>`);
+          cells.push(`<td style="text-align:right">${e.dm>0?nf.format(e.dm):"—"}</td>`);
         }
         return `<tr>${cells.join("")}</tr>`;
       }).join("");
@@ -7212,6 +7475,44 @@
 
     $("sttConfirmBtn").addEventListener("click", confirmSttResults);
 
+    $("dmUploadToggle").addEventListener("click", () => {
+      const panel = $("dmUploadPanel");
+      if (!panel) return;
+      const open = panel.style.display !== "none";
+      panel.style.display = open ? "none" : "block";
+      $("dmUploadToggle").textContent = open ? "Excel 업로드" : "닫기";
+    });
+
+    $("dmFile").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      $("dmFileName").textContent = `${file.name} — 분석 중…`;
+      try {
+        const parsed = parseOneToOneXlsx(await file.arrayBuffer(), dmDedupKeys);
+        dmPendingSummary = parsed.summary;
+        if (!parsed.groups.length) {
+          $("dmFileName").textContent = parsed.summary.duplicateExcluded > 0
+            ? `새로 반영할 데이터가 없습니다. (전체 ${nf.format(parsed.summary.validRows)}건 모두 이미 반영됨)`
+            : "처리 가능한 데이터가 없습니다. (처리 완료 · 상담사 매핑된 행 없음)";
+          $("dmResultArea").style.display = "none";
+          return;
+        }
+        $("dmFileName").textContent = `${file.name} (${nf.format(parsed.summary.validRows)}건 처리 완료 감지)`;
+        const s = parsed.summary;
+        const unmappedText = Object.entries(s.unmappedBreakdown).map(([k, v]) => `${k}(${v}건)`).join(", ");
+        $("dmResultSummary").textContent =
+          `전체 ${nf.format(s.totalRows)}행 · 처리 대상 ${nf.format(s.validRows)}건 · 접수 제외 ${nf.format(s.receptionExcluded)}건 · 중복 제외 ${nf.format(s.duplicateExcluded)}건` +
+          (s.unmappedCounselor ? ` · 처리자 미매핑 ${nf.format(s.unmappedCounselor)}건 (${unmappedText})` : "");
+        renderDmPreview(parsed.groups);
+      } catch (err) {
+        alert("Excel 파일 읽기 오류: " + err.message);
+        $("dmFileName").textContent = "파일을 선택해주세요";
+        $("dmResultArea").style.display = "none";
+      }
+    });
+
+    $("dmConfirmBtn").addEventListener("click", confirmDmResults);
+
     $("ctRefreshComplaint").addEventListener("click", async () => {
       const btn = $("ctRefreshComplaint");
       btn.disabled=true; btn.textContent="불러오는 중…";
@@ -7240,6 +7541,7 @@
       });
     });
 
+    loadDmComplaints();
     loadPhoneComplaints().then(phoneComplaintRender);
     phoneComplaintRender();
     initManualForm();
