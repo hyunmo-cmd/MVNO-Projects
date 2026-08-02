@@ -350,6 +350,19 @@
       font-size: 11px; font-weight: 600; padding: 2px 8px;
       border-radius: 20px; background: var(--blue-50); color: var(--blue);
     }
+    .input-subtabs {
+      display: flex; gap: 2px; margin-bottom: 16px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 4px; width: fit-content;
+    }
+    .input-subtab-btn {
+      padding: 7px 18px; background: transparent; border: none; border-radius: 6px;
+      color: var(--muted); font: inherit; font-weight: 600; font-size: 13px;
+      cursor: pointer; white-space: nowrap; transition: all 0.15s ease;
+    }
+    .input-subtab-btn.active { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
+    .input-subtab-btn:hover:not(.active) { color: var(--text-2); }
+    .input-subtab-panel.hidden { display: none; }
     .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
     .upload-slot {
       background: var(--bg); border: 1px solid var(--border);
@@ -959,115 +972,127 @@
     <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
     <div class="tab-panel" id="tab-input">
       <div class="input-panel">
-        <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡</span></p>
-        <div class="upload-grid">
-          <div class="upload-slot">
-            <label>유선 문의 CSV <small>(.csv)</small>
-              <input id="phoneFile" type="file" accept=".csv,text/csv">
-            </label>
-            <div style="display:flex;align-items:center;gap:6px;min-height:18px">
-              <div class="upload-filename" id="phoneFileName" style="flex:1">파일을 선택해주세요</div>
-              <button id="phoneClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
-            </div>
-            <div class="preview-wrap" id="phonePreviewWrap">
-              <div class="preview-label">미리보기 (최대 5행)</div>
-              <div class="preview-scroll"><table class="preview-table" id="phonePreviewTable"></table></div>
-            </div>
-          </div>
-          <div class="upload-slot">
-            <label>채널톡 Excel <small>(.xlsx)</small>
-              <input id="channelFile" type="file" accept=".xlsx">
-            </label>
-            <label>파일 암호 <small>(암호가 걸려 있는 경우)</small>
-              <input id="channelPassword" type="password" placeholder="암호를 입력하세요" autocomplete="off">
-            </label>
-            <div style="display:flex;align-items:center;gap:6px;min-height:18px">
-              <div class="upload-filename" id="channelFileName" style="flex:1">파일을 선택해주세요</div>
-              <button id="channelClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
-            </div>
-            <div class="preview-wrap" id="channelPreviewWrap">
-              <div class="preview-label">미리보기 (최대 5행)</div>
-              <div class="preview-scroll"><table class="preview-table" id="channelPreviewTable"></table></div>
-            </div>
-          </div>
-        </div>
-        <div class="upload-actions">
-          <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
-          <div class="upload-msg" id="uploadMsg"></div>
+        <div class="input-subtabs" role="tablist" aria-label="업무 입력 방식">
+          <button class="input-subtab-btn active" data-input-tab="ai" type="button">AI 입력</button>
+          <button class="input-subtab-btn" data-input-tab="upload" type="button">파일 업로드</button>
+          <button class="input-subtab-btn" data-input-tab="manual" type="button">직접 입력</button>
         </div>
 
-        <hr class="section-divider">
+        <div class="input-subtab-panel hidden" id="inputSubtab-upload">
+          <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡</span></p>
+          <div class="upload-grid">
+            <div class="upload-slot">
+              <label>유선 문의 CSV <small>(.csv)</small>
+                <input id="phoneFile" type="file" accept=".csv,text/csv">
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;min-height:18px">
+                <div class="upload-filename" id="phoneFileName" style="flex:1">파일을 선택해주세요</div>
+                <button id="phoneClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
+              </div>
+              <div class="preview-wrap" id="phonePreviewWrap">
+                <div class="preview-label">미리보기 (최대 5행)</div>
+                <div class="preview-scroll"><table class="preview-table" id="phonePreviewTable"></table></div>
+              </div>
+            </div>
+            <div class="upload-slot">
+              <label>채널톡 Excel <small>(.xlsx)</small>
+                <input id="channelFile" type="file" accept=".xlsx">
+              </label>
+              <label>파일 암호 <small>(암호가 걸려 있는 경우)</small>
+                <input id="channelPassword" type="password" placeholder="암호를 입력하세요" autocomplete="off">
+              </label>
+              <div style="display:flex;align-items:center;gap:6px;min-height:18px">
+                <div class="upload-filename" id="channelFileName" style="flex:1">파일을 선택해주세요</div>
+                <button id="channelClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
+              </div>
+              <div class="preview-wrap" id="channelPreviewWrap">
+                <div class="preview-label">미리보기 (최대 5행)</div>
+                <div class="preview-scroll"><table class="preview-table" id="channelPreviewTable"></table></div>
+              </div>
+            </div>
+          </div>
+          <div class="upload-actions">
+            <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
+            <div class="upload-msg" id="uploadMsg"></div>
+          </div>
+        </div>
 
-        <p class="input-section-title">AI 자연어 분석 <span class="badge badge--ai">자동</span></p>
-        <p class="ai-desc">단톡방 업무 보고를 그대로 붙여넣으면 AI가 자동으로 분석합니다.<br>날짜·상담사명이 포함되어 있으면 자동 인식하고, 애매한 경우에는 확인을 요청합니다.</p>
+        <div class="input-subtab-panel" id="inputSubtab-ai">
+          <p class="input-section-title">AI 자연어 분석 <span class="badge badge--ai">자동</span></p>
+          <p class="ai-desc">단톡방 업무 보고를 그대로 붙여넣으면 AI가 자동으로 분석합니다.<br>날짜·상담사명이 포함되어 있으면 자동 인식하고, 애매한 경우에는 확인을 요청합니다.</p>
 
-        <div class="ai-input-wrap">
-          <textarea id="aiTextInput" class="ai-textarea" rows="6" placeholder="예시:
+          <div class="ai-input-wrap">
+            <textarea id="aiTextInput" class="ai-textarea" rows="6" placeholder="예시:
 김순옥 6/27 업무보고
 가입확인서 발급 3건
 유심변경 2건
 해지 1건 30분
 오프라인 개통 2건 60분"></textarea>
-          <div class="ai-actions">
-            <button class="btn btn-primary" id="aiAnalyzeBtn" type="button">분석하기</button>
-            <button class="btn btn-ghost" id="aiClearBtn" type="button">초기화</button>
-            <span class="ai-hint">날짜(예: 6/27)와 상담사 이름이 포함되면 자동으로 인식합니다.</span>
+            <div class="ai-actions">
+              <button class="btn btn-primary" id="aiAnalyzeBtn" type="button">분석하기</button>
+              <button class="btn btn-ghost" id="aiClearBtn" type="button">초기화</button>
+              <span class="ai-hint">날짜(예: 6/27)와 상담사 이름이 포함되면 자동으로 인식합니다.</span>
+            </div>
+          </div>
+
+          <div id="aiResultArea" style="display:none;margin-top:16px">
+            <div class="ai-result-header">
+              <div>
+                <span class="ai-result-title">분석 결과</span>
+                <span id="aiResultStats" class="ai-stats"></span>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="aiAddRowBtn" type="button">+ 행 추가</button>
+            </div>
+
+            <div class="ai-result-table-wrap">
+              <table class="ai-result-table">
+                <thead>
+                  <tr>
+                    <th style="width:26px"></th>
+                    <th>날짜</th>
+                    <th>상담사</th>
+                    <th>대분류</th>
+                    <th>소분류</th>
+                    <th style="width:60px">건수</th>
+                    <th style="width:70px">시간(분)</th>
+                    <th style="width:32px"></th>
+                  </tr>
+                </thead>
+                <tbody id="aiResultBody"></tbody>
+              </table>
+            </div>
+
+            <div class="ai-result-footer">
+              <span id="aiResultWarning" class="ai-warning"></span>
+              <button class="btn btn-primary" id="aiConfirmBtn" type="button">대시보드에 반영</button>
+            </div>
           </div>
         </div>
 
-        <div id="aiResultArea" style="display:none;margin-top:16px">
-          <div class="ai-result-header">
-            <div>
-              <span class="ai-result-title">분석 결과</span>
-              <span id="aiResultStats" class="ai-stats"></span>
-            </div>
-            <button class="btn btn-ghost btn-sm" id="aiAddRowBtn" type="button">+ 행 추가</button>
-          </div>
-
-          <div class="ai-result-table-wrap">
-            <table class="ai-result-table">
-              <thead>
-                <tr>
-                  <th style="width:26px"></th>
-                  <th>날짜</th>
-                  <th>상담사</th>
-                  <th>대분류</th>
-                  <th>소분류</th>
-                  <th style="width:60px">건수</th>
-                  <th style="width:70px">시간(분)</th>
-                  <th style="width:32px"></th>
-                </tr>
-              </thead>
-              <tbody id="aiResultBody"></tbody>
-            </table>
-          </div>
-
-          <div class="ai-result-footer">
-            <span id="aiResultWarning" class="ai-warning"></span>
-            <button class="btn btn-primary" id="aiConfirmBtn" type="button">대시보드에 반영</button>
+        <div class="input-subtab-panel hidden" id="inputSubtab-manual">
+          <p class="input-section-title">직접 입력 <span class="badge">수동</span></p>
+          <div class="manual-form">
+            <label>날짜<input id="manualDate" type="date"></label>
+            <label>상담사<select id="manualCounselor">
+              <option value="">선택</option>
+              <option value="김순옥">김순옥</option>
+              <option value="진수진">진수진</option>
+            </select></label>
+            <label>대분류<select id="manualMain">
+              <option value="">선택</option>
+            </select></label>
+            <label>소분류<select id="manualSub">
+              <option value="">선택</option>
+            </select></label>
+            <label>건수<input id="manualCount" type="number" min="1" placeholder="0"></label>
+            <label>시간(분)<input id="manualMinutes" type="number" min="0" placeholder="0"></label>
+            <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
           </div>
         </div>
 
         <hr class="section-divider">
 
-        <p class="input-section-title">직접 입력 <span class="badge">수동</span></p>
-        <div class="manual-form">
-          <label>날짜<input id="manualDate" type="date"></label>
-          <label>상담사<select id="manualCounselor">
-            <option value="">선택</option>
-            <option value="김순옥">김순옥</option>
-            <option value="진수진">진수진</option>
-          </select></label>
-          <label>대분류<select id="manualMain">
-            <option value="">선택</option>
-          </select></label>
-          <label>소분류<select id="manualSub">
-            <option value="">선택</option>
-          </select></label>
-          <label>건수<input id="manualCount" type="number" min="1" placeholder="0"></label>
-          <label>시간(분)<input id="manualMinutes" type="number" min="0" placeholder="0"></label>
-          <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
-        </div>
+        <p class="input-section-title">최근 입력 내역</p>
         <div class="manual-log">
           <div class="manual-log-header">
             <span>날짜</span><span>상담사</span><span>대분류</span><span>소분류</span>
@@ -7162,6 +7187,15 @@
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
         if (target === "complaint") { loadPhoneComplaints().then(phoneComplaintRender); renderCtSection(); }
+      });
+    });
+
+    // 업무 입력 탭: AI 입력 / 파일 업로드 / 직접 입력 서브탭 전환
+    document.querySelectorAll(".input-subtab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.inputTab;
+        document.querySelectorAll(".input-subtab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        document.querySelectorAll(".input-subtab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `inputSubtab-${target}`));
       });
     });
 
