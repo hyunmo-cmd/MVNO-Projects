@@ -368,15 +368,41 @@
       background: var(--bg); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 14px; display: grid; gap: 8px;
     }
-    .upload-slot label { font-size: 12px; font-weight: 700; color: var(--text); display: grid; gap: 4px; }
-    .upload-slot label small { font-size: 11px; color: var(--muted); font-weight: 400; }
-    .upload-slot input[type="file"],
-    .upload-slot input[type="password"] {
+    .upload-slot-title {
+      font-size: 12px; font-weight: 700; color: var(--text);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .upload-slot-title .upload-slot-ext { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .upload-dropzone {
+      position: relative; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 6px; text-align: center; padding: 22px 12px;
+      border: 1.5px dashed var(--border); border-radius: var(--radius);
+      background: var(--panel); cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .upload-dropzone:hover, .upload-dropzone.dragover { border-color: var(--blue); background: var(--blue-50); }
+    .upload-dropzone-icon { width: 24px; height: 24px; color: var(--muted); }
+    .upload-dropzone:hover .upload-dropzone-icon,
+    .upload-dropzone.dragover .upload-dropzone-icon { color: var(--blue); }
+    .upload-dropzone-text { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .upload-dropzone input[type="file"] {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .upload-password-label { font-size: 12px; font-weight: 700; color: var(--text); display: grid; gap: 4px; }
+    .upload-password-label small { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .upload-password-label input[type="password"] {
       width: 100%; height: 34px; min-height: 34px;
       border: 1px solid var(--border); border-radius: 6px;
       background: var(--panel); color: var(--text); font: inherit; font-size: 12px; padding: 0 10px;
     }
-    .upload-filename { font-size: 11px; color: var(--blue); font-weight: 500; word-break: break-all; min-height: 16px; }
+    .upload-file-row { display: flex; align-items: center; gap: 6px; min-height: 18px; }
+    .upload-file-clear {
+      width: 20px; height: 20px; min-height: 20px; padding: 0;
+      background: transparent; border: 1px solid var(--border); border-radius: 4px;
+      color: var(--muted); font-size: 13px; line-height: 1; cursor: pointer; flex-shrink: 0;
+    }
+    .upload-filename { flex: 1; font-size: 11px; color: var(--blue); font-weight: 500; word-break: break-all; min-height: 16px; }
     .preview-wrap { display: none; margin-top: 4px; }
     .preview-wrap.visible { display: block; }
     .preview-label { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
@@ -982,12 +1008,15 @@
           <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡</span></p>
           <div class="upload-grid">
             <div class="upload-slot">
-              <label>유선 문의 CSV <small>(.csv)</small>
+              <p class="upload-slot-title">유선 문의 CSV <span class="upload-slot-ext">.csv</span></p>
+              <label class="upload-dropzone" id="phoneDropzone">
+                <svg class="upload-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span class="upload-dropzone-text">클릭하거나 파일을 끌어다 놓으세요</span>
                 <input id="phoneFile" type="file" accept=".csv,text/csv">
               </label>
-              <div style="display:flex;align-items:center;gap:6px;min-height:18px">
-                <div class="upload-filename" id="phoneFileName" style="flex:1">파일을 선택해주세요</div>
-                <button id="phoneClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
+              <div class="upload-file-row">
+                <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
+                <button id="phoneClearBtn" class="upload-file-clear" type="button" title="파일 취소" style="display:none">×</button>
               </div>
               <div class="preview-wrap" id="phonePreviewWrap">
                 <div class="preview-label">미리보기 (최대 5행)</div>
@@ -995,15 +1024,18 @@
               </div>
             </div>
             <div class="upload-slot">
-              <label>채널톡 Excel <small>(.xlsx)</small>
+              <p class="upload-slot-title">채널톡 Excel <span class="upload-slot-ext">.xlsx</span></p>
+              <label class="upload-dropzone" id="channelDropzone">
+                <svg class="upload-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span class="upload-dropzone-text">클릭하거나 파일을 끌어다 놓으세요</span>
                 <input id="channelFile" type="file" accept=".xlsx">
               </label>
-              <label>파일 암호 <small>(암호가 걸려 있는 경우)</small>
+              <label class="upload-password-label">파일 암호 <small>(암호가 걸려 있는 경우)</small>
                 <input id="channelPassword" type="password" placeholder="암호를 입력하세요" autocomplete="off">
               </label>
-              <div style="display:flex;align-items:center;gap:6px;min-height:18px">
-                <div class="upload-filename" id="channelFileName" style="flex:1">파일을 선택해주세요</div>
-                <button id="channelClearBtn" type="button" title="파일 취소" style="display:none;width:20px;height:20px;min-height:20px;padding:0;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:13px;line-height:1;cursor:pointer;flex-shrink:0">×</button>
+              <div class="upload-file-row">
+                <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
+                <button id="channelClearBtn" class="upload-file-clear" type="button" title="파일 취소" style="display:none">×</button>
               </div>
               <div class="preview-wrap" id="channelPreviewWrap">
                 <div class="preview-label">미리보기 (최대 5행)</div>
@@ -1087,19 +1119,6 @@
             <label>건수<input id="manualCount" type="number" min="1" placeholder="0"></label>
             <label>시간(분)<input id="manualMinutes" type="number" min="0" placeholder="0"></label>
             <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
-          </div>
-        </div>
-
-        <hr class="section-divider">
-
-        <p class="input-section-title">최근 입력 내역</p>
-        <div class="manual-log">
-          <div class="manual-log-header">
-            <span>날짜</span><span>상담사</span><span>대분류</span><span>소분류</span>
-            <span>건수</span><span>시간(분)</span><span></span><span></span>
-          </div>
-          <div class="manual-log-body" id="manualLogBody">
-            <div class="manual-log-empty">직접 입력한 데이터가 없습니다.</div>
           </div>
         </div>
       </div>
@@ -6258,6 +6277,27 @@
         showUploadMsg("error", `채널톡 Excel 오류: ${error.message}`);
       }
     });
+
+    // 파일 업로드 드롭존: 클릭은 label-input 연결로 처리되고, 드래그&드롭만 여기서 보강한다
+    function wireUploadDropzone(dropzoneId, inputId) {
+      const zone = $(dropzoneId);
+      const input = $(inputId);
+      ["dragenter", "dragover"].forEach(evt => zone.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation(); zone.classList.add("dragover");
+      }));
+      ["dragleave", "drop"].forEach(evt => zone.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation(); zone.classList.remove("dragover");
+      }));
+      zone.addEventListener("drop", e => {
+        const files = e.dataTransfer?.files;
+        if (!files || !files.length) return;
+        input.files = files;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
+    wireUploadDropzone("phoneDropzone", "phoneFile");
+    wireUploadDropzone("channelDropzone", "channelFile");
+
     $("applyBtn").addEventListener("click", () => {
       if (!pending.phone && !pending.channel) {
         showUploadMsg("error", "반영할 파일이 없습니다. 파일을 먼저 선택해주세요.");
@@ -6330,6 +6370,7 @@
     });
     function renderManualLog() {
       const body = $("manualLogBody");
+      if (!body) return;
       if (!state.manualRows.length) {
         body.innerHTML = '<div class="manual-log-empty">직접 입력한 데이터가 없습니다.</div>';
         return;
