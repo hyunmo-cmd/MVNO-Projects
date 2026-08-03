@@ -1503,7 +1503,6 @@
             <span class="cmp-channel-title">1:1 문의</span>
             <div class="cmp-channel-header-actions">
               <button class="btn btn-ghost" id="dmUploadToggle" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px">Excel 업로드</button>
-              <button class="btn btn-ghost" id="dmResetBtn" type="button" style="font-size:11px;height:26px;min-height:26px;padding:0 8px;color:var(--red)">초기화</button>
               <button class="btn btn-ghost cmp-viewall-btn" type="button" data-cmp-viewall="dm">전체 보기</button>
             </div>
           </div>
@@ -7464,15 +7463,6 @@
       const open = panel.style.display !== "none";
       panel.style.display = open ? "none" : "block";
       $("dmUploadToggle").textContent = open ? "Excel 업로드" : "닫기";
-    });
-
-    $("dmResetBtn").addEventListener("click", () => {
-      if (!dmComplaintState.records.length) { alert("삭제할 1:1 문의 데이터가 없습니다."); return; }
-      if (!confirm(`1:1 문의 데이터 ${nf.format(dmComplaintState.records.length)}개 그룹을 전부 삭제할까요?\n(엑셀을 다시 업로드해 반영할 수 있습니다)`)) return;
-      dmComplaintState.records = [];
-      saveDmComplaints();
-      renderComplaintOverview();
-      alert("1:1 문의 데이터를 모두 삭제했습니다.");
     });
 
     $("dmFile").addEventListener("change", async event => {
