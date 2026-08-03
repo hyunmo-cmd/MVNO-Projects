@@ -6334,9 +6334,8 @@
       $("dmWorkClearBtn").style.display = "inline-flex";
       try {
         // 업무 입력 탭은 날짜+상담사별 합산 건수만 필요하고, mergeUploadedRows가
-        // 같은 (날짜·상담사·소분류) 조합을 덮어쓰는 방식이라 재업로드 시 자동으로
-        // 중복 없이 갱신된다. 그래서 세션 한정(빈 Set) dedup만 적용한다.
-        const parsed = parseOneToOneXlsx(await file.arrayBuffer(), new Set());
+        // 같은 (날짜·상담사·소분류) 조합을 덮어쓰는 방식이라 재업로드 시 자동으로 갱신된다.
+        const parsed = parseOneToOneXlsx(await file.arrayBuffer());
         const newRows = parsed.dailyTotals.map(g => ({
           dateText: g.date, date: parseDate(g.date), month: monthLabel(parseDate(g.date)),
           counselor: g.counselor, main: "고객 상담 업무", sub: "1:1 문의", count: g.count, minutes: 0, source: "one_to_one_excel"
@@ -6556,30 +6555,24 @@
 
     // ── 1:1 문의 Excel 업로드 (민원 관리 탭 + 업무 입력 탭 공용 파서) ──
     const DM_COMPLAINT_KEY = "mvno-dm-complaint-v1";
-    const DM_DEDUP_KEYS_KEY = "mvno-dm-complaint-keys-v1";
     const DM_COUNSELOR_MAP = { junakira: "김순옥", wlstnwls12: "진수진" };
 
     let dmComplaintState = { records: [] }; // [{date, counselor, type, count}] · 문의 유형별 합산 데이터
-    let dmDedupKeys = new Set();            // 민원 관리 탭에 이미 반영된 (NO|처리일|처리자) 식별키 (누적)
     let dmPendingGroups = [];               // 민원 관리 탭 업로드 미리보기 (반영 전)
     let dmPendingSummary = null;
 
     function loadDmComplaints() {
       try { dmComplaintState.records = JSON.parse(localStorage.getItem(DM_COMPLAINT_KEY) || "[]"); }
       catch { dmComplaintState.records = []; }
-      try { dmDedupKeys = new Set(JSON.parse(localStorage.getItem(DM_DEDUP_KEYS_KEY) || "[]")); }
-      catch { dmDedupKeys = new Set(); }
     }
     function saveDmComplaints() {
       localStorage.setItem(DM_COMPLAINT_KEY, JSON.stringify(dmComplaintState.records));
-      localStorage.setItem(DM_DEDUP_KEYS_KEY, JSON.stringify([...dmDedupKeys]));
     }
 
     // 1:1 문의 처리 Excel 공용 파서.
     // C=NO, D=등록일(미사용), E=상담유형, F~I=개인정보(미사용), J=처리구분, K=처리일, L=처리자
-    // persistedDedupKeys: 이미 반영 완료로 간주할 (NO|처리일|처리자) 식별키 집합. 호출부에서
-    // 민원 관리 탭은 누적된 dmDedupKeys를, 업무 입력 탭은 매번 새 Set()을 넘겨 서로 간섭하지 않는다.
-    function parseOneToOneXlsx(arrayBuffer, persistedDedupKeys) {
+    // 중복 여부와 상관없이 조건(처리 완료 · 상담사 매핑)을 만족하는 모든 행을 반영한다.
+    function parseOneToOneXlsx(arrayBuffer) {
       if (typeof XLSX === "undefined") throw new Error("Excel 파싱 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해주세요.");
       const wb = XLSX.read(new Uint8Array(arrayBuffer), { type: "array", cellDates: true });
       const ws = wb.Sheets[wb.SheetNames[0]];
@@ -6593,20 +6586,17 @@
         return "";
       };
 
-      let totalRows = 0, validRows = 0, receptionExcluded = 0, duplicateExcluded = 0, unmappedCounselor = 0;
+      let totalRows = 0, validRows = 0, receptionExcluded = 0, unmappedCounselor = 0;
       const unmappedBreakdown = {};
-      const groupMap = new Map();   // date|counselor|type -> {count, keys[]} (민원 관리 탭용)
+      const groupMap = new Map();   // date|counselor|type -> count (민원 관리 탭용)
       const dailyMap = new Map();   // date|counselor -> count (업무 입력 탭용)
-      const sessionSeenKeys = new Set();
-      const newDedupKeys = [];
 
       for (let r = 3; r <= range.e.r + 1; r++) {
-        const no = cellText("C", r);
         const type = cellText("E", r);
         const jval = cellText("J", r);
         const kraw = cellText("K", r);
         const lval = cellText("L", r);
-        if (!no && !type && !jval && !kraw && !lval) continue; // 완전 빈 행
+        if (!cellText("C", r) && !type && !jval && !kraw && !lval) continue; // 완전 빈 행
         totalRows++;
 
         if (jval === "접수") { receptionExcluded++; continue; }
@@ -6618,10 +6608,6 @@
         if (!m) continue;
         const date = `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
 
-        const dedupKey = `${no}|${date}|${lval}`;
-        if (persistedDedupKeys.has(dedupKey) || sessionSeenKeys.has(dedupKey)) { duplicateExcluded++; continue; }
-        sessionSeenKeys.add(dedupKey);
-
         const counselor = DM_COUNSELOR_MAP[lval];
         if (!counselor) {
           unmappedCounselor++;
@@ -6630,17 +6616,14 @@
         }
 
         const gk = `${date}|${counselor}|${type}`;
-        const g = groupMap.get(gk) || { count: 0, keys: [] };
-        g.count++; g.keys.push(dedupKey);
-        groupMap.set(gk, g);
+        groupMap.set(gk, (groupMap.get(gk) || 0) + 1);
         const dk = `${date}|${counselor}`;
         dailyMap.set(dk, (dailyMap.get(dk) || 0) + 1);
-        newDedupKeys.push(dedupKey);
       }
 
-      const groups = [...groupMap.entries()].map(([key, g]) => {
+      const groups = [...groupMap.entries()].map(([key, count]) => {
         const [date, counselor, type] = key.split("|");
-        return { date, counselor, type, count: g.count, keys: g.keys, excluded: false };
+        return { date, counselor, type, count, excluded: false };
       }).sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : a.counselor.localeCompare(b.counselor, "ko"));
 
       const dailyTotals = [...dailyMap.entries()].map(([key, count]) => {
@@ -6649,8 +6632,8 @@
       });
 
       return {
-        summary: { totalRows, validRows, receptionExcluded, duplicateExcluded, unmappedCounselor, unmappedBreakdown },
-        groups, dailyTotals, dedupKeys: newDedupKeys
+        summary: { totalRows, validRows, receptionExcluded, unmappedCounselor, unmappedBreakdown },
+        groups, dailyTotals
       };
     }
 
@@ -7020,7 +7003,6 @@
         const existing = dmComplaintState.records.find(r => r.date === g.date && r.counselor === g.counselor && r.type === g.type);
         if (existing) existing.count += g.count;
         else dmComplaintState.records.push({ date: g.date, counselor: g.counselor, type: g.type, count: g.count });
-        (g.keys || []).forEach(k => dmDedupKeys.add(k));
       });
       saveDmComplaints();
 
@@ -7488,12 +7470,10 @@
       if (!file) return;
       $("dmFileName").textContent = `${file.name} — 분석 중…`;
       try {
-        const parsed = parseOneToOneXlsx(await file.arrayBuffer(), dmDedupKeys);
+        const parsed = parseOneToOneXlsx(await file.arrayBuffer());
         dmPendingSummary = parsed.summary;
         if (!parsed.groups.length) {
-          $("dmFileName").textContent = parsed.summary.duplicateExcluded > 0
-            ? `새로 반영할 데이터가 없습니다. (전체 ${nf.format(parsed.summary.validRows)}건 모두 이미 반영됨)`
-            : "처리 가능한 데이터가 없습니다. (처리 완료 · 상담사 매핑된 행 없음)";
+          $("dmFileName").textContent = "처리 가능한 데이터가 없습니다. (처리 완료 · 상담사 매핑된 행 없음)";
           $("dmResultArea").style.display = "none";
           return;
         }
@@ -7501,7 +7481,7 @@
         const s = parsed.summary;
         const unmappedText = Object.entries(s.unmappedBreakdown).map(([k, v]) => `${k}(${v}건)`).join(", ");
         $("dmResultSummary").textContent =
-          `전체 ${nf.format(s.totalRows)}행 · 처리 대상 ${nf.format(s.validRows)}건 · 접수 제외 ${nf.format(s.receptionExcluded)}건 · 중복 제외 ${nf.format(s.duplicateExcluded)}건` +
+          `전체 ${nf.format(s.totalRows)}행 · 처리 대상 ${nf.format(s.validRows)}건 · 접수 제외 ${nf.format(s.receptionExcluded)}건` +
           (s.unmappedCounselor ? ` · 처리자 미매핑 ${nf.format(s.unmappedCounselor)}건 (${unmappedText})` : "");
         renderDmPreview(parsed.groups);
       } catch (err) {
