@@ -1127,6 +1127,7 @@
               <option value="">선택</option>
               <option value="김순옥">김순옥</option>
               <option value="진수진">진수진</option>
+              <option value="박재혁">박재혁</option>
             </select></label>
             <label>대분류<select id="manualMain">
               <option value="">선택</option>
@@ -4863,11 +4864,11 @@
     const SAVED_ROWS = JSON.parse(document.getElementById("saved-data").textContent || "[]");
     const CHART_COLORS = ["#2563EB","#059669","#D97706","#DC2626","#7C3AED","#EC4899","#0891B2","#84CC16"];
     const colors = CHART_COLORS;
-    const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥" };
-    const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진" };
+    const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥", "박재혁": "박*혁" };
+    const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진", "670617": "박*혁" };
     const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1";
     const UPLOAD_STORAGE_KEY = "mvno-upload-rows-v1";
-    const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진" };
+    const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진", "박재혁": "박*혁" };
     const MANUAL_CATEGORIES = {
       "고객 상담 업무": ["1:1문의", "유선 상담", "채널톡"],
       "개통 업무": ["온라인 개통", "오프라인 개통", "알뜰폰 접수", "너겟 접수"],
@@ -6555,7 +6556,7 @@
 
     // ── 1:1 문의 Excel 업로드 (민원 관리 탭 + 업무 입력 탭 공용 파서) ──
     const DM_COMPLAINT_KEY = "mvno-dm-complaint-v1";
-    const DM_COUNSELOR_MAP = { junakira: "김순옥", wlstnwls12: "진수진" };
+    const DM_COUNSELOR_MAP = { junakira: "김순옥", wlstnwls12: "진수진", qkrwogur: "박재혁" };
 
     let dmComplaintState = { records: [] }; // [{date, counselor, type, count}] · 문의 유형별 합산 데이터
     let dmPendingGroups = [];               // 민원 관리 탭 업로드 미리보기 (반영 전)
