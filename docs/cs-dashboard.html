@@ -969,6 +969,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
   <main class="app">
@@ -4877,6 +4878,11 @@
     const state = { rows: [], filtered: [], manualRows: [], uploadRows: [] };
     let manualIdCounter = 1;
 
+    // ── Supabase (공용 데이터 저장소) ──────────────────────────
+    const SUPABASE_URL = "https://hknzhvinmdmnvdippzrp.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrbnpodmlubWRtbnZkaXBwenJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NzQyNjUsImV4cCI6MjEwNDI1MDI2NX0.nZ3KLpA62eFy4zo6KhtEn_BBJ5XIPHDOlccRe4R57TY";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const $ = (id) => document.getElementById(id);
     const nf = new Intl.NumberFormat("ko-KR");
 
@@ -5512,21 +5518,22 @@
     }
 
     async function loadSheet() {
-      const errors = [];
-      try {
-        return await loadFreshSheet();
-      } catch (error) {
-        errors.push(error.message);
-      }
-      try {
-        return await loadCsvUrl();
-      } catch (error) {
-        errors.push(error.message);
-      }
-      const savedRows = restoreSavedRows();
-      if (savedRows.length) return savedRows.map((row) => ({ ...row, date: parseDate(row.date), dateText: row.dateText || row.date }));
-      const privateSheet = errors.find((message) => message.includes("not publicly viewable") || message.includes("OAuth"));
-      throw new Error(privateSheet ? "원본 시트가 공개 보기 상태가 아니어서 자동 연결할 수 없습니다." : (errors.find(Boolean) || "시트 데이터를 불러오지 못했습니다."));
+      const { data, error } = await sb.from("work_records").select("*").order("date", { ascending: true });
+      if (error) throw new Error(`Supabase 조회 실패: ${error.message}`);
+      return data.map((r) => {
+        const date = parseDate(r.date);
+        return {
+          date,
+          dateText: r.date,
+          month: monthLabel(date),
+          counselor: r.agent,
+          main: r.major_category,
+          sub: r.minor_category,
+          count: r.count,
+          minutes: r.duration,
+          source: r.source,
+        };
+      });
     }
 
     async function loadFreshSheet() {
@@ -6093,12 +6100,12 @@
 
     async function init() {
       try {
-        loadRows(await loadSheet(), "Google Sheets 연결");
+        loadRows(await loadSheet(), "Supabase 연결");
       } catch (error) {
         setStatus(error.message);
         const panel = document.getElementById("errorPanel");
         if (panel) {
-          panel.innerHTML = `<div class="error-panel">Google Sheets 공유 설정이 '링크가 있는 모든 사용자 보기 가능'인지 확인해주세요.<br>${escapeHtml(error.message)}</div>`;
+          panel.innerHTML = `<div class="error-panel">Supabase 연결을 확인해주세요.<br>${escapeHtml(error.message)}</div>`;
         }
       }
       ctInit();
@@ -6562,9 +6569,16 @@
     let dmPendingGroups = [];               // 민원 관리 탭 업로드 미리보기 (반영 전)
     let dmPendingSummary = null;
 
-    function loadDmComplaints() {
-      try { dmComplaintState.records = JSON.parse(localStorage.getItem(DM_COMPLAINT_KEY) || "[]"); }
-      catch { dmComplaintState.records = []; }
+    async function loadDmComplaints() {
+      try {
+        const { data, error } = await sb.from("complaint_records").select("*").eq("channel", "1:1문의");
+        if (error) throw error;
+        dmComplaintState.records = data.map((r) => ({ date: r.date, counselor: r.agent, type: r.inquiry_type, count: r.count }));
+      } catch (err) {
+        console.warn("1:1문의 데이터 조회 실패:", err.message);
+        dmComplaintState.records = [];
+      }
+      if (typeof renderComplaintOverview === "function") renderComplaintOverview();
     }
     function saveDmComplaints() {
       localStorage.setItem(DM_COMPLAINT_KEY, JSON.stringify(dmComplaintState.records));
@@ -6795,19 +6809,13 @@
     }
 
     async function loadPhoneComplaints() {
-      try { phoneComplaintState.records = JSON.parse(localStorage.getItem(PHONE_COMPLAINT_KEY) || "[]"); }
-      catch { phoneComplaintState.records = []; }
-
-      if (!phoneApiConfigured()) return;
       try {
-        const res = await fetch(`${PHONE_API_URL}?cacheBust=${Date.now()}`);
-        const data = await res.json();
-        if (Array.isArray(data.records)) {
-          phoneComplaintState.records = data.records;
-          localStorage.setItem(PHONE_COMPLAINT_KEY, JSON.stringify(data.records));
-        }
+        const { data, error } = await sb.from("complaint_records").select("*").eq("channel", "유선 상담");
+        if (error) throw error;
+        phoneComplaintState.records = data.map((r) => ({ date: r.date, agent: r.agent, type: r.inquiry_type, count: r.count }));
       } catch (err) {
-        console.warn("유선 문의 서버 데이터 불러오기 실패, 로컬 캐시로 표시합니다:", err);
+        console.warn("유선 문의 데이터 조회 실패:", err.message);
+        phoneComplaintState.records = [];
       }
     }
 
