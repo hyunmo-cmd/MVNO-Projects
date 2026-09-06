@@ -5565,7 +5565,7 @@
       const todayKey = dateKey(new Date());
       setDateRange(todayKey, todayKey);
       setSelectOptions("monthFilter", [...new Set(rows.map((row) => row.month))]);
-      setSelectOptions("counselorFilter", [...new Set(rows.map((row) => row.counselor))]);
+      setSelectOptions("counselorFilter", [...new Set([...rows.map((row) => row.counselor), ...Object.values(MANUAL_COUNSELORS)])]);
       setSelectOptions("mainFilter", [...new Set(rows.map((row) => row.main))]);
       updateSubFilter();
     }
