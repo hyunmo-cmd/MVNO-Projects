@@ -4867,21 +4867,103 @@
     const colors = CHART_COLORS;
     const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥", "박재혁": "박*혁" };
     const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진", "670617": "박*혁" };
-    const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1";
-    const UPLOAD_STORAGE_KEY = "mvno-upload-rows-v1";
+    const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
+    const UPLOAD_STORAGE_KEY = "mvno-upload-rows-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
     const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진", "박재혁": "박*혁" };
     const MANUAL_CATEGORIES = {
       "고객 상담 업무": ["1:1문의", "유선 상담", "채널톡"],
       "개통 업무": ["온라인 개통", "오프라인 개통", "알뜰폰 접수", "너겟 접수"],
       "고객 지원 업무": ["해지", "정지", "부가서비스 신청", "유심 일련번호 변경", "eSIM 변경", "가입확인서 발급", "전화번호 변경", "요금제 변경", "확정기변", "청구서 재발행", "로밍 영수증 발급", "입금전용계좌 발급", "고객명 변경(개명)", "타사 철회 후 재개통", "인터넷 결합 처리"]
     };
-    const state = { rows: [], filtered: [], manualRows: [], uploadRows: [] };
-    let manualIdCounter = 1;
+    const state = { rows: [], filtered: [] };
 
     // ── Supabase (공용 데이터 저장소) ──────────────────────────
     const SUPABASE_URL = "https://hknzhvinmdmnvdippzrp.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhrbnpodmlubWRtbnZkaXBwenJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2NzQyNjUsImV4cCI6MjEwNDI1MDI2NX0.nZ3KLpA62eFy4zo6KhtEn_BBJ5XIPHDOlccRe4R57TY";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 업무 현황(work_records)/민원 관리(complaint_records) 공용 쓰기 헬퍼.
+    // unique_key는 매 삽입마다 새로 발급 — 재업로드/정정 시 옛 행을 지우는 대신
+    // "최신 행이 우선"하도록 읽기 단계(reduceWorkRows)에서 걸러낸다. anon 키는
+    // INSERT/SELECT만 허용되고 UPDATE/DELETE는 Supabase RLS로 막혀 있음(직접 확인함).
+    function genUniqueKey(...parts) {
+      return `${parts.join("_")}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+    async function insertWorkRecords(rows) {
+      if (!rows.length) return { data: [], error: null };
+      const payload = rows.map((r) => ({
+        date: r.dateText, agent: r.counselor, major_category: r.main, minor_category: r.sub,
+        count: r.count, duration: r.minutes, source: r.source,
+        unique_key: genUniqueKey(r.dateText, r.counselor, r.main, r.sub, r.source),
+      }));
+      const { data, error } = await sb.from("work_records").insert(payload).select();
+      if (error) console.warn("Supabase 업무 데이터 저장 실패:", error.message);
+      return { data: data || [], error };
+    }
+    async function deleteWorkRecord(id) {
+      const { data, error } = await sb.from("work_records").delete().eq("id", id).select();
+      if (error) { console.warn("Supabase 업무 데이터 삭제 실패:", error.message); return false; }
+      if (!data || !data.length) { console.warn("Supabase 삭제가 반영되지 않았습니다 — anon 키에 DELETE 권한이 없는 것으로 보입니다."); return false; }
+      return true;
+    }
+    async function insertComplaintRecords(rows) {
+      if (!rows.length) return { data: [], error: null };
+      const payload = rows.map((r) => ({
+        date: r.date, channel: r.channel, agent: r.agent, inquiry_type: r.type, count: r.count,
+        source: r.source, unique_key: genUniqueKey(r.date, r.channel, r.agent, r.type),
+      }));
+      const { data, error } = await sb.from("complaint_records").insert(payload).select();
+      if (error) console.warn("Supabase 민원 데이터 저장 실패:", error.message);
+      return { data: data || [], error };
+    }
+
+    // 구글시트→Supabase 전환 이전에 이 브라우저 localStorage에만 쌓여있던
+    // 직접입력/파일업로드/민원(유선상담·1:1문의) 데이터를 1회성으로 Supabase에
+    // 옮긴다. 성공한 항목만 로컬 키를 지워서, 페이지를 열 때마다 중복 삽입되지
+    // 않고 아직 못 옮긴 PC에서는 다음에 열 때 다시 시도되도록 한다.
+    async function migrateLegacyLocalData() {
+      try {
+        const manual = JSON.parse(localStorage.getItem(MANUAL_STORAGE_KEY) || "[]");
+        if (manual.length) {
+          const rows = manual.map((r) => ({
+            dateText: r.dateText, counselor: r.counselor, main: r.main, sub: r.sub,
+            count: r.count, minutes: r.minutes, source: "manual",
+          }));
+          const { error } = await insertWorkRecords(rows);
+          if (!error) localStorage.removeItem(MANUAL_STORAGE_KEY);
+        }
+      } catch (e) { console.warn("직접입력 데이터 이관 실패:", e); }
+
+      try {
+        const uploads = JSON.parse(localStorage.getItem(UPLOAD_STORAGE_KEY) || "[]");
+        if (uploads.length) {
+          const rows = uploads.map((r) => ({
+            dateText: r.dateText, counselor: r.counselor, main: r.main, sub: r.sub,
+            count: r.count, minutes: r.minutes, source: r.source || "upload_legacy",
+          }));
+          const { error } = await insertWorkRecords(rows);
+          if (!error) localStorage.removeItem(UPLOAD_STORAGE_KEY);
+        }
+      } catch (e) { console.warn("파일업로드 데이터 이관 실패:", e); }
+
+      try {
+        const phone = JSON.parse(localStorage.getItem(PHONE_COMPLAINT_KEY) || "[]");
+        if (phone.length) {
+          const rows = phone.map((r) => ({ date: r.date, channel: "유선 상담", agent: r.agent, type: r.type, count: r.count, source: "legacy_local" }));
+          const { error } = await insertComplaintRecords(rows);
+          if (!error) localStorage.removeItem(PHONE_COMPLAINT_KEY);
+        }
+      } catch (e) { console.warn("유선상담 민원 데이터 이관 실패:", e); }
+
+      try {
+        const dm = JSON.parse(localStorage.getItem(DM_COMPLAINT_KEY) || "[]");
+        if (dm.length) {
+          const rows = dm.map((r) => ({ date: r.date, channel: "1:1문의", agent: r.counselor, type: r.type, count: r.count, source: "legacy_local" }));
+          const { error } = await insertComplaintRecords(rows);
+          if (!error) localStorage.removeItem(DM_COMPLAINT_KEY);
+        }
+      } catch (e) { console.warn("1:1문의 민원 데이터 이관 실패:", e); }
+    }
 
     const $ = (id) => document.getElementById(id);
     const nf = new Intl.NumberFormat("ko-KR");
@@ -5181,12 +5263,11 @@
       }
     }
 
-    function confirmAiResults() {
+    async function confirmAiResults() {
       const newRows = aiPendingRows.map(row => {
         const masked = MANUAL_COUNSELORS[row.counselor] || row.counselor;
         const d = row.date ? new Date(row.date + "T00:00:00") : new Date();
         return {
-          _id: `manual_${Date.now()}_${Math.random().toString(36).slice(2)}`,
           date: d,
           dateText: row.date || "",
           month: monthLabel(d),
@@ -5196,9 +5277,15 @@
           source: "manual"
         };
       });
-      state.manualRows = [...state.manualRows, ...newRows];
-      saveManualRows();
-      mergeManualRows();
+      const btn = document.getElementById("aiConfirmBtn");
+      btn.disabled = true;
+      const { data, error } = await insertWorkRecords(newRows);
+      btn.disabled = false;
+      if (error) {
+        alert("저장에 실패했습니다. 네트워크 상태를 확인 후 다시 시도해주세요.");
+        return;
+      }
+      data.forEach((saved, i) => { state.rows.push({ ...newRows[i], _id: saved.id }); });
       // Reset UI
       document.getElementById("aiTextInput").value = "";
       document.getElementById("aiResultArea").style.display = "none";
@@ -5206,6 +5293,7 @@
       // 업무 현황 탭으로 전환
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab==="status"));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id!=="tab-status"));
+      renderManualLog();
       render();
     }
 
@@ -5428,35 +5516,17 @@
       return [...map.values()];
     }
 
-    function saveUploadRows() {
-      localStorage.setItem(UPLOAD_STORAGE_KEY, JSON.stringify(state.uploadRows.map((r) => ({ ...r, date: undefined }))));
-    }
-    function initUploadRows() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(UPLOAD_STORAGE_KEY) || "[]");
-        state.uploadRows = saved.map((r) => ({ ...r, date: parseDate(r.dateText) }));
-      } catch {
-        state.uploadRows = [];
-      }
-    }
-    function mergeUploadRowsIntoState() {
-      if (!state.uploadRows.length) return;
-      const uploadKeySet = new Set(state.uploadRows.map((r) => `${r.dateText}|${r.counselor}|${r.sub}`));
-      state.rows = state.rows.filter((r) => !uploadKeySet.has(`${r.dateText}|${r.counselor}|${r.sub}`));
-      state.uploadRows.forEach((r) => {
-        state.rows.push({ ...r, date: r.date instanceof Date ? r.date : parseDate(r.dateText) });
-      });
-    }
-    function mergeUploadedRows(newRows, sub) {
+    async function mergeUploadedRows(newRows, sub) {
       const dates = new Set(newRows.map((r) => r.dateText));
       const counselors = new Set(newRows.map((r) => r.counselor));
-      // 업로드 저장소에서 기존 같은 유형 데이터 교체
-      state.uploadRows = state.uploadRows.filter((r) => !(r.sub === sub && dates.has(r.dateText) && counselors.has(r.counselor)));
-      state.uploadRows = [...state.uploadRows, ...newRows];
-      saveUploadRows();
-      // state.rows도 즉시 반영
+      const { data, error } = await insertWorkRecords(newRows);
+      if (error) throw new Error("Supabase 저장에 실패했습니다: " + error.message);
+      const saved = newRows.map((r, i) => ({ ...r, _id: data[i]?.id }));
+      // state.rows도 즉시 반영 (같은 날짜·상담사·소분류의 옛 값은 화면에서 밀어냄 —
+      // DB의 옛 행은 reduceWorkRows가 다음 새로고침 때 알아서 걸러낸다)
       const filtered = state.rows.filter((row) => !(row.sub === sub && dates.has(row.dateText) && counselors.has(row.counselor)));
-      return [...filtered, ...newRows];
+      state.rows = [...filtered, ...saved];
+      return state.rows;
     }
 
     async function loadCsvUrl() {
@@ -5520,9 +5590,10 @@
     async function loadSheet() {
       const { data, error } = await sb.from("work_records").select("*").order("date", { ascending: true });
       if (error) throw new Error(`Supabase 조회 실패: ${error.message}`);
-      return data.map((r) => {
+      const mapped = data.map((r) => {
         const date = parseDate(r.date);
         return {
+          _id: r.id,
           date,
           dateText: r.date,
           month: monthLabel(date),
@@ -5534,6 +5605,25 @@
           source: r.source,
         };
       });
+      return reduceWorkRows(mapped);
+    }
+
+    // 같은 (날짜·상담사·대분류·소분류) 조합으로 파일이 재업로드/재계산되면
+    // 가장 최근에 저장된 행만 남긴다 — anon 키로는 UPDATE/DELETE가 안 돼서
+    // "교체"를 DB에서 못 하니 읽을 때 최신 값만 골라 쓰는 방식으로 대신한다.
+    // 직접입력(manual)은 같은 조합이 여러 건 누적될 수 있어 서로 교체하지 않는다.
+    function reduceWorkRows(rows) {
+      const groups = new Map();
+      rows.forEach((r) => {
+        const key = `${r.dateText}|${r.counselor}|${r.main}|${r.sub}`;
+        let g = groups.get(key);
+        if (!g) { g = { latestUpload: null, manuals: [] }; groups.set(key, g); }
+        if (r.source === "manual") g.manuals.push(r);
+        else if (!g.latestUpload || r._id > g.latestUpload._id) g.latestUpload = r;
+      });
+      const out = [];
+      groups.forEach((g) => { if (g.latestUpload) out.push(g.latestUpload); else out.push(...g.manuals); });
+      return out;
     }
 
     async function loadFreshSheet() {
@@ -6083,12 +6173,11 @@
 
     function loadRows(rows, sourceLabel) {
       state.rows = rows;
-      mergeUploadRowsIntoState();
-      mergeManualRows();
       if (!state.rows.length) throw new Error("시트에 표시할 데이터가 없습니다.");
       document.getElementById("loadErrorPanel")?.remove();
       setFilters(state.rows);
       applyFilters();
+      renderManualLog();
       setStatus(`${sourceLabel} · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
     }
 
@@ -6170,32 +6259,6 @@
         `<thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead>` +
         `<tbody>${preview.map((r) => `<tr><td>${escapeHtml(r.dateText || "")}</td><td>${escapeHtml(r.counselor || "")}</td><td>${escapeHtml(r.main || "")}</td><td>${escapeHtml(r.sub || "")}</td><td>${nf.format(r.count)}</td><td>${nf.format(r.minutes)}</td></tr>`).join("")}</tbody>`;
       wrap.classList.add("visible");
-    }
-
-    function mergeManualRows() {
-      const existingIds = new Set(state.rows.filter((r) => r._id).map((r) => r._id));
-      state.manualRows.forEach((r) => {
-        if (!existingIds.has(r._id)) {
-          state.rows.push({ ...r, date: r.date instanceof Date ? r.date : parseDate(r.dateText) });
-        }
-      });
-    }
-
-    function saveManualRows() {
-      const toSave = state.manualRows.map((r) => ({ ...r, date: undefined }));
-      localStorage.setItem(MANUAL_STORAGE_KEY, JSON.stringify(toSave));
-    }
-
-    function initManualRows() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(MANUAL_STORAGE_KEY) || "[]");
-        state.manualRows = saved.map((r) => ({ ...r, date: parseDate(r.dateText) }));
-        if (state.manualRows.length) {
-          manualIdCounter = Math.max(...state.manualRows.map((r) => r._id || 0)) + 1;
-        }
-      } catch {
-        state.manualRows = [];
-      }
     }
 
     // flatpickr 초기화
@@ -6381,32 +6444,34 @@
     wireUploadDropzone("channelDropzone", "channelFile");
     wireUploadDropzone("dmWorkDropzone", "dmWorkFile");
 
-    $("applyBtn").addEventListener("click", () => {
+    $("applyBtn").addEventListener("click", async () => {
       if (!pending.phone && !pending.channel && !pending.dm) {
         showUploadMsg("error", "반영할 파일이 없습니다. 파일을 먼저 선택해주세요.");
         return;
       }
+      const btn = $("applyBtn");
+      btn.disabled = true;
       try {
         const labels = [];
         if (pending.phone) {
-          state.rows = mergeUploadedRows(pending.phone.rows, "유선 상담");
+          await mergeUploadedRows(pending.phone.rows, "유선 상담");
           const followupRows = pending.phone.rows.map((r) => ({
             ...r,
             sub: "후처리(전화 상담)",
             minutes: r.count * 1,
             source: "auto_followup"
           }));
-          state.rows = mergeUploadedRows(followupRows, "후처리(전화 상담)");
+          await mergeUploadedRows(followupRows, "후처리(전화 상담)");
           labels.push(`유선 문의: ${pending.phone.name}`);
           pending.phone = null;
         }
         if (pending.channel) {
-          state.rows = mergeUploadedRows(pending.channel.rows, "채널톡");
+          await mergeUploadedRows(pending.channel.rows, "채널톡");
           labels.push(`채널톡: ${pending.channel.name}`);
           pending.channel = null;
         }
         if (pending.dm) {
-          state.rows = mergeUploadedRows(pending.dm.rows, "1:1 문의");
+          await mergeUploadedRows(pending.dm.rows, "1:1 문의");
           labels.push(`1:1 문의: ${pending.dm.name}`);
           pending.dm = null;
         }
@@ -6416,6 +6481,8 @@
         setStatus(`업로드 반영 · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
       } catch (error) {
         showUploadMsg("error", `반영 오류: ${error.message}`);
+      } finally {
+        btn.disabled = false;
       }
     });
     // AI 입력 이벤트
@@ -6456,14 +6523,17 @@
         subSel.appendChild(opt);
       });
     });
+    // "최근 입력 내역"은 별도 저장소 없이 state.rows 중 source==="manual"인
+    // 행에서 바로 뽑아 보여준다 — Supabase가 유일한 저장소이므로 항상 최신 상태.
     function renderManualLog() {
       const body = $("manualLogBody");
       if (!body) return;
-      if (!state.manualRows.length) {
+      const rows = state.rows.filter(r => r.source === "manual");
+      if (!rows.length) {
         body.innerHTML = '<div class="manual-log-empty">직접 입력한 데이터가 없습니다.</div>';
         return;
       }
-      body.innerHTML = state.manualRows.map(r => `
+      body.innerHTML = rows.map(r => `
         <div class="manual-log-row">
           <span>${escapeHtml(r.dateText)}</span>
           <span>${escapeHtml(r.counselor)}</span>
@@ -6475,14 +6545,17 @@
           <button class="del-btn" onclick="deleteManualRow(${r._id})" type="button" title="삭제">×</button>
         </div>`).join("");
     }
-    function deleteManualRow(id) {
-      state.manualRows = state.manualRows.filter(r => r._id !== id);
+    async function deleteManualRow(id) {
+      const ok = await deleteWorkRecord(id);
+      if (!ok) {
+        alert("삭제 권한이 없어 반영되지 않았습니다. Supabase에 DELETE 정책 추가가 필요합니다.");
+        return;
+      }
       state.rows = state.rows.filter(r => r._id !== id);
-      saveManualRows();
       renderManualLog();
       applyFilters();
     }
-    $("manualAddBtn").addEventListener("click", () => {
+    $("manualAddBtn").addEventListener("click", async () => {
       const dateText = $("manualDate").value;
       const counselor = $("manualCounselor").value;
       const main = $("manualMain").value;
@@ -6495,8 +6568,7 @@
       }
       const displayCounselor = MANUAL_COUNSELORS[counselor] || counselor;
       const d = parseDate(dateText);
-      const row = {
-        _id: manualIdCounter++,
+      const draft = {
         dateText,
         date: d,
         month: d ? monthLabel(d) : "",
@@ -6504,9 +6576,15 @@
         main, sub, count, minutes,
         source: "manual"
       };
-      state.manualRows.push(row);
-      saveManualRows();
-      mergeManualRows();
+      const btn = $("manualAddBtn");
+      btn.disabled = true;
+      const { data, error } = await insertWorkRecords([draft]);
+      btn.disabled = false;
+      if (error || !data.length) {
+        alert("저장에 실패했습니다. 네트워크 상태를 확인 후 다시 시도해주세요.");
+        return;
+      }
+      state.rows.push({ ...draft, _id: data[0].id });
       renderManualLog();
       applyFilters();
       $("manualCount").value = "";
@@ -6515,8 +6593,7 @@
 
     // ══ 민원 관리 탭 ═══════════════════════════════════════
 
-    const PHONE_COMPLAINT_KEY = "mvno-phone-complaint-v1";
-    const PHONE_API_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // 배포된 웹 앱 URL로 교체
+    const PHONE_COMPLAINT_KEY = "mvno-phone-complaint-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
     const COMPLAINT_LOW_CONF = 0.6;
 
     const COMPLAINT_TYPES_LIST = [
@@ -6562,7 +6639,7 @@
     let sttFp = null, sttFpSuppress = false;
 
     // ── 1:1 문의 Excel 업로드 (민원 관리 탭 + 업무 입력 탭 공용 파서) ──
-    const DM_COMPLAINT_KEY = "mvno-dm-complaint-v1";
+    const DM_COMPLAINT_KEY = "mvno-dm-complaint-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
     const DM_COUNSELOR_MAP = { junakira: "김순옥", wlstnwls12: "진수진", qkrwogur: "박재혁" };
 
     let dmComplaintState = { records: [] }; // [{date, counselor, type, count}] · 문의 유형별 합산 데이터
@@ -6580,10 +6657,6 @@
       }
       if (typeof renderComplaintOverview === "function") renderComplaintOverview();
     }
-    function saveDmComplaints() {
-      localStorage.setItem(DM_COMPLAINT_KEY, JSON.stringify(dmComplaintState.records));
-    }
-
     // 1:1 문의 처리 Excel 공용 파서.
     // C=NO, D=등록일(미사용), E=상담유형, F~I=개인정보(미사용), J=처리구분, K=처리일, L=처리자
     // 중복 여부와 상관없이 조건(처리 완료 · 상담사 매핑)을 만족하는 모든 행을 반영한다.
@@ -6804,10 +6877,6 @@
       });
     }
 
-    function phoneApiConfigured() {
-      return !!PHONE_API_URL && PHONE_API_URL.indexOf("AKfycb...") === -1;
-    }
-
     async function loadPhoneComplaints() {
       try {
         const { data, error } = await sb.from("complaint_records").select("*").eq("channel", "유선 상담");
@@ -6817,10 +6886,6 @@
         console.warn("유선 문의 데이터 조회 실패:", err.message);
         phoneComplaintState.records = [];
       }
-    }
-
-    function savePhoneComplaints() {
-      localStorage.setItem(PHONE_COMPLAINT_KEY, JSON.stringify(phoneComplaintState.records));
     }
 
     function maskAgentName(name) {
@@ -6923,46 +6988,24 @@
       const toAdd = sttPending.filter(r => !r.excluded);
       if (!toAdd.length) { alert("반영할 데이터가 없습니다."); return; }
       const newRecords = toAdd.map(r => ({
-        date: r.date, agent: r.agent,
-        durationMin: Math.max(0, parseInt(r.durationMin) || 0),
-        type: r.type, confidence: parseFloat(r.confidence) || 0, count: 1
+        date: r.date, channel: "유선 상담", agent: r.agent, type: r.type, count: 1, source: "stt"
       }));
 
       const btn = $("sttConfirmBtn");
       btn.disabled = true; btn.textContent = "저장 중…";
-      let syncedToServer = false;
-      try {
-        if (phoneApiConfigured()) {
-          const res = await fetch(PHONE_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ records: newRecords })
-          });
-          const data = await res.json();
-          if (!data.ok) throw new Error(data.error || "저장 실패");
-          await loadPhoneComplaints();
-          syncedToServer = true;
-        }
-      } catch (err) {
-        console.warn("유선 문의 서버 저장 실패:", err);
-      } finally {
-        btn.disabled = false; btn.textContent = "대시보드 반영";
+      const { error } = await insertComplaintRecords(newRecords);
+      btn.disabled = false; btn.textContent = "대시보드 반영";
+      if (error) {
+        alert("저장에 실패했습니다. 네트워크 상태를 확인 후 다시 시도해주세요.");
+        return;
       }
-
-      if (!syncedToServer) {
-        phoneComplaintState.records = [...phoneComplaintState.records, ...newRecords];
-        savePhoneComplaints();
-      }
+      await loadPhoneComplaints();
 
       $("sttFile").value = ""; $("sttResultArea").style.display = "none";
       $("sttFileName").textContent = "파일을 선택해주세요";
       sttPending = [];
       phoneComplaintRender();
-      alert(phoneApiConfigured()
-        ? (syncedToServer
-            ? `${newRecords.length}건이 서버에 저장되어 모든 PC에서 확인할 수 있습니다.`
-            : `${newRecords.length}건이 이 PC에만 임시로 반영되었습니다 (서버 저장 실패, 나중에 다시 시도해주세요).`)
-        : `${newRecords.length}건이 대시보드에 반영되었습니다. (서버 연동 미설정 - 이 PC에서만 보입니다)`);
+      alert(`${newRecords.length}건이 서버에 저장되어 모든 PC에서 확인할 수 있습니다.`);
     }
 
     function sttGetFiltered() {
@@ -7004,23 +7047,29 @@
       renderDmPreview(dmPendingGroups);
     }
 
-    function confirmDmResults() {
+    async function confirmDmResults() {
       const toAdd = dmPendingGroups.filter(g => !g.excluded);
       if (!toAdd.length) { alert("반영할 데이터가 없습니다."); return; }
+      const newRecords = toAdd.map(g => ({
+        date: g.date, channel: "1:1문의", agent: g.counselor, type: g.type, count: g.count, source: "one_to_one_excel"
+      }));
 
-      toAdd.forEach(g => {
-        const existing = dmComplaintState.records.find(r => r.date === g.date && r.counselor === g.counselor && r.type === g.type);
-        if (existing) existing.count += g.count;
-        else dmComplaintState.records.push({ date: g.date, counselor: g.counselor, type: g.type, count: g.count });
-      });
-      saveDmComplaints();
+      const btn = $("dmConfirmBtn");
+      btn.disabled = true;
+      const { error } = await insertComplaintRecords(newRecords);
+      btn.disabled = false;
+      if (error) {
+        alert("저장에 실패했습니다. 네트워크 상태를 확인 후 다시 시도해주세요.");
+        return;
+      }
+      await loadDmComplaints();
 
       const addedCount = toAdd.reduce((s, g) => s + g.count, 0);
       $("dmFile").value = ""; $("dmResultArea").style.display = "none";
       $("dmFileName").textContent = "파일을 선택해주세요";
       dmPendingGroups = []; dmPendingSummary = null;
       renderComplaintOverview();
-      alert(`${nf.format(addedCount)}건이 1:1 문의 데이터에 반영되었습니다.`);
+      alert(`${nf.format(addedCount)}건이 서버에 저장되어 모든 PC에서 확인할 수 있습니다.`);
     }
 
     function dmGetFiltered() {
@@ -7530,15 +7579,16 @@
       });
     });
 
-    loadDmComplaints();
-    loadPhoneComplaints().then(phoneComplaintRender);
+    async function bootstrap() {
+      await migrateLegacyLocalData();
+      loadDmComplaints();
+      loadPhoneComplaints().then(phoneComplaintRender);
+      init();
+    }
     phoneComplaintRender();
     initManualForm();
-    initManualRows();
-    renderManualLog();
-    initUploadRows();
     window.addEventListener("resize", () => { render(); });
-    init();
+    bootstrap();
   </script>
 </body>
 </html>
