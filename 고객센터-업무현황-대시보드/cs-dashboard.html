@@ -4917,6 +4917,24 @@
       return { data: data || [], error };
     }
 
+    // Supabase(PostgREST)는 select 한 번에 최대 1000행만 돌려준다 — 데이터가
+    // 1000행을 넘어가면 이 함수로 range()를 돌려가며 끝까지 이어받는다.
+    async function fetchAllRows(table, buildQuery) {
+      const pageSize = 1000;
+      let from = 0;
+      let all = [];
+      while (true) {
+        let query = sb.from(table).select("*");
+        if (buildQuery) query = buildQuery(query);
+        const { data, error } = await query.range(from, from + pageSize - 1);
+        if (error) throw error;
+        all = all.concat(data);
+        if (data.length < pageSize) break;
+        from += pageSize;
+      }
+      return all;
+    }
+
     // 구글시트→Supabase 전환 이전에 이 브라우저 localStorage에만 쌓여있던
     // 직접입력/파일업로드/민원(유선상담·1:1문의) 데이터를 1회성으로 Supabase에
     // 옮긴다. 성공한 항목만 로컬 키를 지워서, 페이지를 열 때마다 중복 삽입되지
@@ -5588,8 +5606,12 @@
     }
 
     async function loadSheet() {
-      const { data, error } = await sb.from("work_records").select("*").order("date", { ascending: true });
-      if (error) throw new Error(`Supabase 조회 실패: ${error.message}`);
+      let data;
+      try {
+        data = await fetchAllRows("work_records", (q) => q.order("date", { ascending: true }));
+      } catch (error) {
+        throw new Error(`Supabase 조회 실패: ${error.message}`);
+      }
       const mapped = data.map((r) => {
         const date = parseDate(r.date);
         return {
@@ -6648,8 +6670,7 @@
 
     async function loadDmComplaints() {
       try {
-        const { data, error } = await sb.from("complaint_records").select("*").eq("channel", "1:1문의");
-        if (error) throw error;
+        const data = await fetchAllRows("complaint_records", (q) => q.eq("channel", "1:1문의"));
         dmComplaintState.records = data.map((r) => ({ date: r.date, counselor: r.agent, type: r.inquiry_type, count: r.count }));
       } catch (err) {
         console.warn("1:1문의 데이터 조회 실패:", err.message);
@@ -6879,8 +6900,7 @@
 
     async function loadPhoneComplaints() {
       try {
-        const { data, error } = await sb.from("complaint_records").select("*").eq("channel", "유선 상담");
-        if (error) throw error;
+        const data = await fetchAllRows("complaint_records", (q) => q.eq("channel", "유선 상담"));
         phoneComplaintState.records = data.map((r) => ({ date: r.date, agent: r.agent, type: r.inquiry_type, count: r.count }));
       } catch (err) {
         console.warn("유선 문의 데이터 조회 실패:", err.message);
