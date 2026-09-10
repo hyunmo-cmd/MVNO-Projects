@@ -338,6 +338,12 @@
     .cat-status-toggle { font-size:10px !important; padding:2px 8px !important; border-radius:999px !important; cursor:pointer; flex-shrink:0; font-weight:600; line-height:1.6; white-space:nowrap; display:inline-block !important; width:auto !important; min-width:0 !important; min-height:0 !important; }
     .cat-status-toggle.on  { background:#dcfce7; color:#15803d; border-color:#86efac; }
     .cat-status-toggle.off { background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1; }
+    .cat-network-toggle { font-size:10px !important; padding:2px 8px !important; border-radius:999px !important; cursor:pointer; flex-shrink:0; font-weight:700; line-height:1.6; white-space:nowrap; display:inline-block !important; width:auto !important; min-width:0 !important; min-height:0 !important; border:1px solid; }
+    .cat-network-toggle.net-lg { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; }
+    .cat-network-toggle.net-kt { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+    .network-filter-bar { display:flex; gap:6px; margin-bottom:10px; }
+    .network-filter-btn { flex:1; font-size:11.5px !important; padding:5px 4px !important; width:auto !important; min-height:0 !important; border-radius:5px; border:1px solid var(--line); background:white; cursor:pointer; }
+    .network-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
     .category-head {
       display: grid;
       grid-template-columns: minmax(220px, .9fr) minmax(0, 1.8fr);
@@ -663,6 +669,11 @@
           <button id="editMappingBtn" class="secondary" style="margin-bottom:10px;">매칭 수정</button>
           <input id="mappingFileInput" type="file" accept=".csv,.txt" style="margin-bottom:10px;" />
           <div id="mappingStatus" class="muted" style="margin-bottom:10px;">저장된 혜택-요금제 매칭 데이터입니다. 매칭 수정 버튼으로 직접 수정할 수 있습니다.</div>
+          <div class="network-filter-bar">
+            <button class="network-filter-btn on" data-net="all">전체</button>
+            <button class="network-filter-btn" data-net="LG">LG망</button>
+            <button class="network-filter-btn" data-net="KT">KT망</button>
+          </div>
           <div id="categoryList" class="category-list"></div>
         </div>
       </div>
@@ -948,6 +959,7 @@
     let editorDraft = [];
     let editorSelectedIdx = 0;
     let editorFilterMode = "all"; // "all" | "active" | "inactive"
+    let categoryNetworkFilter = "all"; // "all" | "LG" | "KT"
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -1064,6 +1076,17 @@
       saveMappings();
       renderCategories();
     }
+    function toggleGroupNetwork(groupId) {
+      const group = categoryGroups().find(g => g.id === groupId);
+      if (!group) return;
+      const newNetwork = group.network === "KT" ? "LG" : "KT";
+      const key = (item) => item.category || item.productName || item.productCode || "미분류 혜택";
+      for (const item of state.mappings) {
+        if (key(item) === groupId) item.network = newNetwork;
+      }
+      saveMappings();
+      renderCategories();
+    }
     function loadSavedMappings() {
       let saved = null;
       let usedDefaultMappings = false;
@@ -1116,15 +1139,16 @@
       const map = new Map();
       for (const item of state.mappings) {
         const id = item.category || item.productName || item.productCode || "미분류 혜택";
-        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, active: item.active !== false, months: null, plans: [] });
+        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, active: item.active !== false, months: null, network: null, plans: [] });
         const group = map.get(id);
         if (!group.productCode && item.productCode) group.productCode = item.productCode;
         if (!group.productName && item.productName) group.productName = item.productName;
         if (!group.months && item.months) group.months = Number(item.months);
+        if (!group.network && item.network) group.network = item.network;
         if (!group.plans.some((p) => p.planCode === item.planCode)) group.plans.push({ planCode: item.planCode, planName: item.planName });
       }
       return Array.from(map.values())
-        .map((group) => ({ ...group, durationMonths: group.months || benefitMonthsFromLabel(group.label) }))
+        .map((group) => ({ ...group, durationMonths: group.months || benefitMonthsFromLabel(group.label), network: group.network === "KT" ? "KT" : "LG" }))
         .sort((a, b) => a.label.localeCompare(b.label, "ko"));
     }
     function selectedCategory() {
@@ -1700,8 +1724,13 @@
       }
       if (!state.selectedCategoryId || !groups.some((g) => g.id === state.selectedCategoryId)) state.selectedCategoryId = groups[0].id;
       $("mappingStatus").textContent = `${number(groups.length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드 매칭 저장됨`;
-      $("categoryList").innerHTML = groups.map((group) => {
+      document.querySelectorAll(".network-filter-btn").forEach((btn) => {
+        btn.classList.toggle("on", btn.dataset.net === categoryNetworkFilter);
+      });
+      const visibleGroups = groups.filter((group) => categoryNetworkFilter === "all" || group.network === categoryNetworkFilter);
+      $("categoryList").innerHTML = visibleGroups.length ? visibleGroups.map((group) => {
         const on = group.active !== false;
+        const netKt = group.network === "KT";
         const codes = group.plans.map((plan) => `<span class="chip" title="${escapeHtml(plan.planName || "")}">${escapeHtml(plan.planCode)}</span>`).join("");
         return `<div class="category-item ${group.id === state.selectedCategoryId ? "active" : ""} ${on ? "" : "inactive"}" data-id="${escapeHtml(group.id)}">
           <div class="category-head">
@@ -1709,6 +1738,7 @@
               <div class="category-label">혜택 종류</div>
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                 <div class="title" style="margin-bottom:0;">${escapeHtml(group.label)}</div>
+                <button class="cat-network-toggle net-${netKt ? "kt" : "lg"}" data-gid="${escapeHtml(group.id)}" title="클릭하여 통신망 변경">${netKt ? "KT" : "LG"}망</button>
                 <button class="cat-status-toggle ${on ? "on" : "off"}" data-gid="${escapeHtml(group.id)}">${on ? "사용" : "종료"}</button>
               </div>
               <div class="muted" style="font-size:11.5px;margin-top:2px;">${group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급 개월수 미설정 (기간 제한 없음)"}</div>
@@ -1719,7 +1749,7 @@
             </div>
           </div>
         </div>`;
-      }).join("");
+      }).join("") : `<div class="muted">${categoryNetworkFilter === "LG" ? "LG망" : "KT망"} 혜택이 없습니다.</div>`;
       for (const item of $("categoryList").querySelectorAll(".category-item")) {
         item.addEventListener("click", () => {
           state.selectedCategoryId = item.dataset.id;
@@ -1733,6 +1763,12 @@
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           toggleGroupActive(btn.dataset.gid);
+        });
+      }
+      for (const btn of $("categoryList").querySelectorAll(".cat-network-toggle")) {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleGroupNetwork(btn.dataset.gid);
         });
       }
       const targets = targetRowsForCategory();
@@ -1981,9 +2017,15 @@
             <input id="ef-product-name" value="${escapeHtml(g.productName)}" placeholder="예: 네이버페이 포인트 5,000원" />
           </div>
         </div>
-        <div class="editor-form-group">
-          <label class="editor-label">지급 개월수 (가입월 다음 달부터 지급)</label>
-          <input id="ef-months" type="number" min="0" step="1" value="${escapeHtml(g.months ?? "")}" placeholder="예: 24 (미입력 시 무제한 지급)" style="max-width:160px;" />
+        <div class="editor-form-row">
+          <div class="editor-form-group" style="margin-bottom:0;">
+            <label class="editor-label">지급 개월수 (가입월 다음 달부터 지급)</label>
+            <input id="ef-months" type="number" min="0" step="1" value="${escapeHtml(g.months ?? "")}" placeholder="예: 24 (미입력 시 무제한 지급)" />
+          </div>
+          <div class="editor-form-group" style="margin-bottom:0;">
+            <label class="editor-label">통신망</label>
+            <button id="ef-network-toggle" type="button" class="cat-network-toggle net-${g.network === "KT" ? "kt" : "lg"}" style="width:100%;padding:8px !important;font-size:13px !important;">${g.network === "KT" ? "KT" : "LG"}망 (클릭하여 변경)</button>
+          </div>
         </div>
         <div class="editor-form-group">
           <label class="editor-label">요금제 코드 (${g.plans.length}개)</label>
@@ -2006,6 +2048,10 @@
       $("ef-product-code").addEventListener("input", () => { editorDraft[editorSelectedIdx].productCode = $("ef-product-code").value; });
       $("ef-product-name").addEventListener("input", () => { editorDraft[editorSelectedIdx].productName = $("ef-product-name").value; });
       $("ef-months").addEventListener("input", () => { editorDraft[editorSelectedIdx].months = $("ef-months").value; });
+      $("ef-network-toggle").addEventListener("click", () => {
+        editorDraft[editorSelectedIdx].network = editorDraft[editorSelectedIdx].network === "KT" ? "LG" : "KT";
+        renderEditorForm();
+      });
       form.querySelectorAll(".ef-plan-code").forEach(input => {
         input.addEventListener("input", () => { editorDraft[editorSelectedIdx].plans[Number(input.dataset.pi)].planCode = input.value; });
       });
@@ -2044,11 +2090,12 @@
         productCode: g.productCode || "",
         productName: g.productName || "",
         months: g.months || "",
+        network: g.network === "KT" ? "KT" : "LG",
         active: g.active !== false,
         plans: g.plans.map(p => ({ planCode: p.planCode, planName: p.planName || "" }))
       }));
       if (!editorDraft.length) {
-        editorDraft = [{ id: "_new_1", label: "", productCode: "", productName: "", months: "", active: true, plans: [] }];
+        editorDraft = [{ id: "_new_1", label: "", productCode: "", productName: "", months: "", network: "LG", active: true, plans: [] }];
       }
       editorSelectedIdx = 0;
       editorFilterMode = "all";
@@ -2071,6 +2118,7 @@
             planCode,
             planName: p.planName.trim(),
             months: Number.isFinite(months) && months > 0 ? months : null,
+            network: g.network === "KT" ? "KT" : "LG",
             active: g.active !== false
           });
         }
@@ -2085,6 +2133,12 @@
       $("mappingDialog").close();
     }
     $("editMappingBtn").addEventListener("click", openMappingEditor);
+    document.querySelectorAll(".network-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        categoryNetworkFilter = btn.dataset.net;
+        renderCategories();
+      });
+    });
     $("closeMappingBtn").addEventListener("click", () => $("mappingDialog").close());
     $("saveMappingBtn").addEventListener("click", saveEditorDraft);
     document.querySelectorAll(".editor-filter-btn").forEach(btn => {
@@ -2096,7 +2150,7 @@
     });
     $("editorAddCategoryBtn").addEventListener("click", () => {
       syncFormToDraft();
-      editorDraft.push({ id: "_new_" + editorDraft.length, label: "", productCode: "", productName: "", active: true, plans: [] });
+      editorDraft.push({ id: "_new_" + editorDraft.length, label: "", productCode: "", productName: "", months: "", network: "LG", active: true, plans: [] });
       editorSelectedIdx = editorDraft.length - 1;
       renderEditorList();
       renderEditorForm();
