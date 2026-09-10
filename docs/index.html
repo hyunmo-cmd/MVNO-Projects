@@ -1089,6 +1089,28 @@
       if (usedDefaultMappings && state.mappings.length) saveMappings();
       if (!state.selectedCategoryId && state.mappings.length) state.selectedCategoryId = categoryGroups()[0]?.id || "";
     }
+    function benefitMonthsFromLabel(label) {
+      const match = String(label || "").match(/(\d+)\s*개월/);
+      return match ? Number(match[1]) : null;
+    }
+    function parseYmd(text) {
+      const match = String(text || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!match) return null;
+      return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+    function benefitEndDate(openedAt, months) {
+      if (!months) return null;
+      const base = parseYmd(openedAt);
+      if (!base) return null;
+      return new Date(base.getFullYear(), base.getMonth() + months, base.getDate());
+    }
+    function isBenefitEnded(customer, months) {
+      const end = benefitEndDate(customer.openedAt, months);
+      if (!end) return false;
+      const today = new Date();
+      const todayYmd = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      return todayYmd >= end;
+    }
     function categoryGroups() {
       const map = new Map();
       for (const item of state.mappings) {
@@ -1099,7 +1121,9 @@
         if (!group.productName && item.productName) group.productName = item.productName;
         if (!group.plans.some((p) => p.planCode === item.planCode)) group.plans.push({ planCode: item.planCode, planName: item.planName });
       }
-      return Array.from(map.values()).sort((a, b) => a.label.localeCompare(b.label, "ko"));
+      return Array.from(map.values())
+        .map((group) => ({ ...group, durationMonths: benefitMonthsFromLabel(group.label) }))
+        .sort((a, b) => a.label.localeCompare(b.label, "ko"));
     }
     function selectedCategory() {
       return categoryGroups().find((group) => group.id === state.selectedCategoryId) || null;
@@ -1107,7 +1131,7 @@
     function targetRowsForCategory(group = selectedCategory()) {
       if (!group) return [];
       const codes = new Set(group.plans.map((plan) => plan.planCode));
-      return state.customers.filter((customer) => codes.has(customer.planCode));
+      return state.customers.filter((customer) => codes.has(customer.planCode) && !isBenefitEnded(customer, group.durationMonths));
     }
     function targetRowsForAllCategories() {
       const out = [];
@@ -1592,7 +1616,9 @@
     }
     function currentRows() {
       const codes = new Set(selectedPlanCodes());
+      const group = selectedCategory();
       let rows = codes.size ? state.customers.filter((row) => codes.has(row.planCode)) : [];
+      if (group) rows = rows.filter((row) => !isBenefitEnded(row, group.durationMonths));
       const query = state.search.trim().toLowerCase();
       if (state.status !== "all") rows = rows.filter((row) => state.status === "other" ? row.status !== "정상" : row.status === state.status);
       if (query) rows = rows.filter((row) => [row.phone, row.name, row.status, row.joinType, row.agency, row.channel].some((v) => String(v).toLowerCase().includes(query)));
