@@ -1102,7 +1102,8 @@
       if (!months) return null;
       const base = parseYmd(openedAt);
       if (!base) return null;
-      return new Date(base.getFullYear(), base.getMonth() + months, base.getDate());
+      // 혜택은 가입월 다음 달부터 지급되므로 +1개월을 더해 지급 종료 시점을 계산
+      return new Date(base.getFullYear(), base.getMonth() + months + 1, base.getDate());
     }
     function isBenefitEnded(customer, months) {
       const end = benefitEndDate(customer.openedAt, months);
@@ -1115,14 +1116,15 @@
       const map = new Map();
       for (const item of state.mappings) {
         const id = item.category || item.productName || item.productCode || "미분류 혜택";
-        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, active: item.active !== false, plans: [] });
+        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, active: item.active !== false, months: null, plans: [] });
         const group = map.get(id);
         if (!group.productCode && item.productCode) group.productCode = item.productCode;
         if (!group.productName && item.productName) group.productName = item.productName;
+        if (!group.months && item.months) group.months = Number(item.months);
         if (!group.plans.some((p) => p.planCode === item.planCode)) group.plans.push({ planCode: item.planCode, planName: item.planName });
       }
       return Array.from(map.values())
-        .map((group) => ({ ...group, durationMonths: benefitMonthsFromLabel(group.label) }))
+        .map((group) => ({ ...group, durationMonths: group.months || benefitMonthsFromLabel(group.label) }))
         .sort((a, b) => a.label.localeCompare(b.label, "ko"));
     }
     function selectedCategory() {
@@ -1709,6 +1711,7 @@
                 <div class="title" style="margin-bottom:0;">${escapeHtml(group.label)}</div>
                 <button class="cat-status-toggle ${on ? "on" : "off"}" data-gid="${escapeHtml(group.id)}">${on ? "사용" : "종료"}</button>
               </div>
+              <div class="muted" style="font-size:11.5px;margin-top:2px;">${group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급 개월수 미설정 (기간 제한 없음)"}</div>
             </div>
             <div>
               <div class="category-label">요금제 코드</div>
@@ -1901,10 +1904,11 @@
     function syncFormToDraft() {
       const g = editorDraft[editorSelectedIdx];
       if (!g) return;
-      const lEl = $("ef-label"), pcEl = $("ef-product-code"), pnEl = $("ef-product-name");
+      const lEl = $("ef-label"), pcEl = $("ef-product-code"), pnEl = $("ef-product-name"), moEl = $("ef-months");
       if (lEl) g.label = lEl.value;
       if (pcEl) g.productCode = pcEl.value;
       if (pnEl) g.productName = pnEl.value;
+      if (moEl) g.months = moEl.value;
     }
     function renderEditorList() {
       const list = $("editorCategoryList");
@@ -1978,6 +1982,10 @@
           </div>
         </div>
         <div class="editor-form-group">
+          <label class="editor-label">지급 개월수 (가입월 다음 달부터 지급)</label>
+          <input id="ef-months" type="number" min="0" step="1" value="${escapeHtml(g.months ?? "")}" placeholder="예: 24 (미입력 시 무제한 지급)" style="max-width:160px;" />
+        </div>
+        <div class="editor-form-group">
           <label class="editor-label">요금제 코드 (${g.plans.length}개)</label>
           <div class="editor-plan-list" id="ef-plan-list">
             ${g.plans.map((p, pi) => `
@@ -1997,6 +2005,7 @@
       $("ef-label").addEventListener("input", () => { editorDraft[editorSelectedIdx].label = $("ef-label").value; renderEditorList(); });
       $("ef-product-code").addEventListener("input", () => { editorDraft[editorSelectedIdx].productCode = $("ef-product-code").value; });
       $("ef-product-name").addEventListener("input", () => { editorDraft[editorSelectedIdx].productName = $("ef-product-name").value; });
+      $("ef-months").addEventListener("input", () => { editorDraft[editorSelectedIdx].months = $("ef-months").value; });
       form.querySelectorAll(".ef-plan-code").forEach(input => {
         input.addEventListener("input", () => { editorDraft[editorSelectedIdx].plans[Number(input.dataset.pi)].planCode = input.value; });
       });
@@ -2034,11 +2043,12 @@
         label: g.label,
         productCode: g.productCode || "",
         productName: g.productName || "",
+        months: g.months || "",
         active: g.active !== false,
         plans: g.plans.map(p => ({ planCode: p.planCode, planName: p.planName || "" }))
       }));
       if (!editorDraft.length) {
-        editorDraft = [{ id: "_new_1", label: "", productCode: "", productName: "", active: true, plans: [] }];
+        editorDraft = [{ id: "_new_1", label: "", productCode: "", productName: "", months: "", active: true, plans: [] }];
       }
       editorSelectedIdx = 0;
       editorFilterMode = "all";
@@ -2053,12 +2063,14 @@
         for (const p of g.plans) {
           const planCode = p.planCode.trim();
           if (!planCode) continue;
+          const months = Number(String(g.months ?? "").trim());
           items.push({
             category: g.label.trim() || "(이름 없음)",
             productCode: g.productCode.trim(),
             productName: g.productName.trim(),
             planCode,
             planName: p.planName.trim(),
+            months: Number.isFinite(months) && months > 0 ? months : null,
             active: g.active !== false
           });
         }
