@@ -2939,6 +2939,11 @@
       clearSession();
       $("fileInput").click();
     });
+    window.addEventListener("beforeunload", (event) => {
+      if (!editorDirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    });
 
     setupTabs();
     $("benefitSelect").innerHTML = "";
