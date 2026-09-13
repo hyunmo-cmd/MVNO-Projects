@@ -343,9 +343,6 @@
     .cat-network-toggle.net-kt { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
     .cat-network-toggle.net-mixed { background:#fef9c3; color:#854d0e; border-color:#fde68a; }
     .chip.chip-kt { background:#fee2e2; color:#b91c1c; }
-    .ef-plan-network-toggle { font-size:10px !important; padding:2px 7px !important; border-radius:999px !important; border:1px solid; cursor:pointer; flex-shrink:0; font-weight:700; }
-    .ef-plan-network-toggle.net-lg { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; }
-    .ef-plan-network-toggle.net-kt { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
     .network-filter-bar { display:flex; gap:6px; margin-bottom:10px; }
     .network-filter-btn { flex:1; font-size:11.5px !important; padding:5px 4px !important; width:auto !important; min-height:0 !important; border-radius:5px; border:1px solid var(--line); background:white; cursor:pointer; }
     .network-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
@@ -500,8 +497,8 @@
     .phone-warn { color: #b45309; margin-left: 4px; cursor: help; }
     /* ─── 매핑 에디터 다이얼로그 ─── */
     dialog#mappingDialog {
-      width: min(900px, calc(100vw - 32px));
-      max-height: 85vh;
+      width: min(1120px, calc(100vw - 32px));
+      max-height: 88vh;
       border: 1px solid var(--line);
       border-radius: var(--r);
       padding: 0;
@@ -515,6 +512,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
       padding: 14px 18px;
       border-bottom: 1px solid var(--line);
       background: #f8fafc;
@@ -523,22 +521,43 @@
       color: var(--ink2);
       flex-shrink: 0;
     }
-    .editor-toolbar {
-      display: flex;
+    .unsaved-indicator {
+      display: none;
       align-items: center;
-      gap: 8px;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--line);
-      flex-shrink: 0;
-      flex-wrap: wrap;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #b45309;
     }
-    .editor-toolbar input[type="search"] { flex: 1; min-width: 160px; }
-    .editor-filter-bar { display: flex; gap: 5px; flex-shrink: 0; }
+    .unsaved-indicator.show { display: flex; }
+    .unsaved-indicator .dot { width: 7px; height: 7px; border-radius: 999px; background: #f59e0b; flex-shrink: 0; }
+    .mapping-body {
+      display: grid;
+      grid-template-columns: minmax(220px, .28fr) minmax(0, .72fr);
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .mapping-list-pane {
+      border-right: 1px solid var(--line);
+      background: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .mapping-list-toolbar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mapping-filter-row { display: flex; gap: 5px; }
     .editor-filter-btn {
       width: auto !important;
-      flex: none;
-      font-size: 11.5px !important;
-      padding: 5px 10px !important;
+      flex: 1;
+      font-size: 11px !important;
+      padding: 5px 4px !important;
       min-height: 0 !important;
       border-radius: 5px;
       border: 1px solid var(--line);
@@ -550,50 +569,67 @@
       white-space: nowrap;
     }
     .editor-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
-    #editorAddCategoryBtn { width: auto; flex-shrink: 0; }
-    .ef-status-toggle {
-      font-size: 10px !important;
-      padding: 2px 8px !important;
-      border-radius: 999px !important;
-      border: 1px solid;
-      cursor: pointer;
-      flex-shrink: 0;
-      font-weight: 600;
-      line-height: 1.5;
-      white-space: nowrap;
-      width: auto !important;
-      min-width: 0 !important;
-      min-height: 0 !important;
-      display: inline-block !important;
-    }
-    .ef-status-toggle.on  { background: #dcfce7; color: #15803d; border-color: #86efac; }
-    .ef-status-toggle.off { background: #f1f5f9; color: #94a3b8; border-color: #cbd5e1; }
-    .editor-main { flex: 1; overflow: auto; min-height: 0; }
-    table.mapping-table { width: 100%; min-width: 1080px; border-collapse: collapse; font-size: 12.5px; }
-    .mapping-table th {
-      position: sticky; top: 0; z-index: 1;
-      background: #f8fafc; color: var(--muted);
-      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
-      padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--line);
-      white-space: nowrap;
-    }
-    .mapping-table td {
-      padding: 6px 10px;
+    .benefit-list { flex: 1; overflow-y: auto; }
+    .benefit-card {
+      padding: 10px 12px;
       border-bottom: 1px solid #f1f5f9;
-      vertical-align: middle;
+      cursor: pointer;
+      transition: background .1s;
     }
-    .mapping-table tr.group-start td { border-top: 2px solid var(--line); }
-    .mapping-table tr.group-inactive { opacity: .5; }
-    .mapping-table tr[hidden] { display: none; }
-    .mapping-table input { min-height: 32px; font-size: 12.5px; }
-    .mapping-table .ef-plan-code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
-    .mapping-table .ef-months { width: 100%; }
-    .mapping-table .ef-network-bulk-toggle,
-    .mapping-table .ef-plan-network-toggle { width: 100%; text-align: center; }
-    .mapping-table .mt-actions { display: flex; gap: 4px; align-items: center; white-space: nowrap; }
-    .mapping-table .mt-actions button {
-      width: 28px; min-width: 28px; min-height: 28px; padding: 0; font-size: 14px; line-height: 1; flex-shrink: 0;
+    .benefit-card:hover { background: #e8f1ff; }
+    .benefit-card.active { background: var(--blue2); border-right: 3px solid var(--blue); }
+    .benefit-card .bc-name {
+      font-weight: 600; font-size: 12.5px; color: var(--ink2); margin-bottom: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .benefit-card .bc-meta { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .mapping-list-footer { padding: 10px; border-top: 1px solid var(--line); flex-shrink: 0; }
+    .mapping-detail-pane { display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px; gap: 16px; }
+    .detail-empty { margin: auto; color: var(--muted); font-size: 13px; text-align: center; padding: 40px; }
+    .detail-header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .detail-header h3 { margin: 0; font-size: 16px; color: var(--ink); }
+    .detail-section { border: 1px solid var(--line); border-radius: var(--r-sm); }
+    .detail-section-title {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid var(--line);
+      font-weight: 700; font-size: 13px; color: var(--ink2);
+    }
+    .detail-section-title button { width: auto; min-height: 28px; font-size: 12px; padding: 0 10px; }
+    .detail-section-body { padding: 14px; }
+    .detail-view-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 20px; }
+    .detail-view-item .k { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 3px; }
+    .detail-view-item .v { font-size: 13.5px; color: var(--ink); }
+    .detail-edit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
+    .detail-edit-item label { display: block; font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+    .detail-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+    .detail-actions button { width: auto; min-width: 70px; }
+    .danger-zone { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); text-align: right; }
+    .danger-zone button { width: auto; font-size: 12px; }
+    .plan-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .plan-toolbar input[type="search"] { flex: 1; }
+    .plan-toolbar button { width: auto; flex-shrink: 0; }
+    .bulk-bar {
+      display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 8px 10px; background: var(--blue2); border: 1px solid #bfdbfe; border-radius: var(--r-sm);
+      margin-bottom: 8px; font-size: 12.5px; color: var(--blue-d);
+    }
+    .bulk-bar.show { display: flex; }
+    .bulk-bar select, .bulk-bar button { width: auto; min-height: 30px; font-size: 12px; }
+    table.plan-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    .plan-table th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+    .plan-table td { padding: 7px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .plan-table td.pt-check { width: 28px; }
+    .plan-network-badge, .plan-active-badge {
+      font-size: 10px !important; padding: 2px 8px !important; border-radius: 999px !important;
+      border: 1px solid; font-weight: 700; white-space: nowrap;
+      width: auto !important; min-width: 0 !important; min-height: 0 !important; display: inline-block !important;
+    }
+    .plan-network-badge { cursor: pointer; }
+    .plan-network-badge.net-lg { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+    .plan-network-badge.net-kt { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .plan-active-badge.on  { background: #dcfce7; color: #15803d; border-color: #86efac; }
+    .plan-active-badge.off { background: #f1f5f9; color: #94a3b8; border-color: #cbd5e1; }
+    .plan-row-delete { width: auto !important; font-size: 11.5px !important; padding: 3px 9px !important; min-height: 0 !important; }
     .mapping-empty { padding: 30px; text-align: center; color: var(--muted); font-size: 13px; }
     .editor-footer {
       padding: 12px 16px;
@@ -607,6 +643,25 @@
     }
     .editor-footer-actions { display: flex; gap: 8px; }
     .editor-footer button { width: auto; min-width: 80px; }
+
+    /* ─── 요금제 추가 / 새 혜택 추가 서브 다이얼로그 ─── */
+    dialog.sub-dialog { width: min(560px, calc(100vw - 32px)); max-height: 82vh; border: 1px solid var(--line); border-radius: var(--r); padding: 0; }
+    dialog.sub-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
+    .sub-dialog-header { padding: 14px 18px; border-bottom: 1px solid var(--line); background: #f8fafc; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+    .sub-dialog-body { padding: 16px 18px; overflow-y: auto; flex: 1; min-height: 0; }
+    .sub-dialog-footer { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; background: #f8fafc; flex-shrink: 0; }
+    .sub-dialog-footer button { width: auto; min-width: 80px; }
+    .picker-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+    .picker-tab-btn { width: auto; flex: none; font-size: 12px !important; padding: 6px 12px !important; min-height: 0 !important; border-radius: 5px; border: 1px solid var(--line); background: white; color: var(--ink2); }
+    .picker-tab-btn.on { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .picker-list { border: 1px solid var(--line); border-radius: var(--r-sm); max-height: 260px; overflow-y: auto; }
+    .picker-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+    .picker-item:last-child { border-bottom: none; }
+    .picker-item.disabled { opacity: .5; cursor: not-allowed; }
+    .picker-item .pi-name { font-weight: 600; font-size: 12.5px; }
+    .picker-item .pi-code { font-size: 11px; color: var(--muted); font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
+    .picker-item .pi-tag { margin-left: auto; font-size: 10.5px; color: var(--muted); flex-shrink: 0; }
+    .unsaved-confirm-body { padding: 16px 18px; font-size: 13px; color: var(--ink2); }
     @media (max-width: 980px) {
       main { grid-template-columns: 1fr; padding: 12px; }
       header { padding: 14px 16px; }
@@ -782,35 +837,31 @@
   <dialog id="mappingDialog">
     <div class="editor-dialog-header">
       <span>혜택-요금제 매칭 수정</span>
+      <span class="unsaved-indicator" id="unsavedIndicator"><span class="dot"></span>저장되지 않은 변경사항이 있습니다</span>
     </div>
-    <div class="editor-toolbar">
-      <input type="search" id="editorSearch" placeholder="혜택명, 요금제코드, 요금제명 검색" />
-      <div class="editor-filter-bar">
-        <button class="editor-filter-btn on" data-filter="all">전체</button>
-        <button class="editor-filter-btn" data-filter="active">사용 중</button>
-        <button class="editor-filter-btn" data-filter="inactive">미사용</button>
+    <div class="mapping-body">
+      <aside class="mapping-list-pane">
+        <div class="mapping-list-toolbar">
+          <input type="search" id="editorSearch" placeholder="혜택명 검색" />
+          <div class="mapping-filter-row">
+            <button class="editor-filter-btn on" data-filtertype="network" data-filter="all">전체</button>
+            <button class="editor-filter-btn" data-filtertype="network" data-filter="LG">LG망</button>
+            <button class="editor-filter-btn" data-filtertype="network" data-filter="KT">KT망</button>
+          </div>
+          <div class="mapping-filter-row">
+            <button class="editor-filter-btn on" data-filtertype="status" data-filter="all">전체 상태</button>
+            <button class="editor-filter-btn" data-filtertype="status" data-filter="active">사용 중</button>
+            <button class="editor-filter-btn" data-filtertype="status" data-filter="inactive">미사용</button>
+          </div>
+        </div>
+        <div class="benefit-list" id="benefitList"></div>
+        <div class="mapping-list-footer">
+          <button id="editorAddCategoryBtn" class="secondary">+ 새 혜택 추가</button>
+        </div>
+      </aside>
+      <div class="mapping-detail-pane" id="mappingDetailPane">
+        <div class="detail-empty">왼쪽에서 혜택을 선택하세요.</div>
       </div>
-      <button id="editorAddCategoryBtn" class="secondary">+ 새 혜택 추가</button>
-    </div>
-    <div class="editor-main">
-      <table class="mapping-table">
-        <thead>
-          <tr>
-            <th>혜택명</th>
-            <th>상품코드</th>
-            <th>상품명</th>
-            <th>지급 개월수</th>
-            <th>요금제코드</th>
-            <th>요금제명</th>
-            <th>통신망</th>
-            <th>삭제</th>
-            <th>상태</th>
-            <th>통신망 일괄</th>
-            <th>관리</th>
-          </tr>
-        </thead>
-        <tbody id="mappingTableBody"></tbody>
-      </table>
     </div>
     <div class="editor-footer">
       <span class="muted" id="editorSummary"></span>
@@ -818,6 +869,83 @@
         <button id="saveMappingBtn">저장</button>
         <button id="closeMappingBtn" class="secondary">취소</button>
       </div>
+    </div>
+  </dialog>
+
+  <dialog id="benefitFormDialog" class="sub-dialog">
+    <div class="sub-dialog-header">새 혜택 추가</div>
+    <div class="sub-dialog-body">
+      <div class="detail-edit-grid">
+        <div class="detail-edit-item" style="grid-column:1/-1;">
+          <label>혜택명</label>
+          <input id="bf-label" placeholder="예: 네이버페이 포인트 5,000원 X 24개월" />
+        </div>
+        <div class="detail-edit-item">
+          <label>상품코드</label>
+          <input id="bf-product-code" placeholder="예: G00000760670" />
+        </div>
+        <div class="detail-edit-item">
+          <label>상품명</label>
+          <input id="bf-product-name" placeholder="예: 네이버페이 포인트 5,000원" />
+        </div>
+        <div class="detail-edit-item">
+          <label>지급 개월수</label>
+          <input id="bf-months" type="number" min="0" step="1" placeholder="미입력 시 무제한" />
+        </div>
+        <div class="detail-edit-item">
+          <label>통신망</label>
+          <select id="bf-network"><option value="LG">LG망</option><option value="KT">KT망</option></select>
+        </div>
+        <div class="detail-edit-item" style="grid-column:1/-1;">
+          <label>사용 여부</label>
+          <select id="bf-active"><option value="true">사용</option><option value="false">미사용</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="sub-dialog-footer">
+      <button id="bfCreateBtn">혜택 생성</button>
+      <button id="bfCancelBtn" class="secondary">취소</button>
+    </div>
+  </dialog>
+
+  <dialog id="planPickerDialog" class="sub-dialog">
+    <div class="sub-dialog-header">요금제 추가</div>
+    <div class="sub-dialog-body">
+      <div class="picker-tabs">
+        <button type="button" class="picker-tab-btn on" data-tab="pick">기존 요금제에서 선택</button>
+        <button type="button" class="picker-tab-btn" data-tab="manual">직접 입력</button>
+      </div>
+      <div id="pickerPickTab">
+        <input type="search" id="pickerSearch" placeholder="요금제명, 요금제코드 검색" style="margin-bottom:10px;" />
+        <div class="picker-list" id="pickerList"></div>
+      </div>
+      <div id="pickerManualTab" style="display:none;">
+        <div class="detail-edit-grid">
+          <div class="detail-edit-item">
+            <label>요금제코드</label>
+            <input id="pm-code" placeholder="요금제코드" />
+          </div>
+          <div class="detail-edit-item">
+            <label>요금제명 (선택)</label>
+            <input id="pm-name" placeholder="요금제명" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sub-dialog-footer">
+      <span class="muted" id="pickerSummary" style="margin-right:auto;"></span>
+      <button id="pickerAddBtn">선택한 요금제 추가</button>
+      <button id="pickerCancelBtn" class="secondary">취소</button>
+    </div>
+  </dialog>
+
+  <dialog id="unsavedChangesDialog" class="sub-dialog">
+    <div class="sub-dialog-header">저장하지 않은 변경사항이 있습니다</div>
+    <div class="unsaved-confirm-body">지금 닫으면 매칭 수정 화면에서 변경한 내용이 사라집니다. 어떻게 할까요?</div>
+    <div class="sub-dialog-footer">
+      <button id="unsavedDiscardBtn" class="danger">변경사항 버리기</button>
+      <button id="unsavedContinueBtn" class="secondary">계속 수정</button>
+      <button id="unsavedSaveBtn">저장</button>
     </div>
   </dialog>
 
@@ -1049,9 +1177,18 @@
 
     const enc = new TextDecoder("utf-8");
     let editorDraft = [];
+    let editorSelectedIdx = -1;
     let editorSearch = "";
-    let editorFilterMode = "all"; // "all" | "active" | "inactive"
-    let categoryNetworkFilter = "all"; // "all" | "LG" | "KT"
+    let editorFilterMode = "all"; // "all" | "active" | "inactive" (좌측 목록 상태 필터)
+    let editorNetworkFilter = "all"; // "all" | "LG" | "KT" (좌측 목록 통신망 필터)
+    let editorDirty = false;
+    let detailEditMode = false; // 기본정보 섹션 수정 모드 여부
+    let planSearch = "";
+    let planSelection = new Set(); // 연결된 요금제 체크박스 선택(planCode 기준)
+    let pendingPickerGi = -1;
+    let pickerSelected = new Set();
+    let pickerTab = "pick"; // "pick" | "manual"
+    let categoryNetworkFilter = "all"; // "all" | "LG" | "KT" (메인 화면 혜택 카테고리 필터, 매칭 수정과 무관)
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -1285,7 +1422,7 @@
         if (!group.productCode && item.productCode) group.productCode = item.productCode;
         if (!group.productName && item.productName) group.productName = item.productName;
         if (!group.months && item.months) group.months = Number(item.months);
-        if (!group.plans.some((p) => p.planCode === item.planCode)) group.plans.push({ planCode: item.planCode, planName: item.planName, network: item.network === "KT" ? "KT" : "LG" });
+        if (!group.plans.some((p) => p.planCode === item.planCode)) group.plans.push({ planCode: item.planCode, planName: item.planName, network: item.network === "KT" ? "KT" : "LG", active: item.active !== false });
       }
       return Array.from(map.values())
         .map((group) => {
@@ -2161,60 +2298,355 @@
         $("mappingStatus").textContent = error.message || "매칭 파일을 읽지 못했습니다.";
       }
     });
+    function allKnownPlans() {
+      const pool = new Map();
+      for (const p of state.plans) {
+        pool.set(p.code, { code: p.code, name: p.name || "", count: p.total || 0 });
+      }
+      for (const item of state.mappings) {
+        if (!item.planCode) continue;
+        if (!pool.has(item.planCode)) pool.set(item.planCode, { code: item.planCode, name: item.planName || "", count: 0 });
+        else if (!pool.get(item.planCode).name && item.planName) pool.get(item.planCode).name = item.planName;
+      }
+      return Array.from(pool.values()).sort((a, b) => a.code.localeCompare(b.code));
+    }
     function editorGroupNetwork(g) {
       const networks = new Set(g.plans.map((p) => p.network === "KT" ? "KT" : "LG"));
       return networks.size > 1 ? "MIXED" : (networks.has("KT") ? "KT" : "LG");
     }
-    function editorGroupMatches(g, query) {
+    function editorGroupMatches(g) {
       if (editorFilterMode === "active" && g.active === false) return false;
       if (editorFilterMode === "inactive" && g.active !== false) return false;
-      if (!query) return true;
-      if ((g.label || "").toLowerCase().includes(query)) return true;
-      return g.plans.some((p) => (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query));
+      if (editorNetworkFilter !== "all" && !g.plans.some((p) => p.network === editorNetworkFilter)) return false;
+      const query = editorSearch.trim().toLowerCase();
+      if (query && !(g.label || "").toLowerCase().includes(query)) return false;
+      return true;
     }
-    function renderMappingTable() {
-      document.querySelectorAll(".editor-filter-btn").forEach((btn) => {
+    function updateUnsavedIndicator() {
+      $("unsavedIndicator").classList.toggle("show", editorDirty);
+    }
+    function renderBenefitList() {
+      document.querySelectorAll('#mappingDialog .editor-filter-btn[data-filtertype="status"]').forEach((btn) => {
         btn.classList.toggle("on", btn.dataset.filter === editorFilterMode);
       });
-      const query = editorSearch.trim().toLowerCase();
-      const visibleGroups = editorDraft.map((g, gi) => ({ g, gi })).filter(({ g }) => editorGroupMatches(g, query));
-      const tbody = $("mappingTableBody");
+      document.querySelectorAll('#mappingDialog .editor-filter-btn[data-filtertype="network"]').forEach((btn) => {
+        btn.classList.toggle("on", btn.dataset.filter === editorNetworkFilter);
+      });
+      const visible = editorDraft.map((g, gi) => ({ g, gi })).filter(({ g }) => editorGroupMatches(g));
+      const list = $("benefitList");
       const totalPlans = editorDraft.reduce((sum, g) => sum + g.plans.length, 0);
       $("editorSummary").textContent = editorDraft.length ? `${number(editorDraft.length)}개 혜택 / ${number(totalPlans)}개 요금제코드` : "";
-      if (!visibleGroups.length) {
-        tbody.innerHTML = `<tr><td colspan="11"><div class="mapping-empty">${editorDraft.length ? "검색/필터 조건에 맞는 혜택이 없습니다." : "등록된 혜택이 없습니다. '새 혜택 추가'로 시작하세요."}</div></td></tr>`;
+      if (!visible.length) {
+        list.innerHTML = `<div class="mapping-empty">${editorDraft.length ? "검색/필터 조건에 맞는 혜택이 없습니다." : "등록된 혜택이 없습니다. '새 혜택 추가'로 시작하세요."}</div>`;
         return;
       }
-      let html = "";
-      for (const { g, gi } of visibleGroups) {
+      list.innerHTML = visible.map(({ g, gi }) => {
+        const network = editorGroupNetwork(g);
+        const netLabel = network === "KT" ? "KT망" : network === "MIXED" ? "LG/KT 혼합" : "LG망";
         const on = g.active !== false;
-        const plans = g.plans.length ? g.plans : [{ planCode: "", planName: "", network: "LG" }];
-        const rowspan = plans.length;
-        const bulkNetwork = editorGroupNetwork(g);
-        const bulkClass = bulkNetwork === "KT" ? "kt" : bulkNetwork === "MIXED" ? "mixed" : "lg";
-        const bulkLabel = bulkNetwork === "KT" ? "전체 KT망" : bulkNetwork === "MIXED" ? "LG/KT 혼합" : "전체 LG망";
-        plans.forEach((p, pi) => {
-          const first = pi === 0;
-          html += `<tr class="${on ? "" : "group-inactive"} ${first ? "group-start" : ""}">`;
-          if (first) {
-            html += `<td rowspan="${rowspan}"><input class="ef-label" data-gi="${gi}" value="${escapeHtml(g.label)}" placeholder="예: 네이버페이 포인트 5,000원" /></td>`;
-            html += `<td rowspan="${rowspan}"><input class="ef-product-code" data-gi="${gi}" value="${escapeHtml(g.productCode)}" placeholder="예: G00000760670" /></td>`;
-            html += `<td rowspan="${rowspan}"><input class="ef-product-name" data-gi="${gi}" value="${escapeHtml(g.productName)}" placeholder="예: 네이버페이 포인트 5,000원" /></td>`;
-            html += `<td rowspan="${rowspan}"><input class="ef-months" type="number" min="0" step="1" data-gi="${gi}" value="${escapeHtml(g.months ?? "")}" placeholder="무제한" title="지급 개월수 (가입월 다음 달부터 지급, 미입력 시 무제한)" /></td>`;
-          }
-          html += `<td><input class="ef-plan-code" data-gi="${gi}" data-pi="${pi}" value="${escapeHtml(p.planCode)}" placeholder="요금제코드" /></td>`;
-          html += `<td><input class="ef-plan-name" data-gi="${gi}" data-pi="${pi}" value="${escapeHtml(p.planName)}" placeholder="요금제명 (선택)" /></td>`;
-          html += `<td><button type="button" class="ef-plan-network-toggle net-${p.network === "KT" ? "kt" : "lg"}" data-gi="${gi}" data-pi="${pi}" title="클릭하여 통신망 변경">${p.network === "KT" ? "KT" : "LG"}</button></td>`;
-          html += `<td><div class="mt-actions"><button type="button" class="danger ef-remove-plan" data-gi="${gi}" data-pi="${pi}" title="이 요금제 삭제">×</button></div></td>`;
-          if (first) {
-            html += `<td rowspan="${rowspan}"><button type="button" class="ef-status-toggle ${on ? "on" : "off"}" data-gi="${gi}" title="클릭하여 상태 변경">${on ? "사용" : "종료"}</button></td>`;
-            html += `<td rowspan="${rowspan}"><button type="button" class="ef-network-bulk-toggle cat-network-toggle net-${bulkClass}" data-gi="${gi}" title="이 혜택의 모든 요금제코드에 일괄 적용">${bulkLabel}</button></td>`;
-            html += `<td rowspan="${rowspan}"><div class="mt-actions"><button type="button" class="secondary ef-add-plan" data-gi="${gi}" title="요금제 추가">+</button><button type="button" class="danger ef-delete-group" data-gi="${gi}" title="이 혜택 전체 삭제">🗑</button></div></td>`;
-          }
-          html += `</tr>`;
+        return `<div class="benefit-card ${gi === editorSelectedIdx ? "active" : ""}" data-gi="${gi}">
+          <div class="bc-name">${escapeHtml(g.label || "(이름 없음)")}</div>
+          <div class="bc-meta"><span>${netLabel}</span><span>·</span><span>${on ? "사용 중" : "미사용"}</span><span>·</span><span>연결 요금제 ${number(g.plans.length)}개</span></div>
+        </div>`;
+      }).join("");
+      list.querySelectorAll(".benefit-card").forEach((el) => {
+        el.addEventListener("click", () => selectBenefit(Number(el.dataset.gi)));
+      });
+    }
+    function selectBenefit(gi) {
+      editorSelectedIdx = gi;
+      detailEditMode = false;
+      planSearch = "";
+      planSelection = new Set();
+      renderBenefitList();
+      renderDetailPane();
+    }
+    function renderDetailPane() {
+      const pane = $("mappingDetailPane");
+      const g = editorDraft[editorSelectedIdx];
+      if (!g) {
+        pane.innerHTML = `<div class="detail-empty">왼쪽에서 혜택을 선택하세요.</div>`;
+        return;
+      }
+      const network = editorGroupNetwork(g);
+      const netLabel = network === "KT" ? "KT망" : network === "MIXED" ? "LG/KT 혼합" : "LG망";
+      const on = g.active !== false;
+      const basicInfoHtml = detailEditMode ? `
+        <div class="detail-edit-grid">
+          <div class="detail-edit-item" style="grid-column:1/-1;">
+            <label>혜택명</label>
+            <input id="bi-label" value="${escapeHtml(g.label)}" placeholder="예: 네이버페이 포인트 5,000원" />
+          </div>
+          <div class="detail-edit-item">
+            <label>상품코드</label>
+            <input id="bi-product-code" value="${escapeHtml(g.productCode)}" />
+          </div>
+          <div class="detail-edit-item">
+            <label>상품명</label>
+            <input id="bi-product-name" value="${escapeHtml(g.productName)}" />
+          </div>
+          <div class="detail-edit-item">
+            <label>지급 개월수</label>
+            <input id="bi-months" type="number" min="0" step="1" value="${escapeHtml(g.months ?? "")}" placeholder="미입력 시 무제한" />
+          </div>
+          <div class="detail-edit-item">
+            <label>통신망 (전체 요금제 일괄 적용)</label>
+            <select id="bi-network">
+              <option value="LG" ${network !== "KT" ? "selected" : ""}>LG망</option>
+              <option value="KT" ${network === "KT" ? "selected" : ""}>KT망</option>
+            </select>
+          </div>
+          <div class="detail-edit-item">
+            <label>사용 여부</label>
+            <select id="bi-active">
+              <option value="true" ${on ? "selected" : ""}>사용</option>
+              <option value="false" ${!on ? "selected" : ""}>미사용</option>
+            </select>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button type="button" class="secondary" id="biCancelBtn">취소</button>
+          <button type="button" id="biSaveBtn">변경사항 저장</button>
+        </div>
+      ` : `
+        <div class="detail-view-grid">
+          <div class="detail-view-item"><div class="k">혜택명</div><div class="v">${escapeHtml(g.label || "(이름 없음)")}</div></div>
+          <div class="detail-view-item"><div class="k">상품코드</div><div class="v">${escapeHtml(g.productCode || "-")}</div></div>
+          <div class="detail-view-item"><div class="k">상품명</div><div class="v">${escapeHtml(g.productName || "-")}</div></div>
+          <div class="detail-view-item"><div class="k">지급 개월수</div><div class="v">${g.months ? `${escapeHtml(String(g.months))}개월 (가입월 다음 달부터)` : "무제한"}</div></div>
+          <div class="detail-view-item"><div class="k">통신망</div><div class="v">${netLabel}</div></div>
+          <div class="detail-view-item"><div class="k">사용 여부</div><div class="v">${on ? "사용" : "미사용"}</div></div>
+        </div>
+        <div class="danger-zone"><button type="button" class="danger" id="biDeleteBtn">이 혜택 전체 삭제</button></div>
+      `;
+      pane.innerHTML = `
+        <div class="detail-header">
+          <h3>${escapeHtml(g.label || "(이름 없음)")}</h3>
+          <span class="muted">${netLabel} · ${on ? "사용 중" : "미사용"}</span>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">
+            <span>기본정보</span>
+            ${detailEditMode ? "" : `<button type="button" id="biEditBtn" class="secondary">수정</button>`}
+          </div>
+          <div class="detail-section-body">${basicInfoHtml}</div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title"><span>연결된 요금제 ${number(g.plans.length)}개</span></div>
+          <div class="detail-section-body">
+            <div class="plan-toolbar">
+              <input type="search" id="planSearchInput" placeholder="요금제명, 요금제코드 검색" value="${escapeHtml(planSearch)}" />
+              <button type="button" id="addPlanBtn" class="secondary">+ 요금제 추가</button>
+            </div>
+            <div id="planSectionDynamic"></div>
+          </div>
+        </div>
+      `;
+      wireDetailPaneEvents(g);
+    }
+    function wireDetailPaneEvents(g) {
+      const editBtn = $("biEditBtn");
+      if (editBtn) editBtn.addEventListener("click", () => { detailEditMode = true; renderDetailPane(); });
+      const cancelBtn = $("biCancelBtn");
+      if (cancelBtn) cancelBtn.addEventListener("click", () => { detailEditMode = false; renderDetailPane(); });
+      const saveBtn = $("biSaveBtn");
+      if (saveBtn) saveBtn.addEventListener("click", () => {
+        g.label = $("bi-label").value;
+        g.productCode = $("bi-product-code").value;
+        g.productName = $("bi-product-name").value;
+        g.months = $("bi-months").value;
+        const newNetwork = $("bi-network").value;
+        g.plans.forEach((p) => { p.network = newNetwork; });
+        const newActive = $("bi-active").value === "true";
+        g.active = newActive;
+        g.plans.forEach((p) => { p.active = newActive; });
+        detailEditMode = false;
+        editorDirty = true;
+        renderBenefitList();
+        renderDetailPane();
+        updateUnsavedIndicator();
+      });
+      const deleteBtn = $("biDeleteBtn");
+      if (deleteBtn) deleteBtn.addEventListener("click", () => {
+        if (!confirm(`"${g.label || "이 혜택"}"을 삭제할까요? 연결된 요금제 매칭도 모두 함께 삭제됩니다.`)) return;
+        editorDraft.splice(editorSelectedIdx, 1);
+        editorSelectedIdx = -1;
+        editorDirty = true;
+        renderBenefitList();
+        renderDetailPane();
+        updateUnsavedIndicator();
+      });
+      const addPlanBtn = $("addPlanBtn");
+      if (addPlanBtn) addPlanBtn.addEventListener("click", () => openPlanPicker(editorSelectedIdx));
+      const searchInput = $("planSearchInput");
+      if (searchInput) searchInput.addEventListener("input", () => {
+        planSearch = searchInput.value;
+        renderPlanSection(g);
+      });
+      renderPlanSection(g);
+    }
+    function renderPlanSection(g) {
+      const container = $("planSectionDynamic");
+      if (!container) return;
+      const codesNow = new Set(g.plans.map((p) => p.planCode));
+      for (const code of Array.from(planSelection)) if (!codesNow.has(code)) planSelection.delete(code);
+      const query = planSearch.trim().toLowerCase();
+      const visiblePlans = g.plans.map((p, pi) => ({ p, pi })).filter(({ p }) =>
+        !query || (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query)
+      );
+      const selectedCount = visiblePlans.filter(({ p }) => planSelection.has(p.planCode)).length;
+      const allChecked = visiblePlans.length > 0 && selectedCount === visiblePlans.length;
+      const rowsHtml = visiblePlans.length ? visiblePlans.map(({ p, pi }) => `
+        <tr>
+          <td class="pt-check"><input type="checkbox" class="plan-check" data-code="${escapeHtml(p.planCode)}" ${planSelection.has(p.planCode) ? "checked" : ""} /></td>
+          <td>${escapeHtml(p.planCode)}</td>
+          <td>${escapeHtml(p.planName || "-")}</td>
+          <td><button type="button" class="plan-network-badge net-${p.network === "KT" ? "kt" : "lg"}" data-pi="${pi}" title="클릭하여 통신망 변경">${p.network === "KT" ? "KT" : "LG"}</button></td>
+          <td><button type="button" class="plan-active-badge ${p.active !== false ? "on" : "off"}" data-pi="${pi}" title="클릭하여 사용 상태 변경">${p.active !== false ? "사용" : "미사용"}</button></td>
+          <td><button type="button" class="danger plan-row-delete" data-pi="${pi}">삭제</button></td>
+        </tr>
+      `).join("") : `<tr><td colspan="6"><div class="mapping-empty">${g.plans.length ? "검색 결과가 없습니다." : "연결된 요금제가 없습니다. '+ 요금제 추가'로 등록하세요."}</div></td></tr>`;
+      container.innerHTML = `
+        <div class="bulk-bar ${planSelection.size ? "show" : ""}">
+          <span>선택 ${number(planSelection.size)}개</span>
+          <select id="bulkNetworkSelect"><option value="">통신망 변경▾</option><option value="LG">LG망으로</option><option value="KT">KT망으로</option></select>
+          <select id="bulkActiveSelect"><option value="">사용 상태 변경▾</option><option value="true">사용으로</option><option value="false">미사용으로</option></select>
+          <button type="button" class="danger" id="bulkDeleteBtn">매칭 삭제</button>
+        </div>
+        <table class="plan-table">
+          <thead><tr>
+            <th class="pt-check"><input type="checkbox" id="planSelectAll" ${allChecked ? "checked" : ""} /></th>
+            <th>요금제코드</th><th>요금제명</th><th>통신망</th><th>상태</th><th>관리</th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      `;
+      wirePlanSectionEvents(g);
+    }
+    function wirePlanSectionEvents(g) {
+      const container = $("planSectionDynamic");
+      container.querySelectorAll(".plan-check").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          if (cb.checked) planSelection.add(cb.dataset.code); else planSelection.delete(cb.dataset.code);
+          renderPlanSection(g);
+        });
+      });
+      const selectAll = $("planSelectAll");
+      if (selectAll) selectAll.addEventListener("change", () => {
+        const query = planSearch.trim().toLowerCase();
+        const visibleCodes = g.plans.filter((p) => !query || (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query)).map((p) => p.planCode);
+        if (selectAll.checked) visibleCodes.forEach((c) => planSelection.add(c));
+        else visibleCodes.forEach((c) => planSelection.delete(c));
+        renderPlanSection(g);
+      });
+      container.querySelectorAll(".plan-network-badge").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const p = g.plans[Number(btn.dataset.pi)];
+          p.network = p.network === "KT" ? "LG" : "KT";
+          editorDirty = true;
+          renderPlanSection(g);
+          renderBenefitList();
+          updateUnsavedIndicator();
+        });
+      });
+      container.querySelectorAll(".plan-active-badge").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const p = g.plans[Number(btn.dataset.pi)];
+          p.active = p.active === false;
+          editorDirty = true;
+          renderPlanSection(g);
+          updateUnsavedIndicator();
+        });
+      });
+      container.querySelectorAll(".plan-row-delete").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const pi = Number(btn.dataset.pi);
+          const p = g.plans[pi];
+          if (!confirm(`"${p.planName || p.planCode}" 요금제를 해당 혜택에서 제외하시겠습니까?`)) return;
+          planSelection.delete(p.planCode);
+          g.plans.splice(pi, 1);
+          editorDirty = true;
+          renderPlanSection(g);
+          renderBenefitList();
+          updateUnsavedIndicator();
+        });
+      });
+      const bulkNet = $("bulkNetworkSelect");
+      if (bulkNet) bulkNet.addEventListener("change", () => {
+        if (!bulkNet.value) return;
+        g.plans.forEach((p) => { if (planSelection.has(p.planCode)) p.network = bulkNet.value; });
+        editorDirty = true;
+        renderPlanSection(g);
+        renderBenefitList();
+        updateUnsavedIndicator();
+      });
+      const bulkActive = $("bulkActiveSelect");
+      if (bulkActive) bulkActive.addEventListener("change", () => {
+        if (!bulkActive.value) return;
+        const active = bulkActive.value === "true";
+        g.plans.forEach((p) => { if (planSelection.has(p.planCode)) p.active = active; });
+        editorDirty = true;
+        renderPlanSection(g);
+        updateUnsavedIndicator();
+      });
+      const bulkDelete = $("bulkDeleteBtn");
+      if (bulkDelete) bulkDelete.addEventListener("click", () => {
+        if (!confirm(`선택한 요금제 ${planSelection.size}개를 이 혜택에서 제외하시겠습니까?`)) return;
+        g.plans = g.plans.filter((p) => !planSelection.has(p.planCode));
+        planSelection = new Set();
+        editorDirty = true;
+        renderPlanSection(g);
+        renderBenefitList();
+        updateUnsavedIndicator();
+      });
+    }
+    function openPlanPicker(gi) {
+      pendingPickerGi = gi;
+      pickerSelected = new Set();
+      pickerTab = "pick";
+      $("pickerSearch").value = "";
+      $("pm-code").value = "";
+      $("pm-name").value = "";
+      document.querySelectorAll(".picker-tab-btn").forEach((b) => b.classList.toggle("on", b.dataset.tab === "pick"));
+      $("pickerPickTab").style.display = "";
+      $("pickerManualTab").style.display = "none";
+      renderPickerList();
+      $("planPickerDialog").showModal();
+    }
+    function updatePickerSummary() {
+      $("pickerSummary").textContent = pickerTab === "pick" && pickerSelected.size ? `${number(pickerSelected.size)}개 선택됨` : "";
+    }
+    function renderPickerList() {
+      const g = editorDraft[pendingPickerGi];
+      if (!g) return;
+      const connected = new Set(g.plans.map((p) => p.planCode));
+      const query = $("pickerSearch").value.trim().toLowerCase();
+      const pool = allKnownPlans().filter((item) => !query || item.code.toLowerCase().includes(query) || (item.name || "").toLowerCase().includes(query));
+      const list = $("pickerList");
+      if (!pool.length) {
+        list.innerHTML = `<div class="mapping-empty">검색 결과가 없습니다. '직접 입력' 탭에서 새 코드를 추가할 수 있습니다.</div>`;
+      } else {
+        list.innerHTML = pool.map((item) => {
+          const already = connected.has(item.code);
+          const checked = pickerSelected.has(item.code);
+          return `<div class="picker-item ${already ? "disabled" : ""}" data-code="${escapeHtml(item.code)}">
+            <input type="checkbox" ${checked ? "checked" : ""} ${already ? "disabled" : ""} />
+            <div>
+              <div class="pi-name">${escapeHtml(item.name || "(이름 없음)")}</div>
+              <div class="pi-code">${escapeHtml(item.code)}</div>
+            </div>
+            ${already ? `<span class="pi-tag">이미 연결됨</span>` : (item.count ? `<span class="pi-tag">${number(item.count)}명</span>` : "")}
+          </div>`;
+        }).join("");
+        list.querySelectorAll(".picker-item:not(.disabled)").forEach((el) => {
+          el.addEventListener("click", () => {
+            const code = el.dataset.code;
+            if (pickerSelected.has(code)) pickerSelected.delete(code); else pickerSelected.add(code);
+            renderPickerList();
+          });
         });
       }
-      tbody.innerHTML = html;
+      updatePickerSummary();
     }
     function openMappingEditor() {
       editorDraft = categoryGroups().map((g) => ({
@@ -2224,12 +2656,20 @@
         productName: g.productName || "",
         months: g.months || "",
         active: g.active !== false,
-        plans: g.plans.map((p) => ({ planCode: p.planCode, planName: p.planName || "", network: p.network === "KT" ? "KT" : "LG" }))
+        plans: g.plans.map((p) => ({ planCode: p.planCode, planName: p.planName || "", network: p.network === "KT" ? "KT" : "LG", active: p.active !== false }))
       }));
       editorFilterMode = "all";
+      editorNetworkFilter = "all";
       editorSearch = "";
+      editorDirty = false;
+      detailEditMode = false;
+      planSearch = "";
+      planSelection = new Set();
       $("editorSearch").value = "";
-      renderMappingTable();
+      editorSelectedIdx = editorDraft.length ? 0 : -1;
+      updateUnsavedIndicator();
+      renderBenefitList();
+      renderDetailPane();
       $("mappingDialog").showModal();
     }
     function saveEditorDraft() {
@@ -2247,18 +2687,24 @@
             planName: p.planName.trim(),
             months: Number.isFinite(months) && months > 0 ? months : null,
             network: p.network === "KT" ? "KT" : "LG",
-            active: g.active !== false
+            active: p.active !== false
           });
         }
       }
-      if (!items.length) { alert("저장할 요금제 코드가 없습니다."); return; }
+      if (!items.length) { alert("저장할 요금제 코드가 없습니다."); return false; }
       state.mappings = dedupeMappings(items);
       state.selectedCategoryId = "";
       saveMappings();
+      editorDirty = false;
       renderOptions();
       render();
       $("mappingStatus").textContent = `저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
       $("mappingDialog").close();
+      return true;
+    }
+    function attemptCloseMappingDialog() {
+      if (editorDirty) $("unsavedChangesDialog").showModal();
+      else $("mappingDialog").close();
     }
     $("editMappingBtn").addEventListener("click", openMappingEditor);
     document.querySelectorAll(".network-filter-btn").forEach((btn) => {
@@ -2267,70 +2713,97 @@
         renderCategories();
       });
     });
-    $("closeMappingBtn").addEventListener("click", () => $("mappingDialog").close());
-    $("saveMappingBtn").addEventListener("click", saveEditorDraft);
+    $("closeMappingBtn").addEventListener("click", attemptCloseMappingDialog);
+    $("mappingDialog").addEventListener("cancel", (event) => {
+      if (editorDirty) {
+        event.preventDefault();
+        $("unsavedChangesDialog").showModal();
+      }
+    });
+    $("saveMappingBtn").addEventListener("click", () => saveEditorDraft());
+    $("unsavedDiscardBtn").addEventListener("click", () => {
+      $("unsavedChangesDialog").close();
+      $("mappingDialog").close();
+    });
+    $("unsavedContinueBtn").addEventListener("click", () => $("unsavedChangesDialog").close());
+    $("unsavedSaveBtn").addEventListener("click", () => {
+      if (saveEditorDraft()) $("unsavedChangesDialog").close();
+    });
     $("editorSearch").addEventListener("input", () => {
       editorSearch = $("editorSearch").value;
-      renderMappingTable();
+      renderBenefitList();
     });
-    document.querySelectorAll(".editor-filter-btn").forEach((btn) => {
+    document.querySelectorAll('#mappingDialog .editor-filter-btn').forEach((btn) => {
       btn.addEventListener("click", () => {
-        editorFilterMode = btn.dataset.filter;
-        renderMappingTable();
+        if (btn.dataset.filtertype === "network") editorNetworkFilter = btn.dataset.filter;
+        else editorFilterMode = btn.dataset.filter;
+        renderBenefitList();
       });
     });
     $("editorAddCategoryBtn").addEventListener("click", () => {
-      editorDraft.push({ id: "_new_" + editorDraft.length, label: "", productCode: "", productName: "", months: "", active: true, plans: [] });
-      renderMappingTable();
-      const inputs = document.querySelectorAll(".ef-label");
-      if (inputs.length) inputs[inputs.length - 1].focus();
+      $("bf-label").value = "";
+      $("bf-product-code").value = "";
+      $("bf-product-name").value = "";
+      $("bf-months").value = "";
+      $("bf-network").value = "LG";
+      $("bf-active").value = "true";
+      $("benefitFormDialog").showModal();
+      $("bf-label").focus();
     });
-    $("mappingTableBody").addEventListener("input", (event) => {
-      const t = event.target;
-      const gi = Number(t.dataset.gi);
-      const g = editorDraft[gi];
-      if (!g) return;
-      const pi = Number(t.dataset.pi);
-      if (t.classList.contains("ef-label")) g.label = t.value;
-      else if (t.classList.contains("ef-product-code")) g.productCode = t.value;
-      else if (t.classList.contains("ef-product-name")) g.productName = t.value;
-      else if (t.classList.contains("ef-months")) g.months = t.value;
-      else if (t.classList.contains("ef-plan-code")) { if (!g.plans[pi]) g.plans[pi] = { planCode: "", planName: "", network: "LG" }; g.plans[pi].planCode = t.value; }
-      else if (t.classList.contains("ef-plan-name")) { if (!g.plans[pi]) g.plans[pi] = { planCode: "", planName: "", network: "LG" }; g.plans[pi].planName = t.value; }
+    $("bfCancelBtn").addEventListener("click", () => $("benefitFormDialog").close());
+    $("bfCreateBtn").addEventListener("click", () => {
+      const label = $("bf-label").value.trim();
+      if (!label) { alert("혜택명을 입력하세요."); return; }
+      editorDraft.push({
+        id: "_new_" + Date.now(),
+        label,
+        productCode: $("bf-product-code").value.trim(),
+        productName: $("bf-product-name").value.trim(),
+        months: $("bf-months").value,
+        active: $("bf-active").value === "true",
+        plans: []
+      });
+      const gi = editorDraft.length - 1;
+      editorDirty = true;
+      $("benefitFormDialog").close();
+      selectBenefit(gi);
+      updateUnsavedIndicator();
+      openPlanPicker(gi);
     });
-    $("mappingTableBody").addEventListener("click", (event) => {
-      const btn = event.target.closest("button");
-      if (!btn) return;
-      const gi = Number(btn.dataset.gi);
-      const g = editorDraft[gi];
+    document.querySelectorAll(".picker-tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        pickerTab = btn.dataset.tab;
+        document.querySelectorAll(".picker-tab-btn").forEach((b) => b.classList.toggle("on", b === btn));
+        $("pickerPickTab").style.display = pickerTab === "pick" ? "" : "none";
+        $("pickerManualTab").style.display = pickerTab === "manual" ? "" : "none";
+        updatePickerSummary();
+      });
+    });
+    $("pickerSearch").addEventListener("input", renderPickerList);
+    $("pickerCancelBtn").addEventListener("click", () => $("planPickerDialog").close());
+    $("pickerAddBtn").addEventListener("click", () => {
+      const g = editorDraft[pendingPickerGi];
       if (!g) return;
-      if (btn.classList.contains("ef-status-toggle")) {
-        g.active = g.active === false;
-        renderMappingTable();
-      } else if (btn.classList.contains("ef-network-bulk-toggle")) {
-        const current = editorGroupNetwork(g);
-        const newNet = current === "KT" ? "LG" : "KT";
-        g.plans.forEach((p) => { p.network = newNet; });
-        renderMappingTable();
-      } else if (btn.classList.contains("ef-plan-network-toggle")) {
-        const pi = Number(btn.dataset.pi);
-        if (!g.plans[pi]) g.plans[pi] = { planCode: "", planName: "", network: "LG" };
-        g.plans[pi].network = g.plans[pi].network === "KT" ? "LG" : "KT";
-        renderMappingTable();
-      } else if (btn.classList.contains("ef-add-plan")) {
-        g.plans.push({ planCode: "", planName: "", network: editorGroupNetwork(g) === "KT" ? "KT" : "LG" });
-        renderMappingTable();
-        const inputs = document.querySelectorAll(`.ef-plan-code[data-gi="${gi}"]`);
-        if (inputs.length) inputs[inputs.length - 1].focus();
-      } else if (btn.classList.contains("ef-delete-group")) {
-        if (!confirm(`"${g.label || "이 혜택"}"을 삭제할까요?`)) return;
-        editorDraft.splice(gi, 1);
-        renderMappingTable();
-      } else if (btn.classList.contains("ef-remove-plan")) {
-        const pi = Number(btn.dataset.pi);
-        g.plans.splice(pi, 1);
-        renderMappingTable();
+      const defaultNetwork = editorGroupNetwork(g) === "KT" ? "KT" : "LG";
+      if (pickerTab === "manual") {
+        const code = $("pm-code").value.trim();
+        if (!code) { alert("요금제코드를 입력하세요."); return; }
+        if (g.plans.some((p) => p.planCode === code)) { alert("이미 연결된 요금제코드입니다."); return; }
+        g.plans.push({ planCode: code, planName: $("pm-name").value.trim(), network: defaultNetwork, active: true });
+      } else {
+        if (!pickerSelected.size) { alert("추가할 요금제를 선택하세요."); return; }
+        const pool = new Map(allKnownPlans().map((p) => [p.code, p]));
+        for (const code of pickerSelected) {
+          if (g.plans.some((p) => p.planCode === code)) continue;
+          const info = pool.get(code);
+          g.plans.push({ planCode: code, planName: info?.name || "", network: defaultNetwork, active: true });
+        }
       }
+      editorDirty = true;
+      $("planPickerDialog").close();
+      renderBenefitList();
+      renderDetailPane();
+      updateUnsavedIndicator();
     });
     $("downloadTargetBtn").addEventListener("click", downloadSelectedCategoryExcel);
     $("downloadAllTargetsBtn").addEventListener("click", downloadAllCategoriesExcel);
