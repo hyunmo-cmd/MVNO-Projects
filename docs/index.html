@@ -268,6 +268,10 @@
     }
     .benefit-line:last-child { margin-bottom: 0; }
     .benefit-line .name { font-weight: 700; margin-bottom: 3px; font-size: 13.5px; }
+    .benefit-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .benefit-detail-header .name { font-size: 14.5px; }
+    .benefit-detail-header button { width: auto; min-height: 30px; padding: 0 12px; flex-shrink: 0; }
+    .benefit-detail-badges { display: flex; gap: 6px; margin-bottom: 10px; }
     .muted { color: var(--muted); font-size: 12px; }
     .bars { display: grid; gap: 8px; }
     .bar-row {
@@ -322,8 +326,9 @@
     }
     .category-item {
       border: 1px solid var(--line);
+      border-left: 3px solid transparent;
       border-radius: var(--r-sm);
-      padding: 12px 14px;
+      padding: 8px 10px;
       background: #fff;
       cursor: pointer;
       transition: border-color .15s, background .15s;
@@ -331,10 +336,18 @@
     .category-item:hover { border-color: #93c5fd; background: #f8fafc; }
     .category-item.active {
       border-color: var(--blue);
+      border-left-color: var(--blue);
       background: var(--blue2);
     }
-    .category-item.inactive { opacity: .45; }
+    .category-item.inactive { opacity: .7; }
+    .category-item.inactive .cat-title { color: var(--muted); }
     .category-item .title { font-weight: 700; margin-bottom: 5px; font-size: 13.5px; }
+    .cat-row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .cat-title { font-weight: 700; font-size: 12.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cat-badges { display: flex; gap: 4px; flex-shrink: 0; }
+    .cat-row-sub { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 4px; font-size: 11px; color: var(--muted); }
+    .cat-row-sub .cat-sep { opacity: .6; }
+    .cat-plans-count { margin-left: auto; font-weight: 600; color: var(--ink2); white-space: nowrap; cursor: help; }
     .cat-status-toggle { font-size:10px !important; padding:2px 8px !important; border-radius:999px !important; cursor:pointer; flex-shrink:0; font-weight:600; line-height:1.6; white-space:nowrap; display:inline-block !important; width:auto !important; min-width:0 !important; min-height:0 !important; }
     .cat-status-toggle.on  { background:#dcfce7; color:#15803d; border-color:#86efac; }
     .cat-status-toggle.off { background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1; }
@@ -344,23 +357,8 @@
     .cat-network-toggle.net-mixed { background:#fef9c3; color:#854d0e; border-color:#fde68a; }
     .chip.chip-kt { background:#fee2e2; color:#b91c1c; }
     .network-filter-bar { display:flex; gap:6px; margin-bottom:10px; }
-    .network-filter-btn { flex:1; font-size:11.5px !important; padding:5px 4px !important; width:auto !important; min-height:0 !important; border-radius:5px; border:1px solid var(--line); background:white; cursor:pointer; }
+    .network-filter-btn { flex:1; font-size:11.5px !important; padding:5px 4px !important; width:auto !important; min-height:0 !important; border-radius:5px; border:1px solid var(--line); background:white; color: var(--ink2); cursor:pointer; }
     .network-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
-    .category-head {
-      display: grid;
-      grid-template-columns: minmax(220px, .9fr) minmax(0, 1.8fr);
-      gap: 14px;
-      align-items: start;
-    }
-    .category-label {
-      margin-bottom: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-    }
-    .category-meta { display: grid; gap: 4px; }
     .chips { display: flex; flex-wrap: wrap; gap: 5px; }
     .chip {
       display: inline-flex;
@@ -578,11 +576,13 @@
     }
     .benefit-card:hover { background: #e8f1ff; }
     .benefit-card.active { background: var(--blue2); border-right: 3px solid var(--blue); }
+    .benefit-card.inactive { opacity: .7; }
     .benefit-card .bc-name {
-      font-weight: 600; font-size: 12.5px; color: var(--ink2); margin-bottom: 4px;
+      font-weight: 600; font-size: 12.5px; color: var(--ink2); margin-bottom: 3px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .benefit-card .bc-meta { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .benefit-card .bc-meta { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+    .benefit-card .bc-plancount { margin-left: auto; font-weight: 600; color: var(--ink2); white-space: nowrap; }
     .mapping-list-footer { padding: 10px; border-top: 1px solid var(--line); flex-shrink: 0; }
     .mapping-detail-pane { display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px; gap: 16px; }
     .detail-empty { margin: auto; color: var(--muted); font-size: 13px; text-align: center; padding: 40px; }
@@ -615,8 +615,9 @@
     }
     .bulk-bar.show { display: flex; }
     .bulk-bar select, .bulk-bar button { width: auto; min-height: 30px; font-size: 12px; }
+    .plan-table-wrap { max-height: 320px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--r-sm); }
     table.plan-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    .plan-table th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+    .plan-table th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; z-index: 1; }
     .plan-table td { padding: 7px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .plan-table td.pt-check { width: 28px; }
     .plan-network-badge, .plan-active-badge {
@@ -627,6 +628,7 @@
     .plan-network-badge { cursor: pointer; }
     .plan-network-badge.net-lg { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
     .plan-network-badge.net-kt { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .plan-network-badge.net-mixed { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
     .plan-active-badge.on  { background: #dcfce7; color: #15803d; border-color: #86efac; }
     .plan-active-badge.off { background: #f1f5f9; color: #94a3b8; border-color: #cbd5e1; }
     .plan-row-delete { width: auto !important; font-size: 11.5px !important; padding: 3px 9px !important; min-height: 0 !important; }
@@ -671,7 +673,6 @@
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .table-tools { grid-template-columns: 1fr; }
       .tab-panel.active { grid-template-columns: 1fr; }
-      .category-head { grid-template-columns: 1fr; }
       .table-wrap { max-height: none; }
     }
   </style>
@@ -842,7 +843,7 @@
     <div class="mapping-body">
       <aside class="mapping-list-pane">
         <div class="mapping-list-toolbar">
-          <input type="search" id="editorSearch" placeholder="혜택명 검색" />
+          <input type="search" id="editorSearch" placeholder="혜택명, 상품코드, 요금제명/코드 검색" />
           <div class="mapping-filter-row">
             <button class="editor-filter-btn on" data-filtertype="network" data-filter="all">전체</button>
             <button class="editor-filter-btn" data-filtertype="network" data-filter="LG">LG망</button>
@@ -1972,11 +1973,33 @@
     }
     function renderBenefit() {
       const group = selectedCategory();
-      $("benefitBox").innerHTML = group ? `
-        <div class="benefit-line"><div class="muted">혜택 종류</div><div class="name">${escapeHtml(group.label)}</div></div>
+      if (!group) {
+        $("benefitBox").innerHTML = `<div class="benefit-line"><div class="name">혜택 미선택</div><div class="muted">고객 조회에서 대분류 혜택을 선택하세요.</div></div>`;
+        return;
+      }
+      const netClass = group.network === "KT" ? "kt" : group.network === "MIXED" ? "mixed" : "lg";
+      const netLabel = group.network === "KT" ? "KT망" : group.network === "MIXED" ? "LG/KT 혼합" : "LG망";
+      const on = group.active !== false;
+      const durationText = group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급기간 제한 없음";
+      const plansTooltip = group.plans.map((p) => `${p.planCode}${p.planName ? " · " + p.planName : ""}`).join("\n") || "연결된 요금제 없음";
+      $("benefitBox").innerHTML = `
+        <div class="benefit-detail-header">
+          <div class="name">${escapeHtml(group.label)}</div>
+          <button type="button" id="benefitEditBtn" class="secondary">수정</button>
+        </div>
+        <div class="benefit-detail-badges">
+          <span class="plan-network-badge net-${netClass}">${netLabel}</span>
+          <span class="plan-active-badge ${on ? "on" : "off"}">${on ? "사용" : "종료"}</span>
+        </div>
         <div class="benefit-line"><div class="muted">상품코드 / 상품명</div><strong>${escapeHtml(group.productCode || "-")}</strong><div class="muted">${escapeHtml(group.productName || "-")}</div></div>
-        <div class="benefit-line"><div class="muted">매칭 요금제코드</div><strong>${number(group.plans.length)}개</strong></div>
-      ` : `<div class="benefit-line"><div class="name">혜택 미선택</div><div class="muted">고객 조회에서 대분류 혜택을 선택하세요.</div></div>`;
+        <div class="benefit-line"><div class="muted">지급 조건</div><strong>${durationText}</strong></div>
+        <div class="benefit-line"><div class="muted" title="${escapeHtml(plansTooltip)}">매칭 요금제 (마우스오버: 목록)</div><strong>${number(group.plans.length)}개</strong></div>
+      `;
+      $("benefitEditBtn").addEventListener("click", () => {
+        openMappingEditor();
+        const idx = editorDraft.findIndex((g) => g.id === group.id);
+        if (idx >= 0) selectBenefit(idx);
+      });
     }
     function renderBars() {
       const top = state.plans.slice(0, 10);
@@ -2020,22 +2043,21 @@
         const on = group.active !== false;
         const netClass = group.network === "KT" ? "kt" : group.network === "MIXED" ? "mixed" : "lg";
         const netLabel = group.network === "KT" ? "KT망" : group.network === "MIXED" ? "LG/KT 혼합" : "LG망";
-        const codes = group.plans.map((plan) => `<span class="chip ${plan.network === "KT" ? "chip-kt" : ""}" title="${escapeHtml(plan.planName || "")} · ${plan.network === "KT" ? "KT망" : "LG망"}">${escapeHtml(plan.planCode)}</span>`).join("");
+        const durationText = group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급기간 제한 없음";
+        const plansTooltip = group.plans.map((p) => `${p.planCode}${p.planName ? " · " + p.planName : ""}`).join("\n") || "연결된 요금제 없음";
         return `<div class="category-item ${group.id === state.selectedCategoryId ? "active" : ""} ${on ? "" : "inactive"}" data-id="${escapeHtml(group.id)}">
-          <div class="category-head">
-            <div class="category-meta">
-              <div class="category-label">혜택 종류</div>
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                <div class="title" style="margin-bottom:0;">${escapeHtml(group.label)}</div>
-                <button class="cat-network-toggle net-${netClass}" data-gid="${escapeHtml(group.id)}" title="클릭하면 이 혜택의 모든 요금제코드에 일괄 적용됩니다. 요금제코드별로 다르게 지정하려면 매칭 수정에서 설정하세요.">${netLabel}</button>
-                <button class="cat-status-toggle ${on ? "on" : "off"}" data-gid="${escapeHtml(group.id)}">${on ? "사용" : "종료"}</button>
-              </div>
-              <div class="muted" style="font-size:11.5px;margin-top:2px;">${group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급 개월수 미설정 (기간 제한 없음)"}</div>
+          <div class="cat-row-top">
+            <div class="cat-title" title="${escapeHtml(group.label)}">${escapeHtml(group.label)}</div>
+            <div class="cat-badges">
+              <button class="cat-network-toggle net-${netClass}" data-gid="${escapeHtml(group.id)}" title="클릭하면 이 혜택의 모든 요금제코드에 일괄 적용됩니다. 요금제코드별로 다르게 지정하려면 매칭 수정에서 설정하세요.">${netLabel}</button>
+              <button class="cat-status-toggle ${on ? "on" : "off"}" data-gid="${escapeHtml(group.id)}">${on ? "사용" : "종료"}</button>
             </div>
-            <div>
-              <div class="category-label">요금제 코드 (칩 색상 = 통신망, 빨강=KT)</div>
-              <div class="chips">${codes}</div>
-            </div>
+          </div>
+          <div class="cat-row-sub">
+            <span>${escapeHtml(group.productCode || "-")}</span>
+            <span class="cat-sep">·</span>
+            <span>${durationText}</span>
+            <span class="cat-plans-count" title="${escapeHtml(plansTooltip)}">매칭 요금제 ${number(group.plans.length)}개</span>
           </div>
         </div>`;
       }).join("") : `<div class="muted">${categoryNetworkFilter === "LG" ? "LG망" : "KT망"} 혜택이 없습니다.</div>`;
@@ -2319,8 +2341,10 @@
       if (editorFilterMode === "inactive" && g.active !== false) return false;
       if (editorNetworkFilter !== "all" && !g.plans.some((p) => p.network === editorNetworkFilter)) return false;
       const query = editorSearch.trim().toLowerCase();
-      if (query && !(g.label || "").toLowerCase().includes(query)) return false;
-      return true;
+      if (!query) return true;
+      const inBasicInfo = [g.label, g.productCode, g.productName].some((v) => (v || "").toLowerCase().includes(query));
+      if (inBasicInfo) return true;
+      return g.plans.some((p) => (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query));
     }
     function updateUnsavedIndicator() {
       $("unsavedIndicator").classList.toggle("show", editorDirty);
@@ -2332,7 +2356,9 @@
       document.querySelectorAll('#mappingDialog .editor-filter-btn[data-filtertype="network"]').forEach((btn) => {
         btn.classList.toggle("on", btn.dataset.filter === editorNetworkFilter);
       });
-      const visible = editorDraft.map((g, gi) => ({ g, gi })).filter(({ g }) => editorGroupMatches(g));
+      const visible = editorDraft.map((g, gi) => ({ g, gi }))
+        .filter(({ g }) => editorGroupMatches(g))
+        .sort((a, b) => (b.g.active !== false) - (a.g.active !== false));
       const list = $("benefitList");
       const totalPlans = editorDraft.reduce((sum, g) => sum + g.plans.length, 0);
       $("editorSummary").textContent = editorDraft.length ? `${number(editorDraft.length)}개 혜택 / ${number(totalPlans)}개 요금제코드` : "";
@@ -2344,9 +2370,12 @@
         const network = editorGroupNetwork(g);
         const netLabel = network === "KT" ? "KT망" : network === "MIXED" ? "LG/KT 혼합" : "LG망";
         const on = g.active !== false;
-        return `<div class="benefit-card ${gi === editorSelectedIdx ? "active" : ""}" data-gi="${gi}">
+        const months = Number(g.months) || benefitMonthsFromLabel(g.label);
+        const durationText = months ? `${number(months)}개월 지급` : "기간 제한 없음";
+        return `<div class="benefit-card ${gi === editorSelectedIdx ? "active" : ""} ${on ? "" : "inactive"}" data-gi="${gi}">
           <div class="bc-name">${escapeHtml(g.label || "(이름 없음)")}</div>
-          <div class="bc-meta"><span>${netLabel}</span><span>·</span><span>${on ? "사용 중" : "미사용"}</span><span>·</span><span>연결 요금제 ${number(g.plans.length)}개</span></div>
+          <div class="bc-meta"><span>${netLabel}</span><span>·</span><span>${on ? "사용 중" : "미사용"}</span></div>
+          <div class="bc-meta"><span>${escapeHtml(g.productCode || "-")}</span><span>·</span><span>${durationText}</span><span class="bc-plancount">연결 요금제 ${number(g.plans.length)}개</span></div>
         </div>`;
       }).join("");
       list.querySelectorAll(".benefit-card").forEach((el) => {
@@ -2354,6 +2383,9 @@
       });
     }
     function selectBenefit(gi) {
+      if (detailEditMode && gi !== editorSelectedIdx) {
+        if (!confirm("현재 혜택의 기본정보 수정사항이 저장되지 않았습니다. 다른 혜택으로 이동하면 사라집니다. 계속하시겠습니까?")) return;
+      }
       editorSelectedIdx = gi;
       detailEditMode = false;
       planSearch = "";
@@ -2513,13 +2545,15 @@
           <select id="bulkActiveSelect"><option value="">사용 상태 변경▾</option><option value="true">사용으로</option><option value="false">미사용으로</option></select>
           <button type="button" class="danger" id="bulkDeleteBtn">매칭 삭제</button>
         </div>
-        <table class="plan-table">
-          <thead><tr>
-            <th class="pt-check"><input type="checkbox" id="planSelectAll" ${allChecked ? "checked" : ""} /></th>
-            <th>요금제코드</th><th>요금제명</th><th>통신망</th><th>상태</th><th>관리</th>
-          </tr></thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
+        <div class="plan-table-wrap">
+          <table class="plan-table">
+            <thead><tr>
+              <th class="pt-check"><input type="checkbox" id="planSelectAll" ${allChecked ? "checked" : ""} /></th>
+              <th>요금제코드</th><th>요금제명</th><th>통신망</th><th>상태</th><th>관리</th>
+            </tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
       `;
       wirePlanSectionEvents(g);
     }
@@ -2635,7 +2669,7 @@
               <div class="pi-name">${escapeHtml(item.name || "(이름 없음)")}</div>
               <div class="pi-code">${escapeHtml(item.code)}</div>
             </div>
-            ${already ? `<span class="pi-tag">이미 연결됨</span>` : (item.count ? `<span class="pi-tag">${number(item.count)}명</span>` : "")}
+            ${already ? `<span class="pi-tag">✓ 연결됨</span>` : (item.count ? `<span class="pi-tag">${number(item.count)}명</span>` : "")}
           </div>`;
         }).join("");
         list.querySelectorAll(".picker-item:not(.disabled)").forEach((el) => {
