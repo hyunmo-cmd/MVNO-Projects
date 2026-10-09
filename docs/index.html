@@ -346,7 +346,7 @@
           <button type="button" data-view="targets" class="on">발송 대상 <span id="segTargets">0</span></button>
           <button type="button" data-view="excluded">제외 <span id="segExcluded">0</span></button>
         </div>
-        <input id="customerSearch" class="input search" type="search" placeholder="고객명, 연락처, 요금제 검색" />
+        <input id="customerSearch" class="input search" type="search" placeholder="요금제코드, 요금제명, 상태 검색" />
         <select id="planCode" class="input" title="요금제코드 조건 (발송 파일에 반영)"></select>
         <select id="statusFilter" class="input" title="고객 상태 조건 (발송 파일에 반영)">
           <option value="all">상태: 전체</option>
@@ -1579,7 +1579,8 @@
         $("dzSub").textContent = "엑셀(.xlsx) · 암호화 파일 지원 · 파일은 이 브라우저 안에서만 처리되며 새로고침·초기화 시 삭제됩니다";
       }
     }
-    const CUSTOMER_COLUMNS = ["연락처", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분", "대리점", "총판"];
+    // 화면에는 개인정보(연락처·고객명·대리점·총판)를 표시하지 않는다. 발송 파일에는 기존대로 포함된다.
+    const CUSTOMER_COLUMNS = ["No", "요금제코드", "요금제명", "개통일", "상태", "개통구분"];
     function renderResults(result) {
       const { group, matched, targets, excluded } = result;
       const loaded = state.customers.length > 0;
@@ -1622,7 +1623,7 @@
       const colspan = CUSTOMER_COLUMNS.length + (showReason ? 1 : 0);
       let list = showReason ? excluded : targets.map((row) => ({ row }));
       const query = state.search.trim().toLowerCase();
-      if (query) list = list.filter(({ row }) => [row.phone, row.name, row.status, row.joinType, row.agency, row.channel, row.planCode, row.planName].some((v) => String(v).toLowerCase().includes(query)));
+      if (query) list = list.filter(({ row }) => [row.status, row.joinType, row.planCode, row.planName].some((v) => String(v).toLowerCase().includes(query)));
       let emptyText = "";
       if (!loaded && !group) emptyText = "혜택을 선택하고 개통내역 파일을 업로드하면 발송 대상자가 표시됩니다.";
       else if (!loaded) emptyText = "개통내역 파일을 업로드하면 발송 대상자가 표시됩니다.";
@@ -1634,17 +1635,14 @@
       const visible = list.slice(0, state.visibleRows);
       $("customerRows").innerHTML = emptyText
         ? `<tr><td colspan="${colspan}" class="empty">${emptyText}</td></tr>`
-        : visible.map(({ row, reason }) => `
+        : visible.map(({ row, reason }, index) => `
         <tr>
-          <td>${escapeHtml(row.phone)}${!row.phone || !isValidPhoneLike(row.phone) ? `<span class="phone-warn" title="전화번호를 확인해 주세요">⚠</span>` : ""}</td>
-          <td>${escapeHtml(row.name)}</td>
+          <td>${number(index + 1)}${!row.phone || !isValidPhoneLike(row.phone) ? `<span class="phone-warn" title="전화번호를 확인해 주세요">⚠</span>` : ""}</td>
           <td>${escapeHtml(row.planCode)}</td>
           <td>${escapeHtml(row.planName)}</td>
           <td>${escapeHtml(row.openedAt)}</td>
           <td><span class="badge ${row.status === "정상" ? "" : "other"}">${escapeHtml(row.status || "-")}</span></td>
           <td>${escapeHtml(row.joinType)}</td>
-          <td>${escapeHtml(row.agency)}</td>
-          <td>${escapeHtml(row.channel)}</td>
           ${showReason ? `<td class="reason">${escapeHtml(reason)}</td>` : ""}
         </tr>`).join("");
       const remaining = Math.max(0, list.length - visible.length);
