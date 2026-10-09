@@ -3,950 +3,475 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LG 요금제 혜택 발송 대시보드</title>
+  <title>혜택 발송기</title>
   <style>
     :root {
       --ink: #0f172a;
       --ink2: #1e293b;
       --muted: #64748b;
       --line: #e2e8f0;
+      --line2: #f1f5f9;
       --panel: #ffffff;
       --bg: #f1f5f9;
       --blue: #2563eb;
       --blue-d: #1d4ed8;
       --blue2: #eff6ff;
-      --teal: #0891b2;
       --green: #dcfce7;
       --green-ink: #166534;
       --rose: #fee2e2;
       --rose-ink: #9f1239;
-      --shadow-xs: 0 1px 2px rgba(15,23,42,.05);
-      --shadow-sm: 0 1px 3px rgba(15,23,42,.1), 0 1px 2px rgba(15,23,42,.06);
-      --shadow: 0 4px 6px rgba(15,23,42,.07), 0 2px 4px rgba(15,23,42,.05);
+      --shadow-sm: 0 1px 3px rgba(15,23,42,.08), 0 1px 2px rgba(15,23,42,.04);
       --r: 10px;
       --r-sm: 6px;
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body {
       margin: 0;
-      font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
       font-size: 14px;
       color: var(--ink);
       background: var(--bg);
     }
-    header {
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
-      padding: 20px 28px;
-      color: #fff;
-    }
+    input, select, button { font: inherit; color: inherit; }
+
+    /* ─── 헤더 ─── */
+    .app-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: #fff; }
+    .app-header-inner, .page, .action-inner { max-width: 1180px; margin: 0 auto; padding-left: 24px; padding-right: 24px; }
+    .app-header-inner { padding-top: 18px; padding-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
     .sub { margin-top: 4px; color: #94a3b8; font-size: 12.5px; }
-    main {
-      padding: 16px 28px 32px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 16px;
-    }
-    .toolbar, .panel, .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-sm);
-    }
-    .toolbar {
-      grid-column: 1 / -1;
-      padding: 16px;
-      display: grid;
-      grid-template-columns: 1.35fr 150px 210px 210px 130px;
-      gap: 12px;
-      align-items: end;
-      position: relative;
-    }
-    .toolbar::before {
-      content: "개통내역";
-      position: absolute;
-      top: -10px;
-      left: 14px;
-      padding: 2px 10px;
-      background: var(--blue);
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: .04em;
-      border-radius: 4px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 11.5px;
-      letter-spacing: .02em;
-    }
-    input, select, button {
+
+    /* ─── 공통 컨트롤 ─── */
+    .input {
       width: 100%;
       min-height: 38px;
       border: 1px solid #cbd5e1;
       border-radius: var(--r-sm);
       padding: 0 11px;
-      font: inherit;
       background: #fff;
-      color: var(--ink);
       transition: border-color .15s, box-shadow .15s;
     }
-    input[type="file"] { padding: 8px 11px; font-size: 13px; }
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
-    }
-    button {
-      cursor: pointer;
-      border-color: var(--blue);
-      background: var(--blue);
-      color: #fff;
-      font-weight: 600;
-      font-size: 13.5px;
-      transition: background .15s, transform .08s;
-    }
-    button:hover:not(:disabled) { background: var(--blue-d); border-color: var(--blue-d); }
-    button:active:not(:disabled) { transform: scale(.98); }
-    button.secondary { background: #fff; color: var(--blue); }
-    button.secondary:hover:not(:disabled) { background: var(--blue2); }
-    button.danger { background: #be123c; border-color: #be123c; }
-    button.danger:hover:not(:disabled) { background: var(--rose-ink); border-color: var(--rose-ink); }
-    button:disabled { cursor: not-allowed; opacity: .5; }
-    .notice {
-      grid-column: 1 / -1;
-      padding: 10px 14px;
-      border: 1px solid #bfdbfe;
-      background: #eff6ff;
-      border-radius: var(--r-sm);
-      color: #1e40af;
-      font-size: 12.5px;
-      line-height: 1.5;
-    }
-    .tabs {
-      grid-column: 1 / -1;
-      display: flex;
-      gap: 0;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-sm);
-      padding: 5px 6px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .tab-btn {
-      width: auto;
-      flex: 1;
-      max-width: 200px;
-      min-height: 36px;
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      border-radius: var(--r-sm);
-      box-shadow: none;
-      font-size: 13.5px;
-      font-weight: 600;
-      transition: background .15s, color .15s;
-    }
-    .tab-btn:hover:not(.active):not(:disabled) {
-      background: var(--bg);
-      color: var(--ink2);
-    }
-    .tab-btn.active {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: var(--shadow-xs);
-    }
-    .tab-panel {
-      display: none;
-      grid-column: 1 / -1;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 16px;
-      align-items: start;
-    }
-    .tab-panel.active { display: grid; }
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .card { padding: 16px; min-height: 90px; transition: box-shadow .15s; }
-    .card:hover { box-shadow: var(--shadow); }
-    .card .k {
-      color: var(--muted);
-      font-size: 11.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .card .v { margin-top: 8px; font-size: 28px; font-weight: 800; line-height: 1; }
-    .card .note { margin-top: 5px; color: var(--muted); font-size: 11.5px; }
-    .panel { overflow: hidden; }
-    .panel-title {
-      display: flex;
-      justify-content: space-between;
+    .input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .input:disabled { background: #f8fafc; color: var(--muted); cursor: not-allowed; }
+    .btn {
+      display: inline-flex;
       align-items: center;
-      min-height: 46px;
-      padding: 12px 16px;
-      background: #f8fafc;
-      color: var(--ink2);
-      border-bottom: 1px solid var(--line);
-      font-weight: 700;
-      font-size: 13.5px;
-    }
-    .panel-body { padding: 14px 16px; }
-    .main-col { min-width: 0; }
-    .table-tools {
-      display: grid;
-      grid-template-columns: 1fr 180px 170px;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .table-wrap {
-      overflow: auto;
-      max-height: calc(100vh - 460px);
-      border-top: 1px solid var(--line);
-    }
-    .table-more {
-      padding: 12px 16px;
-      border-top: 1px solid var(--line);
-      background: #f8fafc;
-      display: flex;
       justify-content: center;
-    }
-    .table-more button { width: auto; min-width: 180px; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      background: #fff;
-    }
-    th, td {
-      border-bottom: 1px solid #f1f5f9;
-      padding: 9px 12px;
-      text-align: left;
-      white-space: nowrap;
-    }
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      background: #f8fafc;
-      color: var(--muted);
-      font-size: 11.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      border-bottom: 2px solid var(--line);
-    }
-    tr:hover td { background: #f8fafc; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      height: 22px;
-      padding: 0 8px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 11.5px;
-      background: var(--green);
-      color: var(--green-ink);
-    }
-    .badge.other { background: var(--rose); color: var(--rose-ink); }
-    .side { display: grid; gap: 12px; align-content: start; }
-    .benefit-line {
-      padding: 10px 12px;
-      border: 1px solid var(--line);
-      border-radius: var(--r-sm);
-      background: #f8fafc;
-      margin-bottom: 8px;
-    }
-    .benefit-line:last-child { margin-bottom: 0; }
-    .benefit-line .name { font-weight: 700; margin-bottom: 3px; font-size: 13.5px; }
-    .benefit-detail-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
-    .benefit-detail-header .name { font-size: 14.5px; }
-    .benefit-detail-header button { width: auto; min-height: 30px; padding: 0 12px; flex-shrink: 0; }
-    .benefit-detail-badges { display: flex; gap: 6px; margin-bottom: 10px; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .bars { display: grid; gap: 8px; }
-    .bar-row {
-      display: grid;
-      grid-template-columns: 110px 1fr 40px;
-      gap: 8px;
-      align-items: center;
-      font-size: 12px;
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 5px;
-      transition: background .12s;
-    }
-    .bar-row:hover { background: var(--bg); }
-    .track {
-      height: 10px;
-      background: #e2e8f0;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .bar { height: 100%; background: var(--teal); border-radius: 999px; }
-    .empty {
-      padding: 36px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .privacy {
-      display: grid;
-      gap: 7px;
-      font-size: 13px;
-      color: #334155;
-    }
-    .privacy strong { color: var(--ink); }
-    .mapping-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .mapping-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .category-list {
-      display: grid;
-      gap: 8px;
-      max-height: calc(100vh - 250px);
-      overflow: auto;
-    }
-    .category-item {
-      border: 1px solid var(--line);
-      border-left: 3px solid transparent;
-      border-radius: var(--r-sm);
-      padding: 8px 10px;
-      background: #fff;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
-    }
-    .category-item:hover { border-color: #93c5fd; background: #f8fafc; }
-    .category-item.active {
-      border-color: var(--blue);
-      border-left-color: var(--blue);
-      background: var(--blue2);
-    }
-    .category-item.inactive { opacity: .7; }
-    .category-item.inactive .cat-title { color: var(--muted); }
-    .category-item .title { font-weight: 700; margin-bottom: 5px; font-size: 13.5px; }
-    .cat-row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .cat-title { font-weight: 700; font-size: 12.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .cat-badges { display: flex; gap: 4px; flex-shrink: 0; }
-    .cat-row-sub { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 4px; font-size: 11px; color: var(--muted); }
-    .cat-row-sub .cat-sep { opacity: .6; }
-    .cat-plans-count { margin-left: auto; font-weight: 600; color: var(--ink2); white-space: nowrap; cursor: help; }
-    .cat-status-toggle { font-size:10px !important; padding:2px 8px !important; border-radius:999px !important; cursor:pointer; flex-shrink:0; font-weight:600; line-height:1.6; white-space:nowrap; display:inline-block !important; width:auto !important; min-width:0 !important; min-height:0 !important; }
-    .cat-status-toggle.on  { background:#dcfce7; color:#15803d; border-color:#86efac; }
-    .cat-status-toggle.off { background:#f1f5f9; color:#94a3b8; border-color:#cbd5e1; }
-    .cat-network-toggle { font-size:10px !important; padding:2px 8px !important; border-radius:999px !important; cursor:pointer; flex-shrink:0; font-weight:700; line-height:1.6; white-space:nowrap; display:inline-block !important; width:auto !important; min-width:0 !important; min-height:0 !important; border:1px solid; }
-    .cat-network-toggle.net-lg { background:#eef2ff; color:#4338ca; border-color:#c7d2fe; }
-    .cat-network-toggle.net-kt { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
-    .cat-network-toggle.net-mixed { background:#fef9c3; color:#854d0e; border-color:#fde68a; }
-    .chip.chip-kt { background:#fee2e2; color:#b91c1c; }
-    .network-filter-bar { display:flex; gap:6px; margin-bottom:10px; }
-    .network-filter-btn { flex:1; font-size:11.5px !important; padding:5px 4px !important; width:auto !important; min-height:0 !important; border-radius:5px; border:1px solid var(--line); background:white; color: var(--ink2); cursor:pointer; }
-    .network-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
-    .chips { display: flex; flex-wrap: wrap; gap: 5px; }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      min-height: 22px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: #dbeafe;
-      color: #1e40af;
-      font-size: 11.5px;
-      font-weight: 600;
-    }
-    textarea {
-      width: 100%;
-      min-height: 90px;
+      gap: 6px;
+      min-height: 38px;
+      padding: 0 16px;
       border: 1px solid #cbd5e1;
       border-radius: var(--r-sm);
-      padding: 8px 11px;
-      font: inherit;
-      font-size: 13px;
-      resize: vertical;
-      transition: border-color .15s;
+      background: #fff;
+      color: var(--ink2);
+      font-weight: 600;
+      font-size: 13.5px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
     }
-    textarea:focus {
-      outline: none;
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.12);
-    }
-    /* ─── 카드 색상: 최종 발송 대상만 강조 ─── */
-    .cards .card:nth-child(3) { border-top: 3px solid var(--rose-ink); }
-    .cards .card:nth-child(4) {
-      border-top: 3px solid var(--blue);
-      background: var(--blue2);
-    }
-    .cards .card:nth-child(4) .k { color: var(--blue-d); }
-    .cards .card:nth-child(4) .v { color: var(--blue-d); font-size: 32px; }
+    .btn:hover:not(:disabled) { background: #f8fafc; border-color: #94a3b8; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--blue-d); border-color: var(--blue-d); }
+    .btn-sm { min-height: 30px; padding: 0 10px; font-size: 12.5px; }
+    .btn-danger { color: #be123c; }
+    .btn-danger:hover:not(:disabled) { background: #fff1f2; border-color: #fda4af; }
+    .btn-on-dark { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.35); color: #fff; }
+    .btn-on-dark:hover:not(:disabled) { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.6); }
+    .link-btn { background: none; border: none; padding: 0; color: var(--blue); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+    .muted { color: var(--muted); font-size: 12.5px; }
+    .mono { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12.5px; }
 
-    /* ─── 작업 흐름 스텝 표시기 ─── */
-    .workflow-steps {
-      grid-column: 1 / -1;
-      display: flex;
-      align-items: stretch;
+    /* ─── 메인 ─── */
+    .page { padding-top: 20px; padding-bottom: 24px; display: grid; gap: 16px; }
+    .section {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--r);
       box-shadow: var(--shadow-sm);
-      overflow: hidden;
+      padding: 20px;
     }
-    .step-item {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--muted);
-      background: #f8fafc;
-      border-right: 1px solid var(--line);
-      position: relative;
-    }
-    .step-item:last-child { border-right: none; }
-    .step-item .step-num {
+    .setup { display: grid; gap: 20px; }
+    .setup > *, .page > * { min-width: 0; }
+    select.input { min-width: 0; text-overflow: ellipsis; }
+    .step-label { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-weight: 700; font-size: 14px; color: var(--ink2); }
+    .num {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       width: 20px;
       height: 20px;
       border-radius: 999px;
-      background: #e2e8f0;
-      color: var(--muted);
+      background: var(--blue);
+      color: #fff;
       font-size: 11px;
       font-weight: 700;
       flex-shrink: 0;
     }
-    .step-item.done { background: #fff; color: var(--ink2); }
-    .step-item.done .step-num { background: var(--green); color: var(--green-ink); }
-    .step-item.current { background: var(--blue2); color: var(--blue-d); }
-    .step-item.current .step-num { background: var(--blue); color: #fff; }
-
-    /* ─── 업로드 요약 ─── */
-    .upload-summary {
-      grid-column: 1 / -1;
-      display: none;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      box-shadow: var(--shadow-sm);
-      padding: 14px 16px;
-    }
-    .upload-summary.show { display: block; }
-    .upload-summary-grid {
-      display: grid;
-      grid-template-columns: 1.4fr repeat(3, 1fr);
-      gap: 14px;
-    }
-    .upload-summary-item .k { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
-    .upload-summary-item .v { margin-top: 4px; font-size: 18px; font-weight: 700; word-break: break-all; }
-    .upload-summary-item.warn .v { color: #b45309; }
-    .upload-summary-banner {
-      margin-top: 10px;
-      padding: 8px 12px;
-      border-radius: var(--r-sm);
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      color: #92400e;
-      font-size: 12.5px;
-      font-weight: 600;
-    }
-
-    /* ─── 관리자 기능 구분 박스 ─── */
-    .admin-tools {
-      border: 1px dashed #cbd5e1;
-      border-radius: var(--r-sm);
-      background: #f8fafc;
-      padding: 10px;
-      margin-bottom: 12px;
-    }
-    .admin-tools-label {
-      font-size: 10.5px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      margin-bottom: 8px;
-    }
-
-    /* ─── 최종 검증 패널 ─── */
-    .final-check { display: grid; gap: 5px; margin-bottom: 10px; font-size: 12.5px; }
-    .final-check-row { display: flex; align-items: center; gap: 6px; }
-    .final-check-row.ok { color: #15803d; }
-    .final-check-row.bad { color: #b91c1c; font-weight: 700; }
-
-    .phone-warn { color: #b45309; margin-left: 4px; cursor: help; }
-    /* ─── 매핑 에디터 다이얼로그 ─── */
-    dialog#mappingDialog {
-      width: min(1120px, calc(100vw - 32px));
-      max-height: 88vh;
-      border: 1px solid var(--line);
-      border-radius: var(--r);
-      padding: 0;
-    }
-    dialog#mappingDialog[open] {
+    .benefit-meta { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12.5px; color: var(--muted); }
+    .benefit-meta:empty { display: none; }
+    .notice { margin-top: 8px; padding: 10px 14px; border: 1px solid #bfdbfe; border-radius: var(--r-sm); background: var(--blue2); color: #1e40af; font-size: 13px; }
+    .upload-row { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 12px; }
+    .dropzone {
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-    }
-    .editor-dialog-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      justify-content: center;
+      gap: 4px;
+      min-height: 78px;
       padding: 14px 18px;
-      border-bottom: 1px solid var(--line);
+      border: 1.5px dashed #94a3b8;
+      border-radius: var(--r);
       background: #f8fafc;
-      font-weight: 700;
-      font-size: 14px;
-      color: var(--ink2);
-      flex-shrink: 0;
-    }
-    .unsaved-indicator {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: #b45309;
-    }
-    .unsaved-indicator.show { display: flex; }
-    .unsaved-indicator .dot { width: 7px; height: 7px; border-radius: 999px; background: #f59e0b; flex-shrink: 0; }
-    .mapping-body {
-      display: grid;
-      grid-template-columns: minmax(220px, .28fr) minmax(0, .72fr);
-      flex: 1;
-      min-height: 0;
-      overflow: hidden;
-    }
-    .mapping-list-pane {
-      border-right: 1px solid var(--line);
-      background: #f8fafc;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .mapping-list-toolbar {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-      display: grid;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .mapping-filter-row { display: flex; gap: 5px; }
-    .editor-filter-btn {
-      width: auto !important;
-      flex: 1;
-      font-size: 11px !important;
-      padding: 5px 4px !important;
-      min-height: 0 !important;
-      border-radius: 5px;
-      border: 1px solid var(--line);
-      background: white;
       cursor: pointer;
-      color: var(--ink2);
-      font-weight: 500;
-      transition: background .12s, color .12s;
-      white-space: nowrap;
+      transition: border-color .15s, background .15s;
     }
-    .editor-filter-btn.on { background: var(--blue); color: white; border-color: var(--blue); }
-    .benefit-list { flex: 1; overflow-y: auto; }
-    .benefit-card {
-      padding: 10px 12px;
-      border-bottom: 1px solid #f1f5f9;
-      cursor: pointer;
-      transition: background .1s;
-    }
-    .benefit-card:hover { background: #e8f1ff; }
-    .benefit-card.active { background: var(--blue2); border-right: 3px solid var(--blue); }
-    .benefit-card.inactive { opacity: .7; }
-    .benefit-card .bc-name {
-      font-weight: 600; font-size: 12.5px; color: var(--ink2); margin-bottom: 3px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .benefit-card .bc-meta { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
-    .benefit-card .bc-plancount { margin-left: auto; font-weight: 600; color: var(--ink2); white-space: nowrap; }
-    .mapping-list-footer { padding: 10px; border-top: 1px solid var(--line); flex-shrink: 0; }
-    .mapping-detail-pane { display: flex; flex-direction: column; overflow-y: auto; padding: 18px 22px; gap: 16px; }
-    .detail-empty { margin: auto; color: var(--muted); font-size: 13px; text-align: center; padding: 40px; }
-    .detail-header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-    .detail-header h3 { margin: 0; font-size: 16px; color: var(--ink); }
-    .detail-section { border: 1px solid var(--line); border-radius: var(--r-sm); }
-    .detail-section-title {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid var(--line);
-      font-weight: 700; font-size: 13px; color: var(--ink2);
-    }
-    .detail-section-title button { width: auto; min-height: 28px; font-size: 12px; padding: 0 10px; }
-    .detail-section-body { padding: 14px; }
-    .detail-view-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 20px; }
-    .detail-view-item .k { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 3px; }
-    .detail-view-item .v { font-size: 13.5px; color: var(--ink); }
-    .detail-edit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; }
-    .detail-edit-item label { display: block; font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
-    .detail-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
-    .detail-actions button { width: auto; min-width: 70px; }
-    .danger-zone { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--line); text-align: right; }
-    .danger-zone button { width: auto; font-size: 12px; }
-    .plan-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-    .plan-toolbar input[type="search"] { flex: 1; }
-    .plan-toolbar button { width: auto; flex-shrink: 0; }
-    .bulk-bar {
-      display: none; align-items: center; gap: 8px; flex-wrap: wrap;
-      padding: 8px 10px; background: var(--blue2); border: 1px solid #bfdbfe; border-radius: var(--r-sm);
-      margin-bottom: 8px; font-size: 12.5px; color: var(--blue-d);
-    }
-    .bulk-bar.show { display: flex; }
-    .bulk-bar select, .bulk-bar button { width: auto; min-height: 30px; font-size: 12px; }
-    .plan-table-wrap { max-height: 320px; overflow-y: auto; border: 1px solid var(--line); border-radius: var(--r-sm); }
-    table.plan-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-    .plan-table th { text-align: left; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: #fff; z-index: 1; }
-    .plan-table td { padding: 7px 8px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-    .plan-table td.pt-check { width: 28px; }
-    .plan-network-badge, .plan-active-badge {
-      font-size: 10px !important; padding: 2px 8px !important; border-radius: 999px !important;
-      border: 1px solid; font-weight: 700; white-space: nowrap;
-      width: auto !important; min-width: 0 !important; min-height: 0 !important; display: inline-block !important;
-    }
-    .plan-network-badge { cursor: pointer; }
-    .plan-network-badge.net-lg { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
-    .plan-network-badge.net-kt { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
-    .plan-network-badge.net-mixed { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
-    .plan-active-badge.on  { background: #dcfce7; color: #15803d; border-color: #86efac; }
-    .plan-active-badge.off { background: #f1f5f9; color: #94a3b8; border-color: #cbd5e1; }
-    .plan-row-delete { width: auto !important; font-size: 11.5px !important; padding: 3px 9px !important; min-height: 0 !important; }
-    .mapping-empty { padding: 30px; text-align: center; color: var(--muted); font-size: 13px; }
-    .editor-footer {
-      padding: 12px 16px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      background: #f8fafc;
-      flex-shrink: 0;
-    }
-    .editor-footer-actions { display: flex; gap: 8px; }
-    .editor-footer button { width: auto; min-width: 80px; }
+    .dropzone:hover, .dropzone:focus-visible, .dropzone.drag { border-color: var(--blue); background: var(--blue2); outline: none; }
+    .dropzone.loaded { border-style: solid; border-color: #86efac; background: #f0fdf4; }
+    .dropzone.busy { cursor: progress; }
+    .dz-main { font-weight: 600; color: var(--ink2); word-break: break-all; }
+    .dz-sub { font-size: 12px; color: var(--muted); }
+    .pw-field label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .status { margin-top: 10px; padding: 9px 12px; border: 1px solid transparent; border-radius: var(--r-sm); font-size: 12.5px; line-height: 1.55; }
+    .status:empty { display: none; }
+    .status[data-tone="info"] { background: #f8fafc; border-color: var(--line); color: #334155; }
+    .status[data-tone="busy"] { background: var(--blue2); border-color: #bfdbfe; color: #1e40af; }
+    .status[data-tone="ok"] { background: #f0fdf4; border-color: #bbf7d0; color: var(--green-ink); }
+    .status[data-tone="warn"] { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .status[data-tone="error"] { background: #fff1f2; border-color: #fecdd3; color: var(--rose-ink); }
 
-    /* ─── 요금제 추가 / 새 혜택 추가 서브 다이얼로그 ─── */
-    dialog.sub-dialog { width: min(560px, calc(100vw - 32px)); max-height: 82vh; border: 1px solid var(--line); border-radius: var(--r); padding: 0; }
-    dialog.sub-dialog[open] { display: flex; flex-direction: column; overflow: hidden; }
-    .sub-dialog-header { padding: 14px 18px; border-bottom: 1px solid var(--line); background: #f8fafc; font-weight: 700; font-size: 14px; flex-shrink: 0; }
-    .sub-dialog-body { padding: 16px 18px; overflow-y: auto; flex: 1; min-height: 0; }
-    .sub-dialog-footer { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; background: #f8fafc; flex-shrink: 0; }
-    .sub-dialog-footer button { width: auto; min-width: 80px; }
-    .picker-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-    .picker-tab-btn { width: auto; flex: none; font-size: 12px !important; padding: 6px 12px !important; min-height: 0 !important; border-radius: 5px; border: 1px solid var(--line); background: white; color: var(--ink2); }
-    .picker-tab-btn.on { background: var(--blue); color: #fff; border-color: var(--blue); }
-    .picker-list { border: 1px solid var(--line); border-radius: var(--r-sm); max-height: 260px; overflow-y: auto; }
-    .picker-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
-    .picker-item:last-child { border-bottom: none; }
-    .picker-item.disabled { opacity: .5; cursor: not-allowed; }
-    .picker-item .pi-name { font-weight: 600; font-size: 12.5px; }
-    .picker-item .pi-code { font-size: 11px; color: var(--muted); font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
-    .picker-item .pi-tag { margin-left: auto; font-size: 10.5px; color: var(--muted); flex-shrink: 0; }
-    .unsaved-confirm-body { padding: 16px 18px; font-size: 13px; color: var(--ink2); }
-    @media (max-width: 980px) {
-      main { grid-template-columns: 1fr; padding: 12px; }
-      header { padding: 14px 16px; }
-      .tabs { position: static; overflow-x: auto; }
-      .tab-btn { min-width: 100px; max-width: none; }
-      .toolbar { grid-template-columns: 1fr; }
-      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .table-tools { grid-template-columns: 1fr; }
-      .tab-panel.active { grid-template-columns: 1fr; }
-      .table-wrap { max-height: none; }
+    /* ─── 대상자 확인 ─── */
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .section-head .step-label { margin: 0; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .metric { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-sm); }
+    .metric .k { font-size: 12px; font-weight: 600; color: var(--muted); }
+    .metric .v { margin-top: 6px; font-size: 24px; font-weight: 800; line-height: 1.1; }
+    .metric.primary { background: var(--blue2); border-color: #bfdbfe; }
+    .metric.primary .k, .metric.primary .v { color: var(--blue-d); }
+    .check-line { margin-top: 10px; font-size: 12.5px; }
+    .check-line:empty { display: none; }
+    .check-line.ok { color: #15803d; }
+    .check-line.bad { color: #b45309; font-weight: 600; }
+    .table-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 14px 0 10px; }
+    .table-tools .search { flex: 1 1 220px; width: auto; }
+    .table-tools select.input { flex: 0 1 230px; width: auto; }
+    .seg { display: inline-flex; flex-shrink: 0; border: 1px solid #cbd5e1; border-radius: var(--r-sm); overflow: hidden; }
+    .seg button { min-height: 36px; padding: 0 12px; border: none; background: #fff; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
+    .seg button + button { border-left: 1px solid #cbd5e1; }
+    .seg button.on { background: var(--ink2); color: #fff; }
+    .seg button:disabled { cursor: not-allowed; }
+    .table-wrap { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: var(--r-sm); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+    th, td { padding: 9px 12px; border-bottom: 1px solid var(--line2); text-align: left; white-space: nowrap; }
+    th { position: sticky; top: 0; z-index: 1; background: #f8fafc; color: var(--muted); font-size: 12px; font-weight: 700; border-bottom: 1px solid var(--line); }
+    tbody tr:hover td { background: #f8fafc; }
+    td.empty { padding: 40px 12px; text-align: center; color: var(--muted); white-space: normal; }
+    .badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 999px; background: var(--green); color: var(--green-ink); font-size: 11.5px; font-weight: 700; }
+    .badge.other { background: var(--rose); color: var(--rose-ink); }
+    .reason { color: #b45309; font-weight: 600; }
+    .phone-warn { margin-left: 4px; color: #b45309; cursor: help; }
+    .table-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+
+    /* ─── 하단 실행 바 ─── */
+    .action-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      background: rgba(255,255,255,.97);
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -2px 10px rgba(15,23,42,.06);
+    }
+    .action-inner { padding-top: 12px; padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .action-hint { font-size: 13px; color: var(--muted); min-width: 0; }
+    .action-hint strong { color: var(--ink); }
+    .action-hint a { margin-left: 8px; color: var(--blue); font-weight: 600; }
+    .actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .split { position: relative; display: inline-flex; }
+    .split > .btn-primary:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+    .split > .split-toggle { padding: 0 11px; border-left-color: rgba(255,255,255,.4); border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+    .menu {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 6px);
+      z-index: 20;
+      min-width: 240px;
+      padding: 4px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      box-shadow: 0 8px 24px rgba(15,23,42,.14);
+    }
+    .menu button { display: block; width: 100%; padding: 9px 12px; border: none; border-radius: 4px; background: none; text-align: left; font-size: 13px; font-weight: 600; color: var(--ink2); cursor: pointer; }
+    .menu button:hover:not(:disabled) { background: var(--bg); }
+    .menu button:disabled { color: #94a3b8; cursor: not-allowed; }
+    .menu .menu-sub { display: block; margin-top: 2px; font-size: 11.5px; font-weight: 400; color: var(--muted); }
+
+    /* ─── 혜택 관리 팝업 ─── */
+    dialog.modal {
+      width: min(980px, calc(100vw - 32px));
+      max-height: min(88vh, 920px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(15,23,42,.25);
+      color: var(--ink);
+    }
+    dialog.modal[open] { display: flex; flex-direction: column; overflow: hidden; }
+    dialog.modal::backdrop { background: rgba(15,23,42,.45); }
+    .modal-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+    .modal-head h2 { margin: 0; font-size: 16px; color: var(--ink2); }
+    .modal-head .spacer { flex: 1; }
+    .unsaved { font-size: 12px; font-weight: 600; color: #b45309; }
+    .icon-btn { width: 32px; height: 32px; border: none; border-radius: var(--r-sm); background: none; color: var(--muted); font-size: 17px; cursor: pointer; }
+    .icon-btn:hover { background: var(--bg); color: var(--ink); }
+    .modal-body { flex: 1; min-height: 0; padding: 16px 18px; overflow-y: auto; }
+    .modal-foot { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); background: #f8fafc; flex-shrink: 0; }
+    .modal-foot .foot-msg { margin-right: auto; font-size: 12.5px; font-weight: 600; color: #be123c; }
+    .mgr-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .mgr-tools .search { flex: 1 1 240px; width: auto; }
+    .mgr-tools .status { margin: 0; flex-basis: 100%; }
+    .mgr-table-wrap { border: 1px solid var(--line); border-radius: var(--r-sm); overflow: auto; }
+    .mgr-table td { vertical-align: middle; }
+    .mgr-table .b-name { min-width: 220px; white-space: normal; font-weight: 600; }
+    .mgr-table .b-sub { margin-top: 2px; font-size: 11.5px; font-weight: 400; color: var(--muted); }
+    .mgr-table tr.inactive .b-name { color: var(--muted); }
+    .mgr-table .col-act { width: 1%; }
+    .pill { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border: 1px solid; border-radius: 999px; background: none; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+    button.pill { cursor: pointer; }
+    .pill.net-lg { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+    .pill.net-kt { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+    .pill.net-mixed { background: #fef9c3; color: #854d0e; border-color: #fde68a; }
+    .pill.on { background: #dcfce7; color: #15803d; border-color: #86efac; }
+    .pill.off { background: #f1f5f9; color: #94a3b8; border-color: #cbd5e1; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px; }
+    .form-grid .span-all { grid-column: 1 / -1; }
+    .form-grid .span-2 { grid-column: span 2; }
+    .form-item label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: var(--muted); }
+    .form-item .req { color: #be123c; }
+    .hint { margin-top: 4px; font-size: 11.5px; color: var(--muted); }
+    .form-section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 24px 0 10px; font-size: 14px; font-weight: 700; color: var(--ink2); }
+    .plan-add { position: relative; display: flex; gap: 8px; }
+    .suggest {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 4px);
+      z-index: 5;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      box-shadow: 0 8px 24px rgba(15,23,42,.14);
+    }
+    .suggest-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--line2); font-size: 13px; cursor: pointer; }
+    .suggest-item:hover { background: var(--blue2); }
+    .suggest-item.done { opacity: .55; cursor: default; }
+    .suggest-item.done:hover { background: none; }
+    .suggest-item .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .suggest-item .tag { flex-shrink: 0; font-size: 11.5px; color: var(--muted); }
+    .suggest-empty { padding: 12px; font-size: 12.5px; color: var(--muted); }
+    .plan-add-msg { margin-top: 6px; font-size: 12px; color: var(--muted); }
+    .plan-add-msg:empty { display: none; }
+    .plan-table-wrap { margin-top: 10px; max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: var(--r-sm); }
+    .plan-table td { padding: 6px 10px; }
+    .plan-table .plan-name-input { min-width: 260px; min-height: 32px; font-size: 13px; }
+    .icon-del { width: 28px; height: 28px; border: none; border-radius: var(--r-sm); background: none; color: var(--muted); font-size: 14px; cursor: pointer; }
+    .icon-del:hover { background: #fff1f2; color: #be123c; }
+
+    @media (max-width: 760px) {
+      .app-header-inner, .page, .action-inner { padding-left: 16px; padding-right: 16px; }
+      .upload-row, .form-grid { grid-template-columns: 1fr; }
+      .form-grid .span-2 { grid-column: auto; }
+      .metric .v { font-size: 20px; }
+      .table-tools select.input { flex: 1 1 140px; }
+      .action-inner { flex-direction: column; align-items: stretch; }
+      .actions { justify-content: flex-end; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>LG 요금제 혜택 발송 대시보드</h1>
-    <div class="sub">업로드한 개통내역 파일을 이 브라우저 안에서만 읽어 월별 혜택 발송 대상자를 취합합니다.</div>
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div>
+        <h1>혜택 발송기</h1>
+        <div class="sub">혜택별 발송 대상자를 간편하게 추출합니다.</div>
+      </div>
+      <button type="button" id="openManagerBtn" class="btn btn-on-dark">혜택 관리</button>
+    </div>
   </header>
-  <main>
-    <nav class="workflow-steps" id="workflowSteps"></nav>
 
-    <section class="toolbar">
+  <main class="page">
+    <section class="section setup">
       <div>
-        <label for="fileInput">개통내역 엑셀 업로드</label>
-        <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xls" />
-      </div>
-      <div>
-        <label for="passwordInput">파일 암호</label>
-        <input id="passwordInput" type="password" autocomplete="off" placeholder="예: 12345678" />
-      </div>
-      <div>
-        <label for="benefitSelect">대분류 · 혜택</label>
-        <select id="benefitSelect" disabled></select>
-      </div>
-      <div>
-        <label for="planCode">소분류 · 요금제코드</label>
-        <select id="planCode" disabled></select>
-      </div>
-      <div>
-        <label>&nbsp;</label>
-        <div style="display:flex; gap:6px;">
-          <button id="reselectFileBtn" type="button" class="secondary" title="현재 업로드된 고객정보를 지우고 파일을 다시 선택합니다">다시 선택</button>
-          <button id="doneBtn" class="danger" disabled>완료</button>
+        <label class="step-label" for="benefitSelect"><span class="num">1</span>혜택 선택</label>
+        <select id="benefitSelect" class="input"></select>
+        <div id="benefitMeta" class="benefit-meta"></div>
+        <div id="noBenefitNotice" class="notice" hidden>
+          등록된 혜택이 없습니다. <button type="button" class="link-btn" id="noBenefitAddBtn">혜택 등록하기</button>
         </div>
       </div>
-      <div class="notice" id="statusBox">고객정보는 저장되어 있지 않습니다. 파일을 업로드하면 화면에서만 조회되고, 완료 버튼을 누르면 즉시 사라집니다.</div>
-    </section>
-
-    <section class="upload-summary" id="uploadSummary">
-      <div class="upload-summary-grid">
-        <div class="upload-summary-item"><div class="k">파일명</div><div class="v" id="us-filename">-</div></div>
-        <div class="upload-summary-item"><div class="k">전체 데이터</div><div class="v" id="us-total">0건</div></div>
-        <div class="upload-summary-item"><div class="k">정상 인식</div><div class="v" id="us-normal">0건</div></div>
-        <div class="upload-summary-item warn"><div class="k">확인 필요</div><div class="v" id="us-review">0건</div></div>
-      </div>
-      <div class="upload-summary-banner" id="us-banner" style="display:none;"></div>
-    </section>
-
-    <section class="main-col">
-      <div class="cards">
-        <div class="card"><div class="k">전체 업로드</div><div id="uploadTotalCount" class="v">0</div><div class="note">업로드 고객 전체</div></div>
-        <div class="card"><div class="k">조건 일치</div><div id="matchedCount" class="v">0</div><div class="note">선택 혜택·요금제 기준</div></div>
-        <div class="card"><div class="k">제외</div><div id="excludedCount" class="v">0</div><div class="note">상태/검색/지급기간 제외</div></div>
-        <div class="card"><div class="k">최종 발송 대상</div><div id="finalTargetCount" class="v">0</div><div class="note">다운로드 되는 인원</div></div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title">
-          <span>고객 명단</span>
-          <span id="rangeLabel" class="muted"></span>
-        </div>
-        <div class="panel-body">
-          <div class="table-tools">
-            <input id="customerSearch" placeholder="고객명, 연락처, 요금제명/코드 검색" disabled />
-            <select id="statusFilter" disabled>
-              <option value="all">전체 상태</option>
-              <option value="정상">정상</option>
-              <option value="other">정상 외</option>
-            </select>
-            <button id="downloadBtn" disabled>발송 CSV 다운로드</button>
+      <div>
+        <div class="step-label"><span class="num">2</span>개통내역 파일 업로드</div>
+        <div class="upload-row">
+          <div id="dropZone" class="dropzone" tabindex="0" role="button" aria-label="개통내역 파일 선택">
+            <div class="dz-main" id="dzMain"></div>
+            <div class="dz-sub" id="dzSub"></div>
+          </div>
+          <div class="pw-field">
+            <label for="passwordInput">파일 암호 (암호화 파일만)</label>
+            <input id="passwordInput" class="input" type="password" autocomplete="off" placeholder="입력 후 Enter" />
           </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>연락처</th>
-                <th>고객명</th>
-                <th>요금제코드</th>
-                <th>요금제명</th>
-                <th>개통일</th>
-                <th>상태</th>
-                <th>개통구분</th>
-                <th>대리점</th>
-                <th>총판</th>
-              </tr>
-            </thead>
-            <tbody id="customerRows">
-              <tr><td colspan="9" class="empty">아직 업로드된 고객정보가 없습니다.</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-more">
-          <button id="loadMoreRowsBtn" class="secondary" disabled>더보기</button>
-        </div>
+        <input id="fileInput" type="file" accept=".xlsx,.xlsm,.xls" autocomplete="off" hidden />
+        <div id="statusBox" class="status" data-tone="info"></div>
       </div>
     </section>
 
-    <aside class="side">
-      <div class="panel">
-        <div class="panel-title">선택 요금제</div>
-        <div class="panel-body" id="planBox">
-          <div class="benefit-line">
-            <div class="name">요금제 미선택</div>
-            <div class="muted">파일 업로드 후 요금제코드를 선택하세요.</div>
-          </div>
-        </div>
+    <section class="section">
+      <div class="section-head">
+        <div class="step-label"><span class="num">3</span>발송 대상자 확인</div>
+        <span class="muted" id="resultBenefitLabel"></span>
       </div>
-      <div class="panel">
-        <div class="panel-title">선택 혜택</div>
-        <div class="panel-body" id="benefitBox"></div>
+      <div class="metrics">
+        <div class="metric"><div class="k">전체 고객 수</div><div class="v" id="mTotal">-</div></div>
+        <div class="metric"><div class="k">혜택 조건 일치</div><div class="v" id="mMatched">-</div></div>
+        <div class="metric primary"><div class="k">최종 발송 대상자</div><div class="v" id="mFinal">-</div></div>
       </div>
-      <div class="panel">
-        <div class="panel-title">혜택 카테고리</div>
-        <div class="panel-body">
-          <div class="network-filter-bar">
-            <button class="network-filter-btn on" data-net="all">전체</button>
-            <button class="network-filter-btn" data-net="LG">LG망</button>
-            <button class="network-filter-btn" data-net="KT">KT망</button>
-          </div>
-          <div id="categoryList" class="category-list"></div>
-          <div class="admin-tools">
-            <div class="admin-tools-label">⚙ 관리자 기능 · 혜택-요금제 매칭 관리</div>
-            <button id="editMappingBtn" class="secondary" style="margin-bottom:10px;">매칭 수정</button>
-            <input id="mappingFileInput" type="file" accept=".csv,.txt" style="margin-bottom:10px;" />
-            <div id="mappingStatus" class="muted">저장된 혜택-요금제 매칭 데이터입니다. 매칭 수정 버튼으로 직접 수정할 수 있습니다.</div>
-          </div>
+      <div id="checkLine" class="check-line"></div>
+      <div class="table-tools">
+        <div class="seg" id="viewSeg">
+          <button type="button" data-view="targets" class="on">발송 대상 <span id="segTargets">0</span></button>
+          <button type="button" data-view="excluded">제외 <span id="segExcluded">0</span></button>
         </div>
+        <input id="customerSearch" class="input search" type="search" placeholder="고객명, 연락처, 요금제 검색" />
+        <select id="planCode" class="input" title="요금제코드 조건 (발송 파일에 반영)"></select>
+        <select id="statusFilter" class="input" title="고객 상태 조건 (발송 파일에 반영)">
+          <option value="all">상태: 전체</option>
+          <option value="정상">상태: 정상만</option>
+          <option value="other">상태: 정상 외</option>
+        </select>
       </div>
-      <div class="panel">
-        <div class="panel-title">대상자 취합</div>
-        <div class="panel-body">
-          <div class="benefit-line">
-            <div class="muted">선택 혜택 대상자</div>
-            <strong id="targetCount">0명</strong>
-            <div class="muted" id="downloadHint">개통내역 업로드 후 대상자가 있으면 다운로드할 수 있습니다.</div>
-          </div>
-          <div class="final-check" id="finalCheck"></div>
-          <button id="downloadTargetBtn" disabled>선택 혜택 엑셀 다운로드</button>
-          <button id="downloadAllTargetsBtn" class="secondary" style="margin-top:8px;" disabled>전체 혜택 대상자 엑셀 다운로드</button>
-          <a id="downloadFallbackLink" class="secondary" style="display:none; margin-top:8px; width:100%; min-height:36px; align-items:center; justify-content:center; border:1px solid var(--blue); border-radius:6px; color:var(--blue); text-decoration:none; font-weight:700;" download>다운로드 다시 시도</a>
-        </div>
+      <div class="table-wrap">
+        <table>
+          <thead id="customerHead"></thead>
+          <tbody id="customerRows"></tbody>
+        </table>
       </div>
-      <div class="panel">
-        <div class="panel-title">
-          <span>요금제 고객수 Top 10</span>
-          <span class="muted" id="planCountLabel"></span>
-        </div>
-        <div class="panel-body bars" id="topBars">
-          <div class="muted">파일 업로드 후 표시됩니다.</div>
-        </div>
+      <div class="table-foot">
+        <span class="muted" id="rangeLabel"></span>
+        <button type="button" id="loadMoreRowsBtn" class="btn btn-sm" hidden>더보기</button>
       </div>
-      <div class="panel">
-        <div class="panel-title">🔒 고객정보 보호</div>
-        <div class="panel-body privacy">
-          <div>업로드한 고객정보는 현재 브라우저에서만 일시적으로 처리되며 외부 서버로 전송되거나 저장되지 않습니다.</div>
-          <div>페이지를 새로고침하거나 <strong>완료</strong> 버튼으로 데이터를 초기화하면 업로드한 고객정보는 즉시 삭제됩니다.</div>
-        </div>
-      </div>
-    </aside>
+    </section>
   </main>
-  <dialog id="mappingDialog">
-    <div class="editor-dialog-header">
-      <span>혜택-요금제 매칭 수정</span>
-      <span class="unsaved-indicator" id="unsavedIndicator"><span class="dot"></span>저장되지 않은 변경사항이 있습니다</span>
-    </div>
-    <div class="mapping-body">
-      <aside class="mapping-list-pane">
-        <div class="mapping-list-toolbar">
-          <input type="search" id="editorSearch" placeholder="혜택명, 상품코드, 요금제명/코드 검색" />
-          <div class="mapping-filter-row">
-            <button class="editor-filter-btn on" data-filtertype="network" data-filter="all">전체</button>
-            <button class="editor-filter-btn" data-filtertype="network" data-filter="LG">LG망</button>
-            <button class="editor-filter-btn" data-filtertype="network" data-filter="KT">KT망</button>
-          </div>
-          <div class="mapping-filter-row">
-            <button class="editor-filter-btn on" data-filtertype="status" data-filter="all">전체 상태</button>
-            <button class="editor-filter-btn" data-filtertype="status" data-filter="active">사용 중</button>
-            <button class="editor-filter-btn" data-filtertype="status" data-filter="inactive">미사용</button>
-          </div>
-        </div>
-        <div class="benefit-list" id="benefitList"></div>
-        <div class="mapping-list-footer">
-          <button id="editorAddCategoryBtn" class="secondary">+ 새 혜택 추가</button>
-        </div>
-      </aside>
-      <div class="mapping-detail-pane" id="mappingDetailPane">
-        <div class="detail-empty">왼쪽에서 혜택을 선택하세요.</div>
-      </div>
-    </div>
-    <div class="editor-footer">
-      <span class="muted" id="editorSummary"></span>
-      <div class="editor-footer-actions">
-        <button id="saveMappingBtn">저장</button>
-        <button id="closeMappingBtn" class="secondary">취소</button>
-      </div>
-    </div>
-  </dialog>
 
-  <dialog id="benefitFormDialog" class="sub-dialog">
-    <div class="sub-dialog-header">새 혜택 추가</div>
-    <div class="sub-dialog-body">
-      <div class="detail-edit-grid">
-        <div class="detail-edit-item" style="grid-column:1/-1;">
-          <label>혜택명</label>
-          <input id="bf-label" placeholder="예: 네이버페이 포인트 5,000원 X 24개월" />
-        </div>
-        <div class="detail-edit-item">
-          <label>상품코드</label>
-          <input id="bf-product-code" placeholder="예: G00000760670" />
-        </div>
-        <div class="detail-edit-item">
-          <label>상품명</label>
-          <input id="bf-product-name" placeholder="예: 네이버페이 포인트 5,000원" />
-        </div>
-        <div class="detail-edit-item">
-          <label>지급 개월수</label>
-          <input id="bf-months" type="number" min="0" step="1" placeholder="미입력 시 무제한" />
-        </div>
-        <div class="detail-edit-item">
-          <label>통신망</label>
-          <select id="bf-network"><option value="LG">LG망</option><option value="KT">KT망</option></select>
-        </div>
-        <div class="detail-edit-item" style="grid-column:1/-1;">
-          <label>사용 여부</label>
-          <select id="bf-active"><option value="true">사용</option><option value="false">미사용</option></select>
-        </div>
+  <footer class="action-bar">
+    <div class="action-inner">
+      <div class="action-hint">
+        <span id="actionHint"></span>
+        <a id="downloadFallbackLink" href="#" download hidden>다시 다운로드</a>
       </div>
-    </div>
-    <div class="sub-dialog-footer">
-      <button id="bfCreateBtn">혜택 생성</button>
-      <button id="bfCancelBtn" class="secondary">취소</button>
-    </div>
-  </dialog>
-
-  <dialog id="planPickerDialog" class="sub-dialog">
-    <div class="sub-dialog-header">요금제 추가</div>
-    <div class="sub-dialog-body">
-      <div class="picker-tabs">
-        <button type="button" class="picker-tab-btn on" data-tab="pick">기존 요금제에서 선택</button>
-        <button type="button" class="picker-tab-btn" data-tab="manual">직접 입력</button>
-      </div>
-      <div id="pickerPickTab">
-        <input type="search" id="pickerSearch" placeholder="요금제명, 요금제코드 검색" style="margin-bottom:10px;" />
-        <div class="picker-list" id="pickerList"></div>
-      </div>
-      <div id="pickerManualTab" style="display:none;">
-        <div class="detail-edit-grid">
-          <div class="detail-edit-item">
-            <label>요금제코드</label>
-            <input id="pm-code" placeholder="요금제코드" />
-          </div>
-          <div class="detail-edit-item">
-            <label>요금제명 (선택)</label>
-            <input id="pm-name" placeholder="요금제명" />
+      <div class="actions">
+        <button type="button" id="resetBtn" class="btn">초기화</button>
+        <div class="split">
+          <button type="button" id="downloadBtn" class="btn btn-primary" disabled>발송 파일 다운로드</button>
+          <button type="button" id="downloadMoreBtn" class="btn btn-primary split-toggle" aria-label="다른 형식으로 다운로드" aria-haspopup="menu" disabled>▾</button>
+          <div class="menu" id="downloadMenu" role="menu" hidden>
+            <button type="button" role="menuitem" data-dl="xls">선택 혜택 엑셀 (.xls)<span class="menu-sub">발송 컬럼 + 개통일·상태·개통구분</span></button>
+            <button type="button" role="menuitem" data-dl="all">전체 혜택 엑셀 (.xls)<span class="menu-sub">모든 혜택의 대상자를 혜택별 시트로</span></button>
           </div>
         </div>
       </div>
     </div>
-    <div class="sub-dialog-footer">
-      <span class="muted" id="pickerSummary" style="margin-right:auto;"></span>
-      <button id="pickerAddBtn">선택한 요금제 추가</button>
-      <button id="pickerCancelBtn" class="secondary">취소</button>
-    </div>
-  </dialog>
+  </footer>
 
-  <dialog id="unsavedChangesDialog" class="sub-dialog">
-    <div class="sub-dialog-header">저장하지 않은 변경사항이 있습니다</div>
-    <div class="unsaved-confirm-body">지금 닫으면 매칭 수정 화면에서 변경한 내용이 사라집니다. 어떻게 할까요?</div>
-    <div class="sub-dialog-footer">
-      <button id="unsavedDiscardBtn" class="danger">변경사항 버리기</button>
-      <button id="unsavedContinueBtn" class="secondary">계속 수정</button>
-      <button id="unsavedSaveBtn">저장</button>
+  <dialog id="managerDialog" class="modal" aria-labelledby="managerTitle">
+    <div class="modal-head">
+      <button type="button" class="icon-btn" id="editBackBtn" aria-label="목록으로" hidden>←</button>
+      <h2 id="managerTitle">혜택 관리</h2>
+      <span class="unsaved" id="unsavedIndicator" hidden>● 저장되지 않은 변경사항</span>
+      <span class="spacer"></span>
+      <button type="button" class="icon-btn" id="managerCloseBtn" aria-label="닫기">✕</button>
+    </div>
+
+    <div class="modal-body" id="managerListView">
+      <div class="mgr-tools">
+        <input type="search" id="mgrSearch" class="input search" placeholder="혜택명, 상품코드, 요금제명/코드 검색" />
+        <button type="button" class="btn" id="importCsvBtn" title="B열=혜택명, '요금제코드' 컬럼(없으면 D열)을 읽어 전체 매칭을 교체합니다.">CSV 가져오기</button>
+        <input id="mappingFileInput" type="file" accept=".csv,.txt" hidden />
+        <button type="button" class="btn btn-primary" id="addBenefitBtn">+ 혜택 추가</button>
+        <div id="mgrNotice" class="status" data-tone="info"></div>
+      </div>
+      <div class="mgr-table-wrap">
+        <table class="mgr-table">
+          <thead><tr><th>혜택명</th><th>통신망</th><th>지급 조건</th><th>요금제</th><th>상태</th><th class="col-act">수정</th><th class="col-act">삭제</th></tr></thead>
+          <tbody id="mgrRows"></tbody>
+        </table>
+      </div>
+      <div class="muted" id="mgrSummary" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="modal-body" id="managerEditView" hidden>
+      <div class="form-grid">
+        <div class="form-item span-all">
+          <label for="ef-label">혜택명 <span class="req">*</span></label>
+          <input id="ef-label" class="input" placeholder="예: 네이버페이 포인트 5,000원 X 24개월" />
+        </div>
+        <div class="form-item">
+          <label for="ef-product-code">상품코드</label>
+          <input id="ef-product-code" class="input" placeholder="예: G00000760670" />
+        </div>
+        <div class="form-item span-2">
+          <label for="ef-product-name">상품명 (발송 파일에 표시)</label>
+          <input id="ef-product-name" class="input" placeholder="예: 네이버페이 포인트 5,000원 X 24개월" />
+        </div>
+        <div class="form-item">
+          <label for="ef-months">지급 개월수</label>
+          <input id="ef-months" class="input" type="number" min="1" step="1" inputmode="numeric" />
+          <div class="hint" id="ef-months-hint"></div>
+        </div>
+        <div class="form-item">
+          <label for="ef-network">통신망</label>
+          <select id="ef-network" class="input">
+            <option value="LG">LG망</option>
+            <option value="KT">KT망</option>
+            <option value="MIXED">요금제별 지정 (혼합)</option>
+          </select>
+          <div class="hint">변경 시 연결된 요금제 전체에 적용</div>
+        </div>
+        <div class="form-item">
+          <label for="ef-active">사용 여부</label>
+          <select id="ef-active" class="input">
+            <option value="true">사용</option>
+            <option value="false">종료</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-section-title">
+        <span>연결 요금제 <span id="planCountLabel">0</span>개</span>
+        <span class="muted">이 요금제코드로 개통한 고객이 대상자로 추출됩니다.</span>
+      </div>
+      <div class="plan-add">
+        <input id="planAddInput" class="input" type="search" autocomplete="off" placeholder="요금제코드·요금제명 검색, 또는 코드 여러 개 붙여넣기 후 Enter" />
+        <button type="button" class="btn" id="planAddBtn">추가</button>
+        <div class="suggest" id="planSuggest" hidden></div>
+      </div>
+      <div class="plan-add-msg" id="planAddMsg"></div>
+      <div class="plan-table-wrap">
+        <table class="plan-table">
+          <thead><tr><th>요금제코드</th><th>요금제명</th><th>통신망</th><th>사용</th><th></th></tr></thead>
+          <tbody id="planRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="modal-foot" id="editFoot" hidden>
+      <span class="foot-msg" id="editError"></span>
+      <button type="button" class="btn" id="editCancelBtn">취소</button>
+      <button type="button" class="btn btn-primary" id="editSaveBtn">저장</button>
     </div>
   </dialog>
 
@@ -1160,36 +685,27 @@
             "planName": "평생 무제한 100GB + 5Mbps [네이버페이 10,000원]"
       }
 ];
+    const PAGE_SIZE = 50;
+    // 고객정보(customers/plans/fileName/uploadStats)는 이 메모리 객체에만 존재하며 어떤 저장소에도 기록하지 않는다.
     const state = {
       customers: [],
       plans: [],
       planCode: "",
       search: "",
       status: "all",
-      benefitCode: "",
+      view: "targets",
       mappings: [],
       selectedCategoryId: "",
-      visibleRows: 10,
+      visibleRows: PAGE_SIZE,
       downloadUrl: "",
+      lastDownloadName: "",
       fileName: "",
       uploadStats: null,
-      hasDownloaded: false
+      processing: false
     };
+    let pendingFile = null; // 암호 입력을 기다리는 파일 (메모리에만 보관, 초기화 시 삭제)
 
     const enc = new TextDecoder("utf-8");
-    let editorDraft = [];
-    let editorSelectedIdx = -1;
-    let editorSearch = "";
-    let editorFilterMode = "all"; // "all" | "active" | "inactive" (좌측 목록 상태 필터)
-    let editorNetworkFilter = "all"; // "all" | "LG" | "KT" (좌측 목록 통신망 필터)
-    let editorDirty = false;
-    let detailEditMode = false; // 기본정보 섹션 수정 모드 여부
-    let planSearch = "";
-    let planSelection = new Set(); // 연결된 요금제 체크박스 선택(planCode 기준)
-    let pendingPickerGi = -1;
-    let pickerSelected = new Set();
-    let pickerTab = "pick"; // "pick" | "manual"
-    let categoryNetworkFilter = "all"; // "all" | "LG" | "KT" (메인 화면 혜택 카테고리 필터, 매칭 수정과 무관)
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
@@ -1341,30 +857,12 @@
       });
     }
     function saveMappings() {
-      localStorage.setItem("benefitPlanMappings", JSON.stringify(state.mappings));
-      localStorage.setItem("benefitPlanMappingVersion", DEFAULT_MAPPING_VERSION);
-    }
-    function toggleGroupActive(groupId) {
-      const group = categoryGroups().find(g => g.id === groupId);
-      if (!group) return;
-      const newActive = group.active === false;
-      const key = (item) => item.category || item.productName || item.productCode || "미분류 혜택";
-      for (const item of state.mappings) {
-        if (key(item) === groupId) item.active = newActive;
+      try {
+        localStorage.setItem("benefitPlanMappings", JSON.stringify(state.mappings));
+        localStorage.setItem("benefitPlanMappingVersion", DEFAULT_MAPPING_VERSION);
+      } catch {
+        alert("혜택 설정을 브라우저에 저장하지 못했습니다. 시크릿 모드이거나 저장 공간이 부족한지 확인해 주세요.");
       }
-      saveMappings();
-      renderCategories();
-    }
-    function toggleGroupNetwork(groupId) {
-      const group = categoryGroups().find(g => g.id === groupId);
-      if (!group) return;
-      const newNetwork = group.network === "KT" ? "LG" : "KT";
-      const key = (item) => item.category || item.productName || item.productCode || "미분류 혜택";
-      for (const item of state.mappings) {
-        if (key(item) === groupId) item.network = newNetwork;
-      }
-      saveMappings();
-      renderCategories();
     }
     function loadSavedMappings() {
       let saved = null;
@@ -1389,7 +887,6 @@
         usedDefaultMappings = true;
       }
       if (usedDefaultMappings && state.mappings.length) saveMappings();
-      if (!state.selectedCategoryId && state.mappings.length) state.selectedCategoryId = categoryGroups()[0]?.id || "";
     }
     function benefitMonthsFromLabel(label) {
       const match = String(label || "").match(/(\d+)\s*개월/);
@@ -1414,11 +911,14 @@
       const todayYmd = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       return todayYmd >= end;
     }
+    function groupKey(item) {
+      return item.category || item.productName || item.productCode || "미분류 혜택";
+    }
     function categoryGroups() {
       const map = new Map();
       for (const item of state.mappings) {
-        const id = item.category || item.productName || item.productCode || "미분류 혜택";
-        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, active: item.active !== false, months: null, plans: [] });
+        const id = groupKey(item);
+        if (!map.has(id)) map.set(id, { id, label: id, productCode: item.productCode, productName: item.productName, months: null, plans: [] });
         const group = map.get(id);
         if (!group.productCode && item.productCode) group.productCode = item.productCode;
         if (!group.productName && item.productName) group.productName = item.productName;
@@ -1429,7 +929,9 @@
         .map((group) => {
           const networks = new Set(group.plans.map((p) => p.network));
           const network = networks.size > 1 ? "MIXED" : (networks.has("KT") ? "KT" : "LG");
-          return { ...group, durationMonths: group.months || benefitMonthsFromLabel(group.label), network };
+          // 사용 여부는 표시용 상태: 연결 요금제 중 하나라도 사용 중이면 사용 중인 혜택으로 본다.
+          const active = group.plans.some((p) => p.active);
+          return { ...group, active, durationMonths: group.months || benefitMonthsFromLabel(group.label), network };
         })
         .sort((a, b) => a.label.localeCompare(b.label, "ko"));
     }
@@ -1456,14 +958,6 @@
       }
       return state.planCode ? [state.planCode] : [];
     }
-    function planByCode(code) {
-      return state.plans.find((item) => item.code === code) || null;
-    }
-    function mappingItemsToCsv(items = state.mappings) {
-      const rows = [["혜택명", "상품코드", "상품명", "요금제코드", "요금제명"]];
-      for (const item of items) rows.push([item.category, item.productCode, item.productName, item.planCode, item.planName]);
-      return rows.map((cols) => cols.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
-    }
     function excelXml(value) {
       return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
     }
@@ -1479,13 +973,10 @@
       const url = URL.createObjectURL(blob);
       state.downloadUrl = url;
       const safeName = safeFileName(filename);
+      state.lastDownloadName = safeName;
       const fallback = $("downloadFallbackLink");
-      if (fallback) {
-        fallback.href = url;
-        fallback.download = safeName;
-        fallback.textContent = `${safeName} 다시 다운로드`;
-        fallback.style.display = "flex";
-      }
+      fallback.href = url;
+      fallback.download = safeName;
       const a = document.createElement("a");
       a.href = url;
       a.download = safeName;
@@ -1495,8 +986,14 @@
       a.style.top = "-9999px";
       document.body.appendChild(a);
       a.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, view: window }));
-      setStatus(`${safeName} 다운로드를 시작했습니다. 파일이 보이지 않으면 [대상자 취합] 탭의 다시 다운로드 링크를 눌러 주세요.`);
       setTimeout(() => a.remove(), 3000);
+      renderActionBar(analyze());
+    }
+    function revokeDownload() {
+      if (state.downloadUrl) URL.revokeObjectURL(state.downloadUrl);
+      state.downloadUrl = "";
+      state.lastDownloadName = "";
+      $("downloadFallbackLink").removeAttribute("href");
     }
     function htmlWorkbookDownload(filename, sheets) {
       const worksheets = sheets.map((sheet, index) => {
@@ -1517,11 +1014,9 @@
 </Workbook>`;
       downloadBlob(filename, new Blob(["\ufeff" + workbook], { type: "application/vnd.ms-excel;charset=utf-8" }));
     }
-    function setStatus(text) {
+    function setStatus(text, tone) {
       $("statusBox").textContent = text;
-    }
-    function enableLoadedControls(enabled) {
-      ["planCode", "benefitSelect", "customerSearch", "statusFilter", "downloadBtn", "doneBtn"].forEach((id) => $(id).disabled = !enabled);
+      $("statusBox").dataset.tone = tone || (state.processing ? "busy" : "info");
     }
 
     function readUint16(data, offset) { return data[offset] | (data[offset + 1] << 8); }
@@ -1869,8 +1364,9 @@
         agency: findIndex(headers, "대리점"),
         channel: findIndex(headers, "총판")
       };
-      if (map.planCode < 0 || map.phone < 0 || map.name < 0) {
-        throw new Error("필수 컬럼을 찾지 못했습니다. 개통번호, 고객명, 요금제코드가 첫 행에 있어야 합니다.");
+      const missing = [["개통번호", map.phone], ["고객명", map.name], ["요금제코드", map.planCode]].filter(([, idx]) => idx < 0).map(([label]) => label);
+      if (missing.length) {
+        throw new Error(`필수 컬럼(${missing.join(", ")})을 찾지 못했습니다. 첫 번째 시트의 1행에 개통번호, 고객명, 요금제코드 컬럼명이 있어야 합니다.`);
       }
       const allParsed = rows.slice(1).filter((row) => row.some(Boolean)).map((row) => ({
         phone: row[map.phone] || "",
@@ -1883,13 +1379,10 @@
         agency: row[map.agency] || "",
         channel: row[map.channel] || ""
       }));
+      if (!allParsed.length) throw new Error("첫 번째 시트에 고객 데이터가 없습니다.");
       state.customers = allParsed.filter((row) => row.planCode);
       state.uploadStats = computeUploadStats(allParsed);
       buildPlansFromCustomers();
-      state.planCode = state.plans[0]?.code || "";
-      state.search = "";
-      state.status = "all";
-      state.benefitCode = "";
     }
     function buildPlansFromCustomers() {
       const grouped = new Map();
@@ -1904,422 +1397,6 @@
         normal: list.filter((row) => row.status === "정상").length
       })).sort((a, b) => b.total - a.total || a.code.localeCompare(b.code));
     }
-    async function handleFile(file) {
-      const password = $("passwordInput").value.trim();
-      setStatus("파일을 이 브라우저 안에서 읽는 중입니다.");
-      let buffer = await file.arrayBuffer();
-      const head = new Uint8Array(buffer.slice(0, 8));
-      if (head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0) {
-        if (!password) throw new Error("암호화된 파일입니다. 파일 암호를 입력해 주세요.");
-        setStatus("암호화된 엑셀을 이 브라우저 안에서 해제하는 중입니다.");
-        buffer = await decryptOfficeFile(buffer, password);
-      }
-      const entries = await unzipEntries(buffer);
-      const shared = parseSharedStrings(entries);
-      const sheetPath = resolveFirstSheet(entries);
-      const rows = parseSheet(entries, sheetPath, shared);
-      state.fileName = file.name;
-      loadRows(rows);
-      state.hasDownloaded = false;
-      setStatus(`${file.name} 파일을 불러왔습니다. ${password ? "입력한 암호는 저장하지 않습니다. " : ""}고객정보는 브라우저 메모리에만 있으며 완료 버튼을 누르면 삭제됩니다.`);
-      enableLoadedControls(true);
-      renderOptions();
-      render();
-    }
-    function currentRows() {
-      const codes = new Set(selectedPlanCodes());
-      const group = selectedCategory();
-      let rows = codes.size ? state.customers.filter((row) => codes.has(row.planCode)) : [];
-      if (group) rows = rows.filter((row) => !isBenefitEnded(row, group.durationMonths));
-      const query = state.search.trim().toLowerCase();
-      if (state.status !== "all") rows = rows.filter((row) => state.status === "other" ? row.status !== "정상" : row.status === state.status);
-      if (query) rows = rows.filter((row) => [row.phone, row.name, row.status, row.joinType, row.agency, row.channel, row.planCode, row.planName].some((v) => String(v).toLowerCase().includes(query)));
-      return rows;
-    }
-    function renderOptions() {
-      const groups = categoryGroups();
-      if (!state.selectedCategoryId && groups.length) state.selectedCategoryId = groups[0].id;
-      const group = selectedCategory();
-      const planCounts = new Map(state.plans.map((plan) => [plan.code, plan.total]));
-      $("benefitSelect").innerHTML = groups.length
-        ? groups.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)} (${number(item.plans.length)}개 코드)</option>`).join("")
-        : `<option value="">혜택 매칭 없음</option>`;
-      $("benefitSelect").value = state.selectedCategoryId || "";
-      if (group && state.planCode && !group.plans.some((plan) => plan.planCode === state.planCode)) state.planCode = "";
-      $("planCode").innerHTML = group
-        ? `<option value="">전체 요금제코드</option>` + group.plans.map((plan) => `<option value="${escapeHtml(plan.planCode)}">${escapeHtml(plan.planCode)} · ${escapeHtml(plan.planName || "")} (${number(planCounts.get(plan.planCode) || 0)}명)</option>`).join("")
-        : `<option value="">요금제코드 없음</option>`;
-      $("planCode").value = state.planCode;
-      $("customerSearch").value = "";
-      $("statusFilter").value = "all";
-      $("planCountLabel").textContent = state.plans.length ? `전체 ${number(state.plans.length)}개` : "";
-      renderBars();
-    }
-    function renderPlanBox(plan) {
-      const group = selectedCategory();
-      const rows = currentRows();
-      if (!group) {
-        $("planBox").innerHTML = `<div class="benefit-line"><div class="name">분류 미선택</div><div class="muted">파일 업로드 후 혜택과 요금제코드를 선택하세요.</div></div>`;
-        return;
-      }
-      const codeChips = state.planCode
-        ? `<span class="chip">${escapeHtml(state.planCode)}</span>`
-        : group.plans.map((p) => `<span class="chip ${p.network === "KT" ? "chip-kt" : ""}" title="${escapeHtml(p.planName || "")}">${escapeHtml(p.planCode)}</span>`).join("");
-      $("planBox").innerHTML = `
-        <div class="benefit-line"><div class="muted">선택 혜택</div><div class="name">${escapeHtml(group.label)}</div></div>
-        <div class="benefit-line"><div class="muted">적용 요금제 (${number(state.planCode ? 1 : group.plans.length)}개)</div><div class="chips">${codeChips}</div></div>
-        <div class="benefit-line"><div class="muted">조회 고객</div><strong>${number(rows.length)}명</strong></div>
-      `;
-    }
-    function renderBenefit() {
-      const group = selectedCategory();
-      if (!group) {
-        $("benefitBox").innerHTML = `<div class="benefit-line"><div class="name">혜택 미선택</div><div class="muted">고객 조회에서 대분류 혜택을 선택하세요.</div></div>`;
-        return;
-      }
-      const netClass = group.network === "KT" ? "kt" : group.network === "MIXED" ? "mixed" : "lg";
-      const netLabel = group.network === "KT" ? "KT망" : group.network === "MIXED" ? "LG/KT 혼합" : "LG망";
-      const on = group.active !== false;
-      const durationText = group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급기간 제한 없음";
-      const plansTooltip = group.plans.map((p) => `${p.planCode}${p.planName ? " · " + p.planName : ""}`).join("\n") || "연결된 요금제 없음";
-      $("benefitBox").innerHTML = `
-        <div class="benefit-detail-header">
-          <div class="name">${escapeHtml(group.label)}</div>
-          <button type="button" id="benefitEditBtn" class="secondary">수정</button>
-        </div>
-        <div class="benefit-detail-badges">
-          <span class="plan-network-badge net-${netClass}">${netLabel}</span>
-          <span class="plan-active-badge ${on ? "on" : "off"}">${on ? "사용" : "종료"}</span>
-        </div>
-        <div class="benefit-line"><div class="muted">상품코드 / 상품명</div><strong>${escapeHtml(group.productCode || "-")}</strong><div class="muted">${escapeHtml(group.productName || "-")}</div></div>
-        <div class="benefit-line"><div class="muted">지급 조건</div><strong>${durationText}</strong></div>
-        <div class="benefit-line"><div class="muted" title="${escapeHtml(plansTooltip)}">매칭 요금제 (마우스오버: 목록)</div><strong>${number(group.plans.length)}개</strong></div>
-      `;
-      $("benefitEditBtn").addEventListener("click", () => {
-        openMappingEditor();
-        const idx = editorDraft.findIndex((g) => g.id === group.id);
-        if (idx >= 0) selectBenefit(idx);
-      });
-    }
-    function renderBars() {
-      const top = state.plans.slice(0, 10);
-      const max = top[0]?.total || 1;
-      $("topBars").innerHTML = top.length ? top.map((plan) => `
-        <div class="bar-row" title="${escapeHtml(plan.name)}" data-code="${escapeHtml(plan.code)}">
-          <div>${escapeHtml(plan.code)}</div>
-          <div class="track"><div class="bar" style="width:${Math.max(4, Math.round(plan.total / max * 100))}%"></div></div>
-          <div>${number(plan.total)}</div>
-        </div>
-      `).join("") : `<div class="muted">파일 업로드 후 표시됩니다.</div>`;
-      for (const row of $("topBars").querySelectorAll(".bar-row")) {
-        row.addEventListener("click", () => {
-          const group = categoryGroups().find((item) => item.plans.some((plan) => plan.planCode === row.dataset.code));
-          if (group) state.selectedCategoryId = group.id;
-          state.planCode = row.dataset.code;
-          state.visibleRows = 10;
-          renderOptions();
-          render();
-        });
-      }
-    }
-    function renderCategories() {
-      const groups = categoryGroups();
-      if (!groups.length) {
-        $("categoryList").innerHTML = `<div class="muted">저장된 혜택 매칭 데이터가 없습니다. [혜택 대상 요금제] 시트의 B열(혜택)과 D열(요금제코드)을 CSV로 업로드하거나 매칭 수정에 붙여넣어 주세요.</div>`;
-        $("mappingStatus").textContent = "저장된 혜택 매칭 데이터가 없습니다. B열=혜택, D열=요금제코드 기준으로 저장됩니다.";
-        $("targetCount").textContent = "0명";
-        $("downloadHint").textContent = "혜택-요금제 매칭 데이터가 없어 다운로드할 수 없습니다.";
-        $("downloadTargetBtn").disabled = true;
-        $("downloadAllTargetsBtn").disabled = true;
-        return;
-      }
-      if (!state.selectedCategoryId || !groups.some((g) => g.id === state.selectedCategoryId)) state.selectedCategoryId = groups[0].id;
-      $("mappingStatus").textContent = `${number(groups.length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드 매칭 저장됨`;
-      document.querySelectorAll(".network-filter-btn").forEach((btn) => {
-        btn.classList.toggle("on", btn.dataset.net === categoryNetworkFilter);
-      });
-      const visibleGroups = groups.filter((group) => categoryNetworkFilter === "all" || group.plans.some((p) => p.network === categoryNetworkFilter));
-      $("categoryList").innerHTML = visibleGroups.length ? visibleGroups.map((group) => {
-        const on = group.active !== false;
-        const netClass = group.network === "KT" ? "kt" : group.network === "MIXED" ? "mixed" : "lg";
-        const netLabel = group.network === "KT" ? "KT망" : group.network === "MIXED" ? "LG/KT 혼합" : "LG망";
-        const durationText = group.durationMonths ? `가입월 다음 달부터 ${number(group.durationMonths)}개월 지급` : "지급기간 제한 없음";
-        const plansTooltip = group.plans.map((p) => `${p.planCode}${p.planName ? " · " + p.planName : ""}`).join("\n") || "연결된 요금제 없음";
-        return `<div class="category-item ${group.id === state.selectedCategoryId ? "active" : ""} ${on ? "" : "inactive"}" data-id="${escapeHtml(group.id)}">
-          <div class="cat-row-top">
-            <div class="cat-title" title="${escapeHtml(group.label)}">${escapeHtml(group.label)}</div>
-            <div class="cat-badges">
-              <button class="cat-network-toggle net-${netClass}" data-gid="${escapeHtml(group.id)}" title="클릭하면 이 혜택의 모든 요금제코드에 일괄 적용됩니다. 요금제코드별로 다르게 지정하려면 매칭 수정에서 설정하세요.">${netLabel}</button>
-              <button class="cat-status-toggle ${on ? "on" : "off"}" data-gid="${escapeHtml(group.id)}">${on ? "사용" : "종료"}</button>
-            </div>
-          </div>
-          <div class="cat-row-sub">
-            <span>${escapeHtml(group.productCode || "-")}</span>
-            <span class="cat-sep">·</span>
-            <span>${durationText}</span>
-            <span class="cat-plans-count" title="${escapeHtml(plansTooltip)}">매칭 요금제 ${number(group.plans.length)}개</span>
-          </div>
-        </div>`;
-      }).join("") : `<div class="muted">${categoryNetworkFilter === "LG" ? "LG망" : "KT망"} 혜택이 없습니다.</div>`;
-      for (const item of $("categoryList").querySelectorAll(".category-item")) {
-        item.addEventListener("click", () => {
-          state.selectedCategoryId = item.dataset.id;
-          state.planCode = "";
-          state.visibleRows = 10;
-          renderOptions();
-          render();
-        });
-      }
-      for (const btn of $("categoryList").querySelectorAll(".cat-status-toggle")) {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          toggleGroupActive(btn.dataset.gid);
-        });
-      }
-      for (const btn of $("categoryList").querySelectorAll(".cat-network-toggle")) {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          toggleGroupNetwork(btn.dataset.gid);
-        });
-      }
-      const targets = targetRowsForCategory();
-      const allTargets = targetRowsForAllCategories();
-      $("targetCount").textContent = `${number(targets.length)}명`;
-      $("downloadTargetBtn").disabled = !targets.length;
-      $("downloadAllTargetsBtn").disabled = !allTargets.length;
-      $("downloadHint").textContent = state.customers.length
-        ? (allTargets.length ? `전체 혜택 대상자 ${number(allTargets.length)}명을 엑셀로 다운로드할 수 있습니다.` : "업로드된 고객 중 혜택 대상자가 없습니다.")
-        : "개통내역 업로드 후 대상자가 있으면 다운로드할 수 있습니다.";
-    }
-    function renderTable(rows) {
-      const visibleRows = rows.slice(0, state.visibleRows);
-      if (!state.customers.length) {
-        $("customerRows").innerHTML = `<tr><td colspan="9" class="empty">아직 업로드된 고객정보가 없습니다.</td></tr>`;
-        $("loadMoreRowsBtn").disabled = true;
-        $("loadMoreRowsBtn").textContent = "더보기";
-        return;
-      }
-      if (!rows.length) {
-        $("customerRows").innerHTML = `<tr><td colspan="9" class="empty">조회 결과가 없습니다.</td></tr>`;
-        $("loadMoreRowsBtn").disabled = true;
-        $("loadMoreRowsBtn").textContent = "더보기";
-        return;
-      }
-      $("customerRows").innerHTML = visibleRows.map((row) => `
-        <tr>
-          <td>${escapeHtml(row.phone)}${!row.phone || !isValidPhoneLike(row.phone) ? `<span class="phone-warn" title="전화번호를 확인해 주세요">⚠</span>` : ""}</td>
-          <td>${escapeHtml(row.name)}</td>
-          <td>${escapeHtml(row.planCode)}</td>
-          <td>${escapeHtml(row.planName)}</td>
-          <td>${escapeHtml(row.openedAt)}</td>
-          <td><span class="badge ${row.status === "정상" ? "" : "other"}">${escapeHtml(row.status || "-")}</span></td>
-          <td>${escapeHtml(row.joinType)}</td>
-          <td>${escapeHtml(row.agency)}</td>
-          <td>${escapeHtml(row.channel)}</td>
-        </tr>
-      `).join("");
-      const remaining = Math.max(0, rows.length - visibleRows.length);
-      $("loadMoreRowsBtn").disabled = remaining === 0;
-      $("loadMoreRowsBtn").textContent = remaining ? `더보기 (${number(remaining)}명 남음)` : "모두 표시됨";
-    }
-    function renderWorkflowSteps() {
-      const step1 = state.customers.length > 0;
-      const step2 = step1 && !!selectedCategory();
-      const step3 = step2;
-      const step4 = step3 && state.hasDownloaded;
-      const steps = [
-        { label: "1 파일 업로드", done: step1 },
-        { label: "2 혜택 선택", done: step2 },
-        { label: "3 대상 확인", done: step3 },
-        { label: "4 다운로드", done: step4 }
-      ];
-      let currentMarked = false;
-      $("workflowSteps").innerHTML = steps.map((s, i) => {
-        const isCurrent = !s.done && !currentMarked;
-        if (isCurrent) currentMarked = true;
-        const cls = s.done ? "done" : (isCurrent ? "current" : "");
-        return `<div class="step-item ${cls}"><span class="step-num">${s.done ? "✓" : i + 1}</span><span>${s.label.replace(/^\d /, "")}</span></div>`;
-      }).join("");
-    }
-    function renderUploadSummary() {
-      const stats = state.uploadStats;
-      if (!stats) { $("uploadSummary").classList.remove("show"); return; }
-      $("uploadSummary").classList.add("show");
-      $("us-filename").textContent = state.fileName || "-";
-      $("us-total").textContent = `${number(stats.total)}건`;
-      $("us-normal").textContent = `${number(stats.normal)}건`;
-      $("us-review").textContent = `${number(stats.needsReview)}건`;
-      const banner = $("us-banner");
-      if (stats.needsReview > 0) {
-        const parts = [];
-        if (stats.missingPhone) parts.push(`전화번호 누락 ${number(stats.missingPhone)}건`);
-        if (stats.duplicatePhone) parts.push(`중복 전화번호 ${number(stats.duplicatePhone)}건`);
-        if (stats.missingPlanCode) parts.push(`요금제 코드 누락 ${number(stats.missingPlanCode)}건`);
-        if (stats.unmatchedPlanCode) parts.push(`등록되지 않은 요금제 코드 ${number(stats.unmatchedPlanCode)}건`);
-        if (stats.invalidPhoneFormat) parts.push(`전화번호 형식 오류 ${number(stats.invalidPhoneFormat)}건`);
-        banner.style.display = "block";
-        banner.innerHTML = `⚠ 확인이 필요한 데이터가 ${number(stats.needsReview)}건 있습니다.${parts.length ? `<br><span class="muted" style="color:inherit;font-weight:500;">${parts.join(" · ")}</span>` : ""}`;
-      } else {
-        banner.style.display = "none";
-      }
-    }
-    function renderFinalCheck() {
-      const rows = currentRows();
-      const group = selectedCategory();
-      const box = $("finalCheck");
-      if (!group || !rows.length) {
-        box.innerHTML = `<div class="muted">혜택과 요금제를 선택하면 다운로드 전 검증 결과가 표시됩니다.</div>`;
-        return;
-      }
-      const check = computeFinalCheck(rows);
-      const row = (ok, label) => `<div class="final-check-row ${ok ? "ok" : "bad"}">${ok ? "✓" : "⚠"} ${label}</div>`;
-      box.innerHTML = [
-        row(true, `최종 발송 대상 ${number(check.total)}명`),
-        row(check.duplicatePhone === 0, `중복 전화번호 ${number(check.duplicatePhone)}건`),
-        row(check.emptyPhone === 0, `빈 전화번호 ${number(check.emptyPhone)}건`),
-        row(check.missingRequired === 0, `필수값 누락 ${number(check.missingRequired)}건`),
-        row(check.unmatchedPlanCode === 0, `요금제 미매칭 ${number(check.unmatchedPlanCode)}건`)
-      ].join("");
-    }
-    function render() {
-      const plan = planByCode(state.planCode);
-      const codes = new Set(selectedPlanCodes());
-      const allRows = codes.size ? state.customers.filter((row) => codes.has(row.planCode)) : [];
-      const rows = currentRows();
-      $("uploadTotalCount").textContent = number(state.customers.length);
-      $("matchedCount").textContent = number(allRows.length);
-      $("excludedCount").textContent = number(allRows.length - rows.length);
-      $("finalTargetCount").textContent = number(rows.length);
-      $("rangeLabel").textContent = state.customers.length ? `${number(Math.min(rows.length, state.visibleRows))}건 표시 / ${number(rows.length)}건` : "";
-      renderWorkflowSteps();
-      renderUploadSummary();
-      renderPlanBox(plan);
-      renderBenefit();
-      renderCategories();
-      renderFinalCheck();
-      renderTable(rows);
-    }
-    function downloadCsv() {
-      const rows = currentRows();
-      const group = selectedCategory();
-      if (!group) return alert("먼저 대분류 혜택을 선택하세요.");
-      if (!rows.length) return alert("선택한 분류의 대상자가 없습니다.");
-      const csvRows = [["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명"]];
-      rows.forEach((row, index) => csvRows.push([index + 1, row.phone, group.productCode || "", group.productName || group.label, 1, row.name, row.planCode, row.planName]));
-      const csv = "\ufeff" + csvRows.map((cols) => cols.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
-      state.hasDownloaded = true;
-      downloadBlob(`LG_${group.label}_문자발송_${dateStamp()}.csv`, new Blob([csv], { type: "text/csv;charset=utf-8" }));
-      renderWorkflowSteps();
-    }
-    function clearSession(options = {}) {
-      state.customers = [];
-      state.plans = [];
-      state.planCode = "";
-      state.search = "";
-      state.status = "all";
-      state.benefitCode = "";
-      state.visibleRows = 10;
-      state.fileName = "";
-      state.uploadStats = null;
-      state.hasDownloaded = false;
-      if (!options.keepFile) $("fileInput").value = "";
-      if (!options.keepPassword) $("passwordInput").value = "";
-      $("planCode").value = "";
-      $("customerSearch").value = "";
-      $("statusFilter").value = "all";
-      $("benefitSelect").innerHTML = "";
-      $("planCode").innerHTML = "";
-      if (state.downloadUrl) {
-        URL.revokeObjectURL(state.downloadUrl);
-        state.downloadUrl = "";
-      }
-      if ($("downloadFallbackLink")) {
-        $("downloadFallbackLink").removeAttribute("href");
-        $("downloadFallbackLink").style.display = "none";
-        $("downloadFallbackLink").textContent = "다운로드 다시 시도";
-      }
-      $("topBars").innerHTML = `<div class="muted">파일 업로드 후 표시됩니다.</div>`;
-      $("planCountLabel").textContent = "";
-      enableLoadedControls(false);
-      render();
-    }
-    function completeAndClear() {
-      if (state.customers.length && !confirm("현재 업로드된 고객정보와 조회 결과가 모두 삭제됩니다. 작업을 완료하시겠습니까?")) return;
-      clearSession();
-      setStatus("완료 처리했습니다. 업로드 파일과 고객정보가 화면에서 모두 삭제되었습니다.");
-    }
-    function applyMappingCsv(text, sourceLabel = "매칭 데이터") {
-      const rows = parseCsv(text);
-      const items = mappingRowsToItems(rows);
-      if (!items.length) throw new Error("요금제코드 매칭 데이터가 없습니다.");
-      state.mappings = items;
-      state.selectedCategoryId = "";
-      saveMappings();
-      render();
-      if ($("mappingEditor")) $("mappingEditor").value = mappingItemsToCsv();
-      $("mappingStatus").textContent = `${sourceLabel} 저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
-    }
-    function selectedCategorySheetRows(group = selectedCategory()) {
-      if (!group) return [];
-      return targetRowsForCategory(group).map((row, index) => [
-        index + 1,
-        row.phone,
-        group.productCode || state.benefitCode || "",
-        group.productName || "",
-        1,
-        row.name,
-        row.planCode,
-        row.planName,
-        row.openedAt,
-        row.status,
-        row.joinType
-      ]);
-    }
-    function downloadSelectedCategoryExcel() {
-      const group = selectedCategory();
-      if (!group) return alert("혜택 카테고리를 먼저 선택하세요.");
-      const rows = selectedCategorySheetRows(group);
-      if (!rows.length) return alert("선택 혜택의 대상자가 없습니다.");
-      state.hasDownloaded = true;
-      htmlWorkbookDownload(`LG_${group.label}_발송대상_${dateStamp()}.xls`, [{
-        name: group.label,
-        headers: ["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분"],
-        rows
-      }]);
-      renderWorkflowSteps();
-    }
-    function downloadAllCategoriesExcel() {
-      try {
-        const groups = categoryGroups();
-        const sheets = [];
-        for (const group of groups) {
-          const rows = selectedCategorySheetRows(group);
-          if (!rows.length) continue;
-          sheets.push({
-            name: group.label,
-            headers: ["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분"],
-            rows
-          });
-        }
-        if (!sheets.length) return alert("다운로드할 대상자가 없습니다.");
-        state.hasDownloaded = true;
-        htmlWorkbookDownload(`LG_전체혜택_발송대상_${dateStamp()}.xls`, sheets);
-        renderWorkflowSteps();
-      } catch (error) {
-        setStatus(error.message || "전체 혜택 대상자 엑셀을 만들지 못했습니다.");
-        alert(error.message || "전체 혜택 대상자 엑셀을 만들지 못했습니다.");
-      }
-    }
-    $("mappingFileInput").addEventListener("change", async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      try {
-        applyMappingCsv(await file.text(), file.name);
-        $("mappingFileInput").value = "";
-      } catch (error) {
-        $("mappingStatus").textContent = error.message || "매칭 파일을 읽지 못했습니다.";
-      }
-    });
     function allKnownPlans() {
       const pool = new Map();
       for (const p of state.plans) {
@@ -2332,663 +1409,797 @@
       }
       return Array.from(pool.values()).sort((a, b) => a.code.localeCompare(b.code));
     }
-    function editorGroupNetwork(g) {
-      const networks = new Set(g.plans.map((p) => p.network === "KT" ? "KT" : "LG"));
-      return networks.size > 1 ? "MIXED" : (networks.has("KT") ? "KT" : "LG");
+
+    // ─── 파일 업로드 ───
+    function needPasswordError() {
+      const error = new Error("암호화된 파일입니다. 오른쪽에 파일 암호를 입력하고 Enter를 눌러 주세요.");
+      error.code = "NEED_PASSWORD";
+      return error;
     }
-    function editorGroupMatches(g) {
-      if (editorFilterMode === "active" && g.active === false) return false;
-      if (editorFilterMode === "inactive" && g.active !== false) return false;
-      if (editorNetworkFilter !== "all" && !g.plans.some((p) => p.network === editorNetworkFilter)) return false;
-      const query = editorSearch.trim().toLowerCase();
-      if (!query) return true;
-      const inBasicInfo = [g.label, g.productCode, g.productName].some((v) => (v || "").toLowerCase().includes(query));
-      if (inBasicInfo) return true;
-      return g.plans.some((p) => (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query));
+    async function handleFile(file) {
+      const password = $("passwordInput").value.trim();
+      setStatus("파일을 이 브라우저 안에서 읽는 중입니다…", "busy");
+      let buffer = await file.arrayBuffer();
+      const head = new Uint8Array(buffer.slice(0, 8));
+      if (head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0) {
+        const streams = parseCfb(buffer);
+        if (!streams.EncryptionInfo || !streams.EncryptedPackage) {
+          throw new Error("구버전 엑셀(.xls) 형식은 읽을 수 없습니다. 엑셀에서 [다른 이름으로 저장 → Excel 통합 문서(.xlsx)]로 저장한 뒤 다시 올려 주세요.");
+        }
+        if (!password) throw needPasswordError();
+        setStatus("암호화된 엑셀을 이 브라우저 안에서 해제하는 중입니다…", "busy");
+        buffer = await decryptOfficeFile(buffer, password);
+      }
+      const entries = await unzipEntries(buffer);
+      const shared = parseSharedStrings(entries);
+      const sheetPath = resolveFirstSheet(entries);
+      const rows = parseSheet(entries, sheetPath, shared);
+      loadRows(rows);
+      state.fileName = file.name;
+      const stats = state.uploadStats;
+      const base = `${number(stats.total)}건을 불러왔습니다.${password ? " 입력한 암호는 저장하지 않습니다." : ""}`;
+      if (stats.needsReview > 0) {
+        const parts = [];
+        if (stats.missingPhone) parts.push(`전화번호 누락 ${number(stats.missingPhone)}건`);
+        if (stats.duplicatePhone) parts.push(`중복 전화번호 ${number(stats.duplicatePhone)}건`);
+        if (stats.missingPlanCode) parts.push(`요금제코드 누락 ${number(stats.missingPlanCode)}건(대상 제외)`);
+        if (stats.unmatchedPlanCode) parts.push(`등록되지 않은 요금제코드 ${number(stats.unmatchedPlanCode)}건`);
+        if (stats.invalidPhoneFormat) parts.push(`전화번호 형식 오류 ${number(stats.invalidPhoneFormat)}건`);
+        setStatus(`${base} 확인이 필요한 데이터 ${number(stats.needsReview)}건: ${parts.join(" · ")}`, "warn");
+      } else {
+        setStatus(base, "ok");
+      }
+    }
+    function friendlyError(error) {
+      const message = String(error?.message || "");
+      return /[가-힣]/.test(message) ? message : "파일을 읽는 중 오류가 발생했습니다. 파일이 손상되지 않았는지, 암호가 맞는지 확인해 주세요.";
+    }
+    function clearCustomerData() {
+      state.customers = [];
+      state.plans = [];
+      state.fileName = "";
+      state.uploadStats = null;
+      resetResultFilters();
+      revokeDownload();
+    }
+    async function processFile(file) {
+      if (!file || state.processing) return;
+      if (!/\.(xlsx|xlsm|xls)$/i.test(file.name)) {
+        setStatus(`엑셀 파일(.xlsx)만 업로드할 수 있습니다. 선택한 파일: ${file.name}`, "error");
+        return;
+      }
+      pendingFile = file;
+      clearCustomerData();
+      state.processing = true;
+      render();
+      try {
+        await handleFile(file);
+        pendingFile = null;
+      } catch (error) {
+        clearCustomerData();
+        if (error.code === "NEED_PASSWORD") {
+          setStatus(error.message, "warn");
+          $("passwordInput").focus();
+        } else {
+          setStatus(friendlyError(error), "error");
+          if ($("passwordInput").value) $("passwordInput").select();
+        }
+      } finally {
+        state.processing = false;
+        $("fileInput").value = "";
+        render();
+      }
+    }
+    function clearSession() {
+      clearCustomerData();
+      pendingFile = null;
+      $("fileInput").value = "";
+      $("passwordInput").value = "";
+      setStatus("");
+      render();
+    }
+
+    // ─── 대상자 추출 ───
+    function resetResultFilters() {
+      state.planCode = "";
+      state.search = "";
+      state.status = "all";
+      state.view = "targets";
+      state.visibleRows = PAGE_SIZE;
+      $("customerSearch").value = "";
+      $("statusFilter").value = "all";
+    }
+    // 기존 추출 규칙: 혜택(또는 선택한 요금제코드)에 매칭된 고객 중 지급기간이 끝나지 않았고 상태 조건에 맞는 고객이 최종 대상.
+    function analyze() {
+      const group = selectedCategory();
+      if (!group || !state.customers.length) return { group, matched: [], targets: [], excluded: [] };
+      const codes = new Set(selectedPlanCodes());
+      const matched = state.customers.filter((row) => codes.has(row.planCode));
+      const targets = [];
+      const excluded = [];
+      for (const row of matched) {
+        if (isBenefitEnded(row, group.durationMonths)) {
+          excluded.push({ row, reason: `지급기간 종료 (개통 ${row.openedAt.slice(0, 10)}, ${number(group.durationMonths)}개월)` });
+        } else if (state.status !== "all" && (state.status === "other" ? row.status === "정상" : row.status !== state.status)) {
+          excluded.push({ row, reason: `상태 조건 제외 (${row.status || "상태 없음"})` });
+        } else {
+          targets.push(row);
+        }
+      }
+      return { group, matched, targets, excluded };
+    }
+
+    // ─── 화면 렌더링 ───
+    function networkLabel(network) {
+      return network === "KT" ? "KT망" : network === "MIXED" ? "LG/KT 혼합" : "LG망";
+    }
+    function networkClass(network) {
+      return network === "KT" ? "net-kt" : network === "MIXED" ? "net-mixed" : "net-lg";
+    }
+    function durationText(months) {
+      return months ? `${number(months)}개월 지급 (가입 다음 달부터)` : "지급기간 제한 없음";
+    }
+    function renderBenefitSelect() {
+      const groups = categoryGroups();
+      if (state.selectedCategoryId && !groups.some((g) => g.id === state.selectedCategoryId)) state.selectedCategoryId = "";
+      const option = (g) => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.label)}  ·  ${networkLabel(g.network)} · 요금제 ${number(g.plans.length)}개</option>`;
+      const active = groups.filter((g) => g.active);
+      const ended = groups.filter((g) => !g.active);
+      const select = $("benefitSelect");
+      select.innerHTML = `<option value="">${groups.length ? "혜택을 선택하세요" : "등록된 혜택이 없습니다"}</option>`
+        + active.map(option).join("")
+        + (ended.length ? `<optgroup label="종료된 혜택">${ended.map(option).join("")}</optgroup>` : "");
+      select.value = state.selectedCategoryId;
+      select.disabled = !groups.length;
+      $("noBenefitNotice").hidden = groups.length > 0;
+      const group = selectedCategory();
+      $("benefitMeta").innerHTML = group ? `
+        <span>상품코드 <strong>${escapeHtml(group.productCode || "-")}</strong></span>
+        <span>${escapeHtml(durationText(group.durationMonths))}</span>
+        <span title="${escapeHtml(group.plans.map((p) => `${p.planCode}${p.planName ? " · " + p.planName : ""}`).join("\n"))}">요금제 ${number(group.plans.length)}개 매칭</span>
+        ${group.active ? "" : `<span class="pill off">종료된 혜택</span>`}
+        <button type="button" class="link-btn" data-edit-selected>조건 수정</button>
+      ` : "";
+    }
+    function renderUploadState() {
+      const zone = $("dropZone");
+      zone.classList.toggle("busy", state.processing);
+      zone.classList.toggle("loaded", !!state.customers.length);
+      if (state.processing) {
+        $("dzMain").textContent = pendingFile?.name || "파일 처리 중";
+        $("dzSub").textContent = "처리 중입니다…";
+      } else if (state.customers.length) {
+        $("dzMain").textContent = `📄 ${state.fileName}`;
+        $("dzSub").textContent = `고객 ${number(state.customers.length)}명 불러옴 · 다른 파일로 바꾸려면 클릭하거나 끌어다 놓으세요`;
+      } else if (pendingFile) {
+        $("dzMain").textContent = `📄 ${pendingFile.name}`;
+        $("dzSub").textContent = "불러오지 못했습니다 · 암호를 확인하거나 다른 파일을 선택하세요";
+      } else {
+        $("dzMain").innerHTML = "파일을 끌어다 놓거나 <u>클릭해서 선택</u>하세요";
+        $("dzSub").textContent = "엑셀(.xlsx) · 암호화 파일 지원 · 파일은 이 브라우저 안에서만 처리되며 새로고침·초기화 시 삭제됩니다";
+      }
+    }
+    const CUSTOMER_COLUMNS = ["연락처", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분", "대리점", "총판"];
+    function renderResults(result) {
+      const { group, matched, targets, excluded } = result;
+      const loaded = state.customers.length > 0;
+      const ready = loaded && !!group;
+      $("mTotal").textContent = loaded ? number(state.customers.length) : "-";
+      $("mMatched").textContent = ready ? number(matched.length) : "-";
+      $("mFinal").textContent = ready ? number(targets.length) : "-";
+      $("resultBenefitLabel").textContent = group ? group.label : "";
+      $("segTargets").textContent = number(targets.length);
+      $("segExcluded").textContent = number(excluded.length);
+      $("viewSeg").querySelectorAll("button").forEach((btn) => {
+        btn.classList.toggle("on", btn.dataset.view === state.view);
+        btn.disabled = !ready;
+      });
+      ["customerSearch", "planCode", "statusFilter"].forEach((id) => $(id).disabled = !ready);
+
+      const planCounts = new Map(state.plans.map((plan) => [plan.code, plan.total]));
+      $("planCode").innerHTML = group
+        ? `<option value="">요금제: 전체 (${number(group.plans.length)}개)</option>` + group.plans.map((plan) => `<option value="${escapeHtml(plan.planCode)}">${escapeHtml(plan.planCode)} · ${escapeHtml(plan.planName || "")} (${number(planCounts.get(plan.planCode) || 0)}명)</option>`).join("")
+        : `<option value="">요금제: 전체</option>`;
+      $("planCode").value = state.planCode;
+
+      const checkEl = $("checkLine");
+      if (ready && targets.length) {
+        const check = computeFinalCheck(targets);
+        const issues = [];
+        if (check.duplicatePhone) issues.push(`중복 전화번호 ${number(check.duplicatePhone)}건`);
+        if (check.emptyPhone) issues.push(`빈 전화번호 ${number(check.emptyPhone)}건`);
+        if (check.missingRequired) issues.push(`필수값 누락 ${number(check.missingRequired)}건`);
+        if (check.unmatchedPlanCode) issues.push(`요금제 미매칭 ${number(check.unmatchedPlanCode)}건`);
+        checkEl.className = `check-line ${issues.length ? "bad" : "ok"}`;
+        checkEl.textContent = issues.length ? `⚠ 발송 전 확인: ${issues.join(" · ")}` : "✓ 중복·빈 전화번호·필수값 누락 없음";
+      } else {
+        checkEl.className = "check-line";
+        checkEl.textContent = "";
+      }
+
+      const showReason = state.view === "excluded";
+      $("customerHead").innerHTML = `<tr>${CUSTOMER_COLUMNS.map((c) => `<th>${c}</th>`).join("")}${showReason ? "<th>제외 사유</th>" : ""}</tr>`;
+      const colspan = CUSTOMER_COLUMNS.length + (showReason ? 1 : 0);
+      let list = showReason ? excluded : targets.map((row) => ({ row }));
+      const query = state.search.trim().toLowerCase();
+      if (query) list = list.filter(({ row }) => [row.phone, row.name, row.status, row.joinType, row.agency, row.channel, row.planCode, row.planName].some((v) => String(v).toLowerCase().includes(query)));
+      let emptyText = "";
+      if (!loaded && !group) emptyText = "혜택을 선택하고 개통내역 파일을 업로드하면 발송 대상자가 표시됩니다.";
+      else if (!loaded) emptyText = "개통내역 파일을 업로드하면 발송 대상자가 표시됩니다.";
+      else if (!group) emptyText = "혜택을 선택하면 발송 대상자가 표시됩니다.";
+      else if (!list.length && query) emptyText = "검색 결과가 없습니다.";
+      else if (!list.length && showReason) emptyText = "제외된 고객이 없습니다.";
+      else if (!list.length && !matched.length) emptyText = "업로드한 파일에 이 혜택의 요금제로 개통한 고객이 없습니다.";
+      else if (!list.length) emptyText = "발송 대상자가 없습니다. [제외] 탭에서 사유를 확인하세요.";
+      const visible = list.slice(0, state.visibleRows);
+      $("customerRows").innerHTML = emptyText
+        ? `<tr><td colspan="${colspan}" class="empty">${emptyText}</td></tr>`
+        : visible.map(({ row, reason }) => `
+        <tr>
+          <td>${escapeHtml(row.phone)}${!row.phone || !isValidPhoneLike(row.phone) ? `<span class="phone-warn" title="전화번호를 확인해 주세요">⚠</span>` : ""}</td>
+          <td>${escapeHtml(row.name)}</td>
+          <td>${escapeHtml(row.planCode)}</td>
+          <td>${escapeHtml(row.planName)}</td>
+          <td>${escapeHtml(row.openedAt)}</td>
+          <td><span class="badge ${row.status === "정상" ? "" : "other"}">${escapeHtml(row.status || "-")}</span></td>
+          <td>${escapeHtml(row.joinType)}</td>
+          <td>${escapeHtml(row.agency)}</td>
+          <td>${escapeHtml(row.channel)}</td>
+          ${showReason ? `<td class="reason">${escapeHtml(reason)}</td>` : ""}
+        </tr>`).join("");
+      const remaining = Math.max(0, list.length - visible.length);
+      $("rangeLabel").textContent = !emptyText ? `${number(visible.length)}명 표시 / ${number(list.length)}명` : "";
+      $("loadMoreRowsBtn").hidden = remaining === 0;
+      $("loadMoreRowsBtn").textContent = `더보기 (${number(remaining)}명 남음)`;
+    }
+    function renderActionBar(result) {
+      const { group, targets } = result;
+      const loaded = state.customers.length > 0;
+      const allCount = loaded ? targetRowsForAllCategories().length : 0;
+      $("downloadBtn").disabled = !targets.length;
+      $("downloadMoreBtn").disabled = !targets.length && !allCount;
+      $("downloadMenu").querySelector('[data-dl="xls"]').disabled = !targets.length;
+      $("downloadMenu").querySelector('[data-dl="all"]').disabled = !allCount;
+      $("resetBtn").disabled = !loaded && !pendingFile && !$("passwordInput").value;
+      let hint;
+      if (state.lastDownloadName) hint = `✓ <strong>${escapeHtml(state.lastDownloadName)}</strong> 다운로드를 시작했습니다.`;
+      else if (!group && !loaded) hint = "혜택 선택 → 파일 업로드 → 대상자 확인 → 다운로드";
+      else if (!group) hint = "혜택을 선택하세요.";
+      else if (!loaded) hint = "개통내역 파일을 업로드하세요.";
+      else if (!targets.length) hint = "발송 대상자가 없어 다운로드할 수 없습니다.";
+      else hint = `<strong>${escapeHtml(group.label)}</strong> 발송 대상 <strong>${number(targets.length)}명</strong>`;
+      $("actionHint").innerHTML = hint;
+      $("downloadFallbackLink").hidden = !state.lastDownloadName;
+    }
+    function render() {
+      renderBenefitSelect();
+      renderUploadState();
+      const result = analyze();
+      renderResults(result);
+      renderActionBar(result);
+    }
+
+    // ─── 발송 파일 생성 (기존 컬럼 구성 유지) ───
+    const SHEET_HEADERS = ["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명", "개통일", "상태", "개통구분"];
+    function sheetRowsFor(group, rows) {
+      return rows.map((row, index) => [
+        index + 1,
+        row.phone,
+        group.productCode || "",
+        group.productName || "",
+        1,
+        row.name,
+        row.planCode,
+        row.planName,
+        row.openedAt,
+        row.status,
+        row.joinType
+      ]);
+    }
+    function downloadCsv() {
+      const { group, targets: rows } = analyze();
+      if (!group || !rows.length) return;
+      const csvRows = [["No", "연락처", "상품코드", "상품명", "수량", "고객명", "요금제코드", "요금제명"]];
+      rows.forEach((row, index) => csvRows.push([index + 1, row.phone, group.productCode || "", group.productName || group.label, 1, row.name, row.planCode, row.planName]));
+      const csv = "﻿" + csvRows.map((cols) => cols.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
+      downloadBlob(`LG_${group.label}_문자발송_${dateStamp()}.csv`, new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    }
+    function downloadSelectedCategoryExcel() {
+      const { group, targets } = analyze();
+      if (!group || !targets.length) return;
+      htmlWorkbookDownload(`LG_${group.label}_발송대상_${dateStamp()}.xls`, [{ name: group.label, headers: SHEET_HEADERS, rows: sheetRowsFor(group, targets) }]);
+    }
+    function downloadAllCategoriesExcel() {
+      const sheets = [];
+      for (const group of categoryGroups()) {
+        const rows = sheetRowsFor(group, targetRowsForCategory(group));
+        if (rows.length) sheets.push({ name: group.label, headers: SHEET_HEADERS, rows });
+      }
+      if (!sheets.length) return;
+      htmlWorkbookDownload(`LG_전체혜택_발송대상_${dateStamp()}.xls`, sheets);
+    }
+
+    // ─── 혜택 관리 팝업 ───
+    const mgr = { view: "list", search: "", draft: null, snapshot: "" };
+
+    function onMappingsChanged() {
+      const group = selectedCategory();
+      if (!group) state.selectedCategoryId = "";
+      if (state.planCode && !(group && group.plans.some((p) => p.planCode === state.planCode))) state.planCode = "";
+      revokeDownload();
+      render();
+    }
+    function managerDirty() {
+      return mgr.view === "edit" && !!mgr.draft && JSON.stringify(mgr.draft) !== mgr.snapshot;
+    }
+    function confirmDiscard() {
+      return !managerDirty() || confirm("저장하지 않은 변경사항이 있습니다. 변경사항을 버릴까요?");
     }
     function updateUnsavedIndicator() {
-      $("unsavedIndicator").classList.toggle("show", editorDirty);
+      $("unsavedIndicator").hidden = !managerDirty();
     }
-    function renderBenefitList() {
-      document.querySelectorAll('#mappingDialog .editor-filter-btn[data-filtertype="status"]').forEach((btn) => {
-        btn.classList.toggle("on", btn.dataset.filter === editorFilterMode);
-      });
-      document.querySelectorAll('#mappingDialog .editor-filter-btn[data-filtertype="network"]').forEach((btn) => {
-        btn.classList.toggle("on", btn.dataset.filter === editorNetworkFilter);
-      });
-      const visible = editorDraft.map((g, gi) => ({ g, gi }))
-        .filter(({ g }) => editorGroupMatches(g))
-        .sort((a, b) => (b.g.active !== false) - (a.g.active !== false));
-      const list = $("benefitList");
-      const totalPlans = editorDraft.reduce((sum, g) => sum + g.plans.length, 0);
-      $("editorSummary").textContent = editorDraft.length ? `${number(editorDraft.length)}개 혜택 / ${number(totalPlans)}개 요금제코드` : "";
-      if (!visible.length) {
-        list.innerHTML = `<div class="mapping-empty">${editorDraft.length ? "검색/필터 조건에 맞는 혜택이 없습니다." : "등록된 혜택이 없습니다. '새 혜택 추가'로 시작하세요."}</div>`;
-        return;
-      }
-      list.innerHTML = visible.map(({ g, gi }) => {
-        const network = editorGroupNetwork(g);
-        const netLabel = network === "KT" ? "KT망" : network === "MIXED" ? "LG/KT 혼합" : "LG망";
-        const on = g.active !== false;
-        const months = Number(g.months) || benefitMonthsFromLabel(g.label);
-        const durationText = months ? `${number(months)}개월 지급` : "기간 제한 없음";
-        return `<div class="benefit-card ${gi === editorSelectedIdx ? "active" : ""} ${on ? "" : "inactive"}" data-gi="${gi}">
-          <div class="bc-name">${escapeHtml(g.label || "(이름 없음)")}</div>
-          <div class="bc-meta"><span>${netLabel}</span><span>·</span><span>${on ? "사용 중" : "미사용"}</span></div>
-          <div class="bc-meta"><span>${escapeHtml(g.productCode || "-")}</span><span>·</span><span>${durationText}</span><span class="bc-plancount">연결 요금제 ${number(g.plans.length)}개</span></div>
-        </div>`;
-      }).join("");
-      list.querySelectorAll(".benefit-card").forEach((el) => {
-        el.addEventListener("click", () => selectBenefit(Number(el.dataset.gi)));
-      });
-    }
-    function selectBenefit(gi) {
-      if (detailEditMode && gi !== editorSelectedIdx) {
-        if (!confirm("현재 혜택의 기본정보 수정사항이 저장되지 않았습니다. 다른 혜택으로 이동하면 사라집니다. 계속하시겠습니까?")) return;
-      }
-      editorSelectedIdx = gi;
-      detailEditMode = false;
-      planSearch = "";
-      planSelection = new Set();
-      renderBenefitList();
-      renderDetailPane();
-    }
-    function renderDetailPane() {
-      const pane = $("mappingDetailPane");
-      const g = editorDraft[editorSelectedIdx];
-      if (!g) {
-        pane.innerHTML = `<div class="detail-empty">왼쪽에서 혜택을 선택하세요.</div>`;
-        return;
-      }
-      const network = editorGroupNetwork(g);
-      const netLabel = network === "KT" ? "KT망" : network === "MIXED" ? "LG/KT 혼합" : "LG망";
-      const on = g.active !== false;
-      const basicInfoHtml = detailEditMode ? `
-        <div class="detail-edit-grid">
-          <div class="detail-edit-item" style="grid-column:1/-1;">
-            <label>혜택명</label>
-            <input id="bi-label" value="${escapeHtml(g.label)}" placeholder="예: 네이버페이 포인트 5,000원" />
-          </div>
-          <div class="detail-edit-item">
-            <label>상품코드</label>
-            <input id="bi-product-code" value="${escapeHtml(g.productCode)}" />
-          </div>
-          <div class="detail-edit-item">
-            <label>상품명</label>
-            <input id="bi-product-name" value="${escapeHtml(g.productName)}" />
-          </div>
-          <div class="detail-edit-item">
-            <label>지급 개월수</label>
-            <input id="bi-months" type="number" min="0" step="1" value="${escapeHtml(g.months ?? "")}" placeholder="미입력 시 무제한" />
-          </div>
-          <div class="detail-edit-item">
-            <label>통신망 (전체 요금제 일괄 적용)</label>
-            <select id="bi-network">
-              <option value="LG" ${network !== "KT" ? "selected" : ""}>LG망</option>
-              <option value="KT" ${network === "KT" ? "selected" : ""}>KT망</option>
-            </select>
-          </div>
-          <div class="detail-edit-item">
-            <label>사용 여부</label>
-            <select id="bi-active">
-              <option value="true" ${on ? "selected" : ""}>사용</option>
-              <option value="false" ${!on ? "selected" : ""}>미사용</option>
-            </select>
-          </div>
-        </div>
-        <div class="detail-actions">
-          <button type="button" class="secondary" id="biCancelBtn">취소</button>
-          <button type="button" id="biSaveBtn">변경사항 저장</button>
-        </div>
-      ` : `
-        <div class="detail-view-grid">
-          <div class="detail-view-item"><div class="k">혜택명</div><div class="v">${escapeHtml(g.label || "(이름 없음)")}</div></div>
-          <div class="detail-view-item"><div class="k">상품코드</div><div class="v">${escapeHtml(g.productCode || "-")}</div></div>
-          <div class="detail-view-item"><div class="k">상품명</div><div class="v">${escapeHtml(g.productName || "-")}</div></div>
-          <div class="detail-view-item"><div class="k">지급 개월수</div><div class="v">${g.months ? `${escapeHtml(String(g.months))}개월 (가입월 다음 달부터)` : "무제한"}</div></div>
-          <div class="detail-view-item"><div class="k">통신망</div><div class="v">${netLabel}</div></div>
-          <div class="detail-view-item"><div class="k">사용 여부</div><div class="v">${on ? "사용" : "미사용"}</div></div>
-        </div>
-        <div class="danger-zone"><button type="button" class="danger" id="biDeleteBtn">이 혜택 전체 삭제</button></div>
-      `;
-      pane.innerHTML = `
-        <div class="detail-header">
-          <h3>${escapeHtml(g.label || "(이름 없음)")}</h3>
-          <span class="muted">${netLabel} · ${on ? "사용 중" : "미사용"}</span>
-        </div>
-        <div class="detail-section">
-          <div class="detail-section-title">
-            <span>기본정보</span>
-            ${detailEditMode ? "" : `<button type="button" id="biEditBtn" class="secondary">수정</button>`}
-          </div>
-          <div class="detail-section-body">${basicInfoHtml}</div>
-        </div>
-        <div class="detail-section">
-          <div class="detail-section-title"><span>연결된 요금제 ${number(g.plans.length)}개</span></div>
-          <div class="detail-section-body">
-            <div class="plan-toolbar">
-              <input type="search" id="planSearchInput" placeholder="요금제명, 요금제코드 검색" value="${escapeHtml(planSearch)}" />
-              <button type="button" id="addPlanBtn" class="secondary">+ 요금제 추가</button>
-            </div>
-            <div id="planSectionDynamic"></div>
-          </div>
-        </div>
-      `;
-      wireDetailPaneEvents(g);
-    }
-    function wireDetailPaneEvents(g) {
-      const editBtn = $("biEditBtn");
-      if (editBtn) editBtn.addEventListener("click", () => { detailEditMode = true; renderDetailPane(); });
-      const cancelBtn = $("biCancelBtn");
-      if (cancelBtn) cancelBtn.addEventListener("click", () => { detailEditMode = false; renderDetailPane(); });
-      const saveBtn = $("biSaveBtn");
-      if (saveBtn) saveBtn.addEventListener("click", () => {
-        g.label = $("bi-label").value;
-        g.productCode = $("bi-product-code").value;
-        g.productName = $("bi-product-name").value;
-        g.months = $("bi-months").value;
-        const newNetwork = $("bi-network").value;
-        g.plans.forEach((p) => { p.network = newNetwork; });
-        const newActive = $("bi-active").value === "true";
-        g.active = newActive;
-        g.plans.forEach((p) => { p.active = newActive; });
-        detailEditMode = false;
-        editorDirty = true;
-        renderBenefitList();
-        renderDetailPane();
-        updateUnsavedIndicator();
-      });
-      const deleteBtn = $("biDeleteBtn");
-      if (deleteBtn) deleteBtn.addEventListener("click", () => {
-        if (!confirm(`"${g.label || "이 혜택"}"을 삭제할까요? 연결된 요금제 매칭도 모두 함께 삭제됩니다.`)) return;
-        editorDraft.splice(editorSelectedIdx, 1);
-        editorSelectedIdx = -1;
-        editorDirty = true;
-        renderBenefitList();
-        renderDetailPane();
-        updateUnsavedIndicator();
-      });
-      const addPlanBtn = $("addPlanBtn");
-      if (addPlanBtn) addPlanBtn.addEventListener("click", () => openPlanPicker(editorSelectedIdx));
-      const searchInput = $("planSearchInput");
-      if (searchInput) searchInput.addEventListener("input", () => {
-        planSearch = searchInput.value;
-        renderPlanSection(g);
-      });
-      renderPlanSection(g);
-    }
-    function renderPlanSection(g) {
-      const container = $("planSectionDynamic");
-      if (!container) return;
-      const codesNow = new Set(g.plans.map((p) => p.planCode));
-      for (const code of Array.from(planSelection)) if (!codesNow.has(code)) planSelection.delete(code);
-      const query = planSearch.trim().toLowerCase();
-      const visiblePlans = g.plans.map((p, pi) => ({ p, pi })).filter(({ p }) =>
-        !query || (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query)
-      );
-      const selectedCount = visiblePlans.filter(({ p }) => planSelection.has(p.planCode)).length;
-      const allChecked = visiblePlans.length > 0 && selectedCount === visiblePlans.length;
-      const rowsHtml = visiblePlans.length ? visiblePlans.map(({ p, pi }) => `
-        <tr>
-          <td class="pt-check"><input type="checkbox" class="plan-check" data-code="${escapeHtml(p.planCode)}" ${planSelection.has(p.planCode) ? "checked" : ""} /></td>
-          <td>${escapeHtml(p.planCode)}</td>
-          <td>${escapeHtml(p.planName || "-")}</td>
-          <td><button type="button" class="plan-network-badge net-${p.network === "KT" ? "kt" : "lg"}" data-pi="${pi}" title="클릭하여 통신망 변경">${p.network === "KT" ? "KT" : "LG"}</button></td>
-          <td><button type="button" class="plan-active-badge ${p.active !== false ? "on" : "off"}" data-pi="${pi}" title="클릭하여 사용 상태 변경">${p.active !== false ? "사용" : "미사용"}</button></td>
-          <td><button type="button" class="danger plan-row-delete" data-pi="${pi}">삭제</button></td>
-        </tr>
-      `).join("") : `<tr><td colspan="6"><div class="mapping-empty">${g.plans.length ? "검색 결과가 없습니다." : "연결된 요금제가 없습니다. '+ 요금제 추가'로 등록하세요."}</div></td></tr>`;
-      container.innerHTML = `
-        <div class="bulk-bar ${planSelection.size ? "show" : ""}">
-          <span>선택 ${number(planSelection.size)}개</span>
-          <select id="bulkNetworkSelect"><option value="">통신망 변경▾</option><option value="LG">LG망으로</option><option value="KT">KT망으로</option></select>
-          <select id="bulkActiveSelect"><option value="">사용 상태 변경▾</option><option value="true">사용으로</option><option value="false">미사용으로</option></select>
-          <button type="button" class="danger" id="bulkDeleteBtn">매칭 삭제</button>
-        </div>
-        <div class="plan-table-wrap">
-          <table class="plan-table">
-            <thead><tr>
-              <th class="pt-check"><input type="checkbox" id="planSelectAll" ${allChecked ? "checked" : ""} /></th>
-              <th>요금제코드</th><th>요금제명</th><th>통신망</th><th>상태</th><th>관리</th>
-            </tr></thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-        </div>
-      `;
-      wirePlanSectionEvents(g);
-    }
-    function wirePlanSectionEvents(g) {
-      const container = $("planSectionDynamic");
-      container.querySelectorAll(".plan-check").forEach((cb) => {
-        cb.addEventListener("change", () => {
-          if (cb.checked) planSelection.add(cb.dataset.code); else planSelection.delete(cb.dataset.code);
-          renderPlanSection(g);
-        });
-      });
-      const selectAll = $("planSelectAll");
-      if (selectAll) selectAll.addEventListener("change", () => {
-        const query = planSearch.trim().toLowerCase();
-        const visibleCodes = g.plans.filter((p) => !query || (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query)).map((p) => p.planCode);
-        if (selectAll.checked) visibleCodes.forEach((c) => planSelection.add(c));
-        else visibleCodes.forEach((c) => planSelection.delete(c));
-        renderPlanSection(g);
-      });
-      container.querySelectorAll(".plan-network-badge").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const p = g.plans[Number(btn.dataset.pi)];
-          p.network = p.network === "KT" ? "LG" : "KT";
-          editorDirty = true;
-          renderPlanSection(g);
-          renderBenefitList();
-          updateUnsavedIndicator();
-        });
-      });
-      container.querySelectorAll(".plan-active-badge").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const p = g.plans[Number(btn.dataset.pi)];
-          p.active = p.active === false;
-          editorDirty = true;
-          renderPlanSection(g);
-          updateUnsavedIndicator();
-        });
-      });
-      container.querySelectorAll(".plan-row-delete").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const pi = Number(btn.dataset.pi);
-          const p = g.plans[pi];
-          if (!confirm(`"${p.planName || p.planCode}" 요금제를 해당 혜택에서 제외하시겠습니까?`)) return;
-          planSelection.delete(p.planCode);
-          g.plans.splice(pi, 1);
-          editorDirty = true;
-          renderPlanSection(g);
-          renderBenefitList();
-          updateUnsavedIndicator();
-        });
-      });
-      const bulkNet = $("bulkNetworkSelect");
-      if (bulkNet) bulkNet.addEventListener("change", () => {
-        if (!bulkNet.value) return;
-        g.plans.forEach((p) => { if (planSelection.has(p.planCode)) p.network = bulkNet.value; });
-        editorDirty = true;
-        renderPlanSection(g);
-        renderBenefitList();
-        updateUnsavedIndicator();
-      });
-      const bulkActive = $("bulkActiveSelect");
-      if (bulkActive) bulkActive.addEventListener("change", () => {
-        if (!bulkActive.value) return;
-        const active = bulkActive.value === "true";
-        g.plans.forEach((p) => { if (planSelection.has(p.planCode)) p.active = active; });
-        editorDirty = true;
-        renderPlanSection(g);
-        updateUnsavedIndicator();
-      });
-      const bulkDelete = $("bulkDeleteBtn");
-      if (bulkDelete) bulkDelete.addEventListener("click", () => {
-        if (!confirm(`선택한 요금제 ${planSelection.size}개를 이 혜택에서 제외하시겠습니까?`)) return;
-        g.plans = g.plans.filter((p) => !planSelection.has(p.planCode));
-        planSelection = new Set();
-        editorDirty = true;
-        renderPlanSection(g);
-        renderBenefitList();
-        updateUnsavedIndicator();
-      });
-    }
-    function openPlanPicker(gi) {
-      pendingPickerGi = gi;
-      pickerSelected = new Set();
-      pickerTab = "pick";
-      $("pickerSearch").value = "";
-      $("pm-code").value = "";
-      $("pm-name").value = "";
-      document.querySelectorAll(".picker-tab-btn").forEach((b) => b.classList.toggle("on", b.dataset.tab === "pick"));
-      $("pickerPickTab").style.display = "";
-      $("pickerManualTab").style.display = "none";
-      renderPickerList();
-      $("planPickerDialog").showModal();
-    }
-    function updatePickerSummary() {
-      $("pickerSummary").textContent = pickerTab === "pick" && pickerSelected.size ? `${number(pickerSelected.size)}개 선택됨` : "";
-    }
-    function renderPickerList() {
-      const g = editorDraft[pendingPickerGi];
-      if (!g) return;
-      const connected = new Set(g.plans.map((p) => p.planCode));
-      const query = $("pickerSearch").value.trim().toLowerCase();
-      const pool = allKnownPlans().filter((item) => !query || item.code.toLowerCase().includes(query) || (item.name || "").toLowerCase().includes(query));
-      const list = $("pickerList");
-      if (!pool.length) {
-        list.innerHTML = `<div class="mapping-empty">검색 결과가 없습니다. '직접 입력' 탭에서 새 코드를 추가할 수 있습니다.</div>`;
-      } else {
-        list.innerHTML = pool.map((item) => {
-          const already = connected.has(item.code);
-          const checked = pickerSelected.has(item.code);
-          return `<div class="picker-item ${already ? "disabled" : ""}" data-code="${escapeHtml(item.code)}">
-            <input type="checkbox" ${checked ? "checked" : ""} ${already ? "disabled" : ""} />
-            <div>
-              <div class="pi-name">${escapeHtml(item.name || "(이름 없음)")}</div>
-              <div class="pi-code">${escapeHtml(item.code)}</div>
-            </div>
-            ${already ? `<span class="pi-tag">✓ 연결됨</span>` : (item.count ? `<span class="pi-tag">${number(item.count)}명</span>` : "")}
-          </div>`;
-        }).join("");
-        list.querySelectorAll(".picker-item:not(.disabled)").forEach((el) => {
-          el.addEventListener("click", () => {
-            const code = el.dataset.code;
-            if (pickerSelected.has(code)) pickerSelected.delete(code); else pickerSelected.add(code);
-            renderPickerList();
-          });
-        });
-      }
-      updatePickerSummary();
-    }
-    function openMappingEditor() {
-      editorDraft = categoryGroups().map((g) => ({
-        id: g.id,
-        label: g.label,
-        productCode: g.productCode || "",
-        productName: g.productName || "",
-        months: g.months || "",
-        active: g.active !== false,
-        plans: g.plans.map((p) => ({ planCode: p.planCode, planName: p.planName || "", network: p.network === "KT" ? "KT" : "LG", active: p.active !== false }))
-      }));
-      editorFilterMode = "all";
-      editorNetworkFilter = "all";
-      editorSearch = "";
-      editorDirty = false;
-      detailEditMode = false;
-      planSearch = "";
-      planSelection = new Set();
-      $("editorSearch").value = "";
-      editorSelectedIdx = editorDraft.length ? 0 : -1;
+    function setManagerView(view) {
+      mgr.view = view;
+      $("managerListView").hidden = view !== "list";
+      $("managerEditView").hidden = view !== "edit";
+      $("editFoot").hidden = view !== "edit";
+      $("editBackBtn").hidden = view !== "edit";
+      $("editError").textContent = "";
       updateUnsavedIndicator();
-      renderBenefitList();
-      renderDetailPane();
-      $("mappingDialog").showModal();
     }
-    function saveEditorDraft() {
-      const items = [];
-      for (const g of editorDraft) {
-        for (const p of g.plans) {
-          const planCode = p.planCode.trim();
-          if (!planCode) continue;
-          const months = Number(String(g.months ?? "").trim());
-          items.push({
-            category: g.label.trim() || "(이름 없음)",
-            productCode: g.productCode.trim(),
-            productName: g.productName.trim(),
-            planCode,
-            planName: p.planName.trim(),
-            months: Number.isFinite(months) && months > 0 ? months : null,
-            network: p.network === "KT" ? "KT" : "LG",
-            active: p.active !== false
-          });
+    function openManager(options = {}) {
+      if (!$("managerDialog").open) {
+        mgr.search = "";
+        $("mgrSearch").value = "";
+        setMgrNotice("");
+        $("managerDialog").showModal();
+      }
+      if (options.add) openEditor(null);
+      else if (options.editId) openEditor(options.editId);
+      else showListView();
+    }
+    function closeManager() {
+      if (!confirmDiscard()) return;
+      mgr.draft = null;
+      $("managerDialog").close();
+    }
+    function showListView() {
+      mgr.draft = null;
+      setManagerView("list");
+      $("managerTitle").textContent = "혜택 관리";
+      renderManagerList();
+    }
+    function setMgrNotice(text, tone = "info") {
+      $("mgrNotice").textContent = text;
+      $("mgrNotice").dataset.tone = tone;
+    }
+    function renderManagerList() {
+      const groups = categoryGroups();
+      const query = mgr.search.trim().toLowerCase();
+      const visible = groups
+        .filter((g) => !query
+          || [g.label, g.productCode, g.productName].some((v) => (v || "").toLowerCase().includes(query))
+          || g.plans.some((p) => (p.planCode || "").toLowerCase().includes(query) || (p.planName || "").toLowerCase().includes(query)))
+        .sort((a, b) => (b.active - a.active) || a.label.localeCompare(b.label, "ko"));
+      $("mgrSummary").textContent = groups.length ? `혜택 ${number(groups.length)}개 · 요금제 매칭 ${number(state.mappings.length)}건 · 혜택 설정은 이 브라우저에 저장됩니다.` : "";
+      if (!visible.length) {
+        $("mgrRows").innerHTML = `<tr><td colspan="7" class="empty">${groups.length ? "검색 결과가 없습니다." : "등록된 혜택이 없습니다. [+ 혜택 추가]로 등록하세요."}</td></tr>`;
+        return;
+      }
+      $("mgrRows").innerHTML = visible.map((g) => {
+        const index = groups.indexOf(g);
+        const sub = [g.productCode, g.productName && g.productName !== g.label ? g.productName : ""].filter(Boolean).join(" · ");
+        return `<tr class="${g.active ? "" : "inactive"}">
+          <td><div class="b-name">${escapeHtml(g.label)}</div>${sub ? `<div class="b-sub">${escapeHtml(sub)}</div>` : ""}</td>
+          <td><span class="pill ${networkClass(g.network)}">${networkLabel(g.network)}</span></td>
+          <td>${escapeHtml(durationText(g.durationMonths))}</td>
+          <td title="${escapeHtml(g.plans.map((p) => `${p.planCode}${p.planName ? " · " + p.planName : ""}`).join("\n"))}">${number(g.plans.length)}개</td>
+          <td><button type="button" class="pill ${g.active ? "on" : "off"}" data-act="toggle" data-i="${index}" title="클릭하여 사용/종료 전환">${g.active ? "사용" : "종료"}</button></td>
+          <td class="col-act"><button type="button" class="btn btn-sm" data-act="edit" data-i="${index}">수정</button></td>
+          <td class="col-act"><button type="button" class="btn btn-sm btn-danger" data-act="delete" data-i="${index}">삭제</button></td>
+        </tr>`;
+      }).join("");
+    }
+    function toggleBenefitActive(group) {
+      const next = !group.active;
+      for (const item of state.mappings) if (groupKey(item) === group.id) item.active = next;
+      saveMappings();
+      onMappingsChanged();
+      renderManagerList();
+    }
+    function deleteBenefit(group) {
+      if (categoryGroups().length <= 1) {
+        alert("마지막 남은 혜택은 삭제할 수 없습니다. 새 혜택을 먼저 추가한 뒤 삭제해 주세요.");
+        return;
+      }
+      if (!confirm(`"${group.label}" 혜택을 삭제할까요?\n\n연결된 요금제 매칭 ${group.plans.length}개가 함께 삭제되며 되돌릴 수 없습니다.\n다른 혜택의 설정은 변경되지 않습니다.`)) return;
+      state.mappings = state.mappings.filter((item) => groupKey(item) !== group.id);
+      saveMappings();
+      onMappingsChanged();
+      renderManagerList();
+      setMgrNotice(`"${group.label}" 혜택을 삭제했습니다.`, "ok");
+    }
+
+    function draftNetworkFromPlans() {
+      const networks = new Set(mgr.draft.plans.map((p) => p.network));
+      if (networks.size > 1) return "MIXED";
+      if (networks.size === 1) return networks.has("KT") ? "KT" : "LG";
+      return mgr.draft.network === "KT" ? "KT" : "LG";
+    }
+    function openEditor(id) {
+      const g = id ? categoryGroups().find((x) => x.id === id) : null;
+      mgr.draft = g
+        ? {
+            originalId: g.id,
+            label: g.label,
+            productCode: g.productCode || "",
+            productName: g.productName || "",
+            months: g.months ? String(g.months) : "",
+            network: g.network,
+            active: g.active,
+            plans: g.plans.map((p) => ({ planCode: p.planCode, planName: p.planName || "", network: p.network, active: p.active }))
+          }
+        : { originalId: null, label: "", productCode: "", productName: "", months: "", network: "LG", active: true, plans: [] };
+      mgr.snapshot = JSON.stringify(mgr.draft);
+      setManagerView("edit");
+      $("managerTitle").textContent = g ? "혜택 수정" : "혜택 추가";
+      $("ef-label").value = mgr.draft.label;
+      $("ef-product-code").value = mgr.draft.productCode;
+      $("ef-product-name").value = mgr.draft.productName;
+      $("ef-months").value = mgr.draft.months;
+      $("ef-active").value = String(mgr.draft.active);
+      $("planAddInput").value = "";
+      $("planAddMsg").textContent = "";
+      $("planSuggest").hidden = true;
+      renderEditorDerived();
+      renderPlanRows();
+      $("managerEditView").scrollTop = 0;
+      $("ef-label").focus();
+    }
+    function renderEditorDerived() {
+      const d = mgr.draft;
+      const select = $("ef-network");
+      select.querySelector('option[value="MIXED"]').hidden = d.network !== "MIXED";
+      select.value = d.network;
+      $("ef-active").value = String(d.active);
+      const labelMonths = benefitMonthsFromLabel(d.label);
+      $("ef-months").placeholder = labelMonths ? `비우면 ${labelMonths}개월` : "비우면 제한 없음";
+      $("ef-months-hint").textContent = d.months.trim()
+        ? `가입 다음 달부터 ${d.months.trim()}개월 지급, 이후 대상에서 자동 제외`
+        : (labelMonths ? `비워두면 혜택명 기준 ${labelMonths}개월 적용` : "비워두면 지급기간 제한 없음");
+      updateUnsavedIndicator();
+    }
+    function renderPlanRows() {
+      const d = mgr.draft;
+      $("planCountLabel").textContent = number(d.plans.length);
+      const counts = new Map(state.plans.map((p) => [p.code, p.total]));
+      $("planRows").innerHTML = d.plans.length ? d.plans.map((p, pi) => `
+        <tr>
+          <td class="mono">${escapeHtml(p.planCode)}${counts.get(p.planCode) ? ` <span class="muted">(${number(counts.get(p.planCode))}명)</span>` : ""}</td>
+          <td><input class="input plan-name-input" data-pi="${pi}" value="${escapeHtml(p.planName)}" placeholder="요금제명" /></td>
+          <td><button type="button" class="pill ${networkClass(p.network)}" data-act="net" data-pi="${pi}" title="클릭하여 LG/KT 전환">${p.network === "KT" ? "KT" : "LG"}</button></td>
+          <td><button type="button" class="pill ${p.active ? "on" : "off"}" data-act="active" data-pi="${pi}" title="클릭하여 사용/미사용 전환">${p.active ? "사용" : "미사용"}</button></td>
+          <td><button type="button" class="icon-del" data-act="remove" data-pi="${pi}" aria-label="연결 해제" title="이 혜택에서 제외">✕</button></td>
+        </tr>`).join("")
+        : `<tr><td colspan="5" class="empty">연결된 요금제가 없습니다. 위 입력창에서 요금제를 검색해 추가하세요.</td></tr>`;
+      updateUnsavedIndicator();
+    }
+    function renderSuggest() {
+      const box = $("planSuggest");
+      const d = mgr.draft;
+      if (!d) { box.hidden = true; return; }
+      const query = $("planAddInput").value.trim().toLowerCase();
+      const connected = new Set(d.plans.map((p) => p.planCode));
+      const pool = allKnownPlans()
+        .filter((item) => !query || item.code.toLowerCase().includes(query) || (item.name || "").toLowerCase().includes(query))
+        .sort((a, b) => (b.count - a.count) || a.code.localeCompare(b.code));
+      const list = pool.slice(0, 60);
+      box.innerHTML = list.length
+        ? list.map((item) => `<div class="suggest-item ${connected.has(item.code) ? "done" : ""}" data-code="${escapeHtml(item.code)}">
+            <span class="mono">${escapeHtml(item.code)}</span>
+            <span class="name">${escapeHtml(item.name || "(이름 없음)")}</span>
+            <span class="tag">${connected.has(item.code) ? "✓ 연결됨" : (item.count ? `${number(item.count)}명` : "")}</span>
+          </div>`).join("") + (pool.length > list.length ? `<div class="suggest-empty">외 ${number(pool.length - list.length)}개 · 검색어를 더 입력하세요</div>` : "")
+        : `<div class="suggest-empty">일치하는 요금제가 없습니다. 요금제코드를 정확히 입력하고 Enter를 누르면 새 코드로 추가됩니다.</div>`;
+      box.hidden = false;
+    }
+    function addPlanCodes(codes) {
+      const d = mgr.draft;
+      const pool = new Map(allKnownPlans().map((p) => [p.code, p]));
+      let added = 0;
+      let duplicated = 0;
+      for (const code of codes) {
+        if (d.plans.some((p) => p.planCode === code)) { duplicated++; continue; }
+        d.plans.push({ planCode: code, planName: pool.get(code)?.name || "", network: d.network === "KT" ? "KT" : "LG", active: d.active });
+        added++;
+      }
+      d.network = draftNetworkFromPlans();
+      if (added) $("editError").textContent = "";
+      $("planAddMsg").textContent = [added ? `${number(added)}개 추가했습니다.` : "", duplicated ? `${number(duplicated)}개는 이미 연결되어 있습니다.` : ""].filter(Boolean).join(" ");
+      renderEditorDerived();
+      renderPlanRows();
+    }
+    function addFromPlanInput() {
+      const value = $("planAddInput").value.trim();
+      if (!value) return;
+      let codes = splitPlanCodes(value);
+      if (!codes.length) {
+        const known = allKnownPlans();
+        const lower = value.toLowerCase();
+        const exact = known.find((p) => p.code.toLowerCase() === lower);
+        const matches = known.filter((p) => p.code.toLowerCase().includes(lower) || (p.name || "").toLowerCase().includes(lower));
+        if (exact) codes = [exact.code];
+        else if (matches.length === 1) codes = [matches[0].code];
+        else if (/^[A-Za-z0-9_-]+$/.test(value)) codes = [value];
+        else {
+          $("planAddMsg").textContent = matches.length ? "검색 결과가 여러 개입니다. 목록에서 추가할 요금제를 클릭하세요." : "요금제코드를 찾지 못했습니다.";
+          return;
         }
       }
-      if (!items.length) { alert("저장할 요금제 코드가 없습니다."); return false; }
-      state.mappings = dedupeMappings(items);
-      state.selectedCategoryId = "";
+      addPlanCodes(codes);
+      $("planAddInput").value = "";
+      $("planSuggest").hidden = true;
+    }
+    function saveDraft() {
+      const d = mgr.draft;
+      const label = d.label.trim();
+      const fail = (message, focusId) => {
+        $("editError").textContent = message;
+        if (focusId) $(focusId).focus();
+        return false;
+      };
+      if (!label) return fail("혜택명을 입력하세요.", "ef-label");
+      if (categoryGroups().some((g) => g.id === label && g.id !== d.originalId)) return fail("같은 이름의 혜택이 이미 있습니다. 다른 혜택명을 입력하세요.", "ef-label");
+      const monthsText = d.months.trim();
+      const months = Number(monthsText);
+      if (monthsText && !(Number.isInteger(months) && months > 0)) return fail("지급 개월수는 1 이상의 정수로 입력하세요. 제한이 없으면 비워두세요.", "ef-months");
+      const plans = d.plans.filter((p) => p.planCode.trim());
+      if (!plans.length) return fail("연결된 요금제가 없습니다. 요금제를 1개 이상 추가해야 저장할 수 있습니다.", "planAddInput");
+      const items = plans.map((p) => ({
+        category: label,
+        productCode: d.productCode.trim(),
+        productName: d.productName.trim(),
+        planCode: p.planCode.trim(),
+        planName: p.planName.trim(),
+        months: monthsText ? months : null,
+        network: p.network === "KT" ? "KT" : "LG",
+        active: p.active !== false
+      }));
+      const others = d.originalId ? state.mappings.filter((item) => groupKey(item) !== d.originalId) : state.mappings;
+      state.mappings = dedupeMappings([...others, ...items]);
       saveMappings();
-      editorDirty = false;
-      renderOptions();
-      render();
-      $("mappingStatus").textContent = `저장 완료: ${number(categoryGroups().length)}개 혜택 / ${number(state.mappings.length)}개 요금제코드`;
-      $("mappingDialog").close();
+      if (d.originalId && state.selectedCategoryId === d.originalId) state.selectedCategoryId = label;
+      onMappingsChanged();
+      showListView();
+      setMgrNotice(`"${label}" 혜택을 저장했습니다.`, "ok");
       return true;
     }
-    function attemptCloseMappingDialog() {
-      if (editorDirty) $("unsavedChangesDialog").showModal();
-      else $("mappingDialog").close();
-    }
-    $("editMappingBtn").addEventListener("click", openMappingEditor);
-    document.querySelectorAll(".network-filter-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        categoryNetworkFilter = btn.dataset.net;
-        renderCategories();
-      });
-    });
-    $("closeMappingBtn").addEventListener("click", attemptCloseMappingDialog);
-    $("mappingDialog").addEventListener("cancel", (event) => {
-      if (editorDirty) {
-        event.preventDefault();
-        $("unsavedChangesDialog").showModal();
-      }
-    });
-    $("saveMappingBtn").addEventListener("click", () => saveEditorDraft());
-    $("unsavedDiscardBtn").addEventListener("click", () => {
-      $("unsavedChangesDialog").close();
-      $("mappingDialog").close();
-    });
-    $("unsavedContinueBtn").addEventListener("click", () => $("unsavedChangesDialog").close());
-    $("unsavedSaveBtn").addEventListener("click", () => {
-      if (saveEditorDraft()) $("unsavedChangesDialog").close();
-    });
-    $("editorSearch").addEventListener("input", () => {
-      editorSearch = $("editorSearch").value;
-      renderBenefitList();
-    });
-    document.querySelectorAll('#mappingDialog .editor-filter-btn').forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (btn.dataset.filtertype === "network") editorNetworkFilter = btn.dataset.filter;
-        else editorFilterMode = btn.dataset.filter;
-        renderBenefitList();
-      });
-    });
-    $("editorAddCategoryBtn").addEventListener("click", () => {
-      $("bf-label").value = "";
-      $("bf-product-code").value = "";
-      $("bf-product-name").value = "";
-      $("bf-months").value = "";
-      $("bf-network").value = "LG";
-      $("bf-active").value = "true";
-      $("benefitFormDialog").showModal();
-      $("bf-label").focus();
-    });
-    $("bfCancelBtn").addEventListener("click", () => $("benefitFormDialog").close());
-    $("bfCreateBtn").addEventListener("click", () => {
-      const label = $("bf-label").value.trim();
-      if (!label) { alert("혜택명을 입력하세요."); return; }
-      editorDraft.push({
-        id: "_new_" + Date.now(),
-        label,
-        productCode: $("bf-product-code").value.trim(),
-        productName: $("bf-product-name").value.trim(),
-        months: $("bf-months").value,
-        active: $("bf-active").value === "true",
-        plans: []
-      });
-      const gi = editorDraft.length - 1;
-      editorDirty = true;
-      $("benefitFormDialog").close();
-      selectBenefit(gi);
-      updateUnsavedIndicator();
-      openPlanPicker(gi);
-    });
-    document.querySelectorAll(".picker-tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        pickerTab = btn.dataset.tab;
-        document.querySelectorAll(".picker-tab-btn").forEach((b) => b.classList.toggle("on", b === btn));
-        $("pickerPickTab").style.display = pickerTab === "pick" ? "" : "none";
-        $("pickerManualTab").style.display = pickerTab === "manual" ? "" : "none";
-        updatePickerSummary();
-      });
-    });
-    $("pickerSearch").addEventListener("input", renderPickerList);
-    $("pickerCancelBtn").addEventListener("click", () => $("planPickerDialog").close());
-    $("pickerAddBtn").addEventListener("click", () => {
-      const g = editorDraft[pendingPickerGi];
-      if (!g) return;
-      const defaultNetwork = editorGroupNetwork(g) === "KT" ? "KT" : "LG";
-      if (pickerTab === "manual") {
-        const code = $("pm-code").value.trim();
-        if (!code) { alert("요금제코드를 입력하세요."); return; }
-        if (g.plans.some((p) => p.planCode === code)) { alert("이미 연결된 요금제코드입니다."); return; }
-        g.plans.push({ planCode: code, planName: $("pm-name").value.trim(), network: defaultNetwork, active: true });
-      } else {
-        if (!pickerSelected.size) { alert("추가할 요금제를 선택하세요."); return; }
-        const pool = new Map(allKnownPlans().map((p) => [p.code, p]));
-        for (const code of pickerSelected) {
-          if (g.plans.some((p) => p.planCode === code)) continue;
-          const info = pool.get(code);
-          g.plans.push({ planCode: code, planName: info?.name || "", network: defaultNetwork, active: true });
-        }
-      }
-      editorDirty = true;
-      $("planPickerDialog").close();
-      renderBenefitList();
-      renderDetailPane();
-      updateUnsavedIndicator();
-    });
-    $("downloadTargetBtn").addEventListener("click", downloadSelectedCategoryExcel);
-    $("downloadAllTargetsBtn").addEventListener("click", downloadAllCategoriesExcel);
 
-    function setupTabs() {
-      const main = document.querySelector("main");
-      const toolbar = document.querySelector(".toolbar");
-      const customerMain = document.querySelector(".main-col");
-      const originalSide = document.querySelector(".side");
-      if (!main || !toolbar || !customerMain || !originalSide || document.querySelector(".tabs")) return;
-
-      const selectedPlanPanel = $("planBox")?.closest(".panel");
-      const selectedBenefitPanel = $("benefitBox")?.closest(".panel");
-      const categoryPanel = $("categoryList")?.closest(".panel");
-      const targetPanel = $("targetCount")?.closest(".panel");
-      const topPanel = $("topBars")?.closest(".panel");
-      const privacyPanel = document.querySelector(".privacy")?.closest(".panel");
-
-      const tabs = document.createElement("nav");
-      tabs.className = "tabs";
-      tabs.innerHTML = `
-        <button type="button" class="tab-btn active" data-tab="customer">고객 조회</button>
-        <button type="button" class="tab-btn" data-tab="benefit">혜택</button>
-        <button type="button" class="tab-btn" data-tab="target">대상자 취합</button>
-      `;
-
-      const customerPanel = document.createElement("section");
-      customerPanel.className = "tab-panel active";
-      customerPanel.dataset.panel = "customer";
-      const benefitPanel = document.createElement("section");
-      benefitPanel.className = "tab-panel";
-      benefitPanel.dataset.panel = "benefit";
-      const targetTabPanel = document.createElement("section");
-      targetTabPanel.className = "tab-panel";
-      targetTabPanel.dataset.panel = "target";
-
-      const customerSide = document.createElement("aside");
-      customerSide.className = "side";
-      const benefitMain = document.createElement("section");
-      benefitMain.className = "main-col";
-      const benefitSide = document.createElement("aside");
-      benefitSide.className = "side";
-      const targetMain = document.createElement("section");
-      targetMain.className = "main-col";
-
-      customerPanel.append(toolbar, customerMain, customerSide);
-      if (selectedPlanPanel) customerSide.append(selectedPlanPanel);
-      if (topPanel) customerSide.append(topPanel);
-      if (privacyPanel) customerSide.append(privacyPanel);
-
-      benefitPanel.append(benefitMain, benefitSide);
-      if (categoryPanel) benefitMain.append(categoryPanel);
-      if (selectedBenefitPanel) benefitSide.append(selectedBenefitPanel);
-
-      targetTabPanel.append(targetMain);
-      if (targetPanel) targetMain.append(targetPanel);
-
-      originalSide.remove();
-      const uploadSummaryEl = document.getElementById("uploadSummary");
-      const workflowNav = document.getElementById("workflowSteps");
-      if (uploadSummaryEl) uploadSummaryEl.after(tabs);
-      else if (workflowNav) workflowNav.after(tabs);
-      else main.prepend(tabs);
-      tabs.after(customerPanel, benefitPanel, targetTabPanel);
-
-      tabs.addEventListener("click", (event) => {
-        const button = event.target.closest(".tab-btn");
-        if (!button) return;
-        const tab = button.dataset.tab;
-        tabs.querySelectorAll(".tab-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
-        document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === tab));
-      });
-    }
-
-    async function processSelectedFile() {
-      const file = $("fileInput").files?.[0];
-      if (!file) return;
-      try {
-        clearSession({ keepFile: true, keepPassword: true });
-        $("fileInput").disabled = false;
-        await handleFile(file);
-      } catch (error) {
-        clearSession({ keepFile: true, keepPassword: true });
-        $("fileInput").disabled = false;
-        console.error("[Dashboard] 파일 처리 오류:", error);
-        setStatus(error.message || "파일을 읽지 못했습니다.");
-      }
-    }
-    $("fileInput").addEventListener("change", async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      await processSelectedFile();
-    });
-    $("passwordInput").addEventListener("change", async () => {
-      if ($("fileInput").files?.[0] && !state.customers.length) await processSelectedFile();
-    });
-    $("passwordInput").addEventListener("keydown", async (event) => {
-      if (event.key === "Enter" && $("fileInput").files?.[0]) {
-        event.preventDefault();
-        await processSelectedFile();
-      }
-    });
-    $("planCode").addEventListener("change", (event) => {
-      state.planCode = event.target.value;
-      state.visibleRows = 10;
-      render();
-    });
+    // ─── 이벤트 연결 ───
     $("benefitSelect").addEventListener("change", (event) => {
       state.selectedCategoryId = event.target.value;
-      state.planCode = "";
-      state.visibleRows = 10;
-      renderOptions();
+      resetResultFilters();
+      revokeDownload();
+      render();
+    });
+    $("benefitMeta").addEventListener("click", (event) => {
+      if (event.target.closest("[data-edit-selected]") && state.selectedCategoryId) openManager({ editId: state.selectedCategoryId });
+    });
+    $("noBenefitAddBtn").addEventListener("click", () => openManager({ add: true }));
+
+    const dropZone = $("dropZone");
+    dropZone.addEventListener("click", () => { if (!state.processing) $("fileInput").click(); });
+    dropZone.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        if (!state.processing) $("fileInput").click();
+      }
+    });
+    dropZone.addEventListener("dragover", (event) => { event.preventDefault(); dropZone.classList.add("drag"); });
+    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag"));
+    dropZone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("drag");
+      const files = event.dataTransfer?.files;
+      if (files?.length > 1) setStatus("파일은 한 번에 1개만 올릴 수 있습니다. 첫 번째 파일을 사용합니다.", "warn");
+      processFile(files?.[0]);
+    });
+    // 페이지 밖에 파일을 떨어뜨려 브라우저가 파일을 여는 것을 막는다.
+    window.addEventListener("dragover", (event) => event.preventDefault());
+    window.addEventListener("drop", (event) => event.preventDefault());
+    $("fileInput").addEventListener("change", (event) => processFile(event.target.files?.[0]));
+    $("passwordInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && pendingFile) {
+        event.preventDefault();
+        processFile(pendingFile);
+      }
+    });
+    $("passwordInput").addEventListener("input", () => renderActionBar(analyze()));
+
+    $("viewSeg").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-view]");
+      if (!button || button.disabled) return;
+      state.view = button.dataset.view;
+      state.visibleRows = PAGE_SIZE;
       render();
     });
     $("customerSearch").addEventListener("input", (event) => {
       state.search = event.target.value;
-      state.visibleRows = 10;
+      state.visibleRows = PAGE_SIZE;
+      renderResults(analyze());
+    });
+    $("planCode").addEventListener("change", (event) => {
+      state.planCode = event.target.value;
+      state.visibleRows = PAGE_SIZE;
+      revokeDownload();
       render();
     });
     $("statusFilter").addEventListener("change", (event) => {
       state.status = event.target.value;
-      state.visibleRows = 10;
+      state.visibleRows = PAGE_SIZE;
+      revokeDownload();
       render();
     });
     $("loadMoreRowsBtn").addEventListener("click", () => {
-      state.visibleRows += 10;
-      render();
+      state.visibleRows += PAGE_SIZE;
+      renderResults(analyze());
     });
+
     $("downloadBtn").addEventListener("click", downloadCsv);
-    $("doneBtn").addEventListener("click", completeAndClear);
-    $("reselectFileBtn").addEventListener("click", () => {
-      if (state.customers.length && !confirm("현재 업로드된 고객정보가 삭제되고 파일 선택 화면으로 돌아갑니다. 계속할까요?")) return;
-      clearSession();
-      $("fileInput").click();
+    $("downloadMoreBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      $("downloadMenu").hidden = !$("downloadMenu").hidden;
     });
+    $("downloadMenu").addEventListener("click", (event) => {
+      const item = event.target.closest("button[data-dl]");
+      if (!item || item.disabled) return;
+      $("downloadMenu").hidden = true;
+      if (item.dataset.dl === "xls") downloadSelectedCategoryExcel();
+      else downloadAllCategoriesExcel();
+    });
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".split")) $("downloadMenu").hidden = true;
+    });
+    $("downloadFallbackLink").addEventListener("click", (event) => {
+      if (!state.downloadUrl) event.preventDefault();
+    });
+    $("resetBtn").addEventListener("click", () => {
+      if (state.customers.length && !confirm("업로드한 파일, 고객정보, 분석 결과가 모두 삭제됩니다. 초기화할까요?")) return;
+      clearSession();
+      setStatus("초기화했습니다. 업로드 파일과 고객정보가 모두 삭제되었습니다.", "ok");
+    });
+
+    $("openManagerBtn").addEventListener("click", () => openManager());
+    $("managerCloseBtn").addEventListener("click", closeManager);
+    // ESC는 keydown에서 직접 처리한다. 브라우저 기본 cancel 동작은 연속 입력 시 막을 수 없어 미저장 확인 없이 닫힐 수 있다.
+    function handleManagerEscape() {
+      if (!$("planSuggest").hidden) { $("planSuggest").hidden = true; return; }
+      closeManager();
+    }
+    $("managerDialog").addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      handleManagerEscape();
+    });
+    $("managerDialog").addEventListener("cancel", (event) => {
+      event.preventDefault();
+      handleManagerEscape();
+    });
+    $("mgrSearch").addEventListener("input", (event) => {
+      mgr.search = event.target.value;
+      renderManagerList();
+    });
+    $("addBenefitBtn").addEventListener("click", () => openEditor(null));
+    $("mgrRows").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-act]");
+      if (!button) return;
+      const group = categoryGroups()[Number(button.dataset.i)];
+      if (!group) return;
+      if (button.dataset.act === "edit") openEditor(group.id);
+      else if (button.dataset.act === "delete") deleteBenefit(group);
+      else if (button.dataset.act === "toggle") toggleBenefitActive(group);
+    });
+    $("importCsvBtn").addEventListener("click", () => $("mappingFileInput").click());
+    $("mappingFileInput").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      event.target.value = "";
+      if (!file) return;
+      try {
+        const items = mappingRowsToItems(parseCsv(await file.text()));
+        if (!items.length) throw new Error("요금제코드 매칭 데이터가 없습니다.");
+        const benefitCount = new Set(items.map(groupKey)).size;
+        if (!confirm(`현재 등록된 혜택 ${categoryGroups().length}개가 "${file.name}"의 내용(혜택 ${benefitCount}개 / 요금제 ${items.length}건)으로 모두 교체됩니다.\n\n계속할까요?`)) return;
+        state.mappings = items;
+        saveMappings();
+        onMappingsChanged();
+        renderManagerList();
+        setMgrNotice(`가져오기 완료: 혜택 ${number(benefitCount)}개 / 요금제 ${number(items.length)}건`, "ok");
+      } catch (error) {
+        setMgrNotice(error.message || "매칭 파일을 읽지 못했습니다.", "error");
+      }
+    });
+
+    $("editBackBtn").addEventListener("click", () => { if (confirmDiscard()) showListView(); });
+    $("editCancelBtn").addEventListener("click", () => { if (confirmDiscard()) showListView(); });
+    $("editSaveBtn").addEventListener("click", saveDraft);
+    [["ef-label", "label"], ["ef-product-code", "productCode"], ["ef-product-name", "productName"], ["ef-months", "months"]].forEach(([id, key]) => {
+      $(id).addEventListener("input", () => {
+        mgr.draft[key] = $(id).value;
+        $("editError").textContent = "";
+        renderEditorDerived();
+      });
+    });
+    $("ef-network").addEventListener("change", (event) => {
+      const value = event.target.value;
+      if (value === "MIXED") return;
+      mgr.draft.network = value;
+      mgr.draft.plans.forEach((p) => { p.network = value; });
+      renderEditorDerived();
+      renderPlanRows();
+    });
+    $("ef-active").addEventListener("change", (event) => {
+      const active = event.target.value === "true";
+      mgr.draft.active = active;
+      mgr.draft.plans.forEach((p) => { p.active = active; });
+      renderEditorDerived();
+      renderPlanRows();
+    });
+    $("planAddInput").addEventListener("input", () => { $("planAddMsg").textContent = ""; renderSuggest(); });
+    $("planAddInput").addEventListener("focus", renderSuggest);
+    $("planAddInput").addEventListener("blur", () => setTimeout(() => { $("planSuggest").hidden = true; }, 150));
+    $("planAddInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addFromPlanInput();
+      }
+    });
+    $("planAddBtn").addEventListener("click", addFromPlanInput);
+    $("planSuggest").addEventListener("mousedown", (event) => event.preventDefault());
+    $("planSuggest").addEventListener("click", (event) => {
+      const item = event.target.closest(".suggest-item:not(.done)");
+      if (!item) return;
+      addPlanCodes([item.dataset.code]);
+      renderSuggest();
+    });
+    $("planRows").addEventListener("input", (event) => {
+      const input = event.target.closest(".plan-name-input");
+      if (!input) return;
+      mgr.draft.plans[Number(input.dataset.pi)].planName = input.value;
+      updateUnsavedIndicator();
+    });
+    $("planRows").addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-act]");
+      if (!button) return;
+      const d = mgr.draft;
+      const pi = Number(button.dataset.pi);
+      const plan = d.plans[pi];
+      if (!plan) return;
+      if (button.dataset.act === "net") plan.network = plan.network === "KT" ? "LG" : "KT";
+      else if (button.dataset.act === "active") plan.active = !plan.active;
+      else if (button.dataset.act === "remove") d.plans.splice(pi, 1);
+      d.network = draftNetworkFromPlans();
+      if (d.plans.length) d.active = d.plans.some((p) => p.active);
+      $("editError").textContent = "";
+      renderEditorDerived();
+      renderPlanRows();
+    });
+
     window.addEventListener("beforeunload", (event) => {
-      if (!editorDirty) return;
+      if (!managerDirty()) return;
       event.preventDefault();
       event.returnValue = "";
     });
+    // 뒤로가기/앞으로가기 캐시로 복원되어도 이전 고객정보·입력값이 남지 않도록 비운다.
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) clearSession();
+    });
 
-    setupTabs();
-    $("benefitSelect").innerHTML = "";
-    enableLoadedControls(false);
+    $("fileInput").value = "";
+    $("passwordInput").value = "";
     loadSavedMappings();
-    renderOptions();
     render();
-    if (location.protocol === "file:") {
-      setStatus("현재 file:// 주소입니다. 암호화 엑셀 업로드는 http://127.0.0.1:8765/lg-plan-benefit-dashboard.html 링크에서 사용해 주세요.");
-    } else if (!crypto?.subtle || typeof DecompressionStream === "undefined") {
-      setStatus("현재 브라우저에서는 일부 파일 처리 기능이 제한될 수 있습니다. localhost 링크로 다시 열어 주세요.");
+    if (!crypto?.subtle || typeof DecompressionStream === "undefined") {
+      setStatus("현재 브라우저에서는 일부 파일 처리 기능이 제한될 수 있습니다. 최신 Chrome 또는 Edge에서 https 주소로 열어 주세요.", "warn");
     }
   </script>
 </body>
