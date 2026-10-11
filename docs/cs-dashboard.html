@@ -965,6 +965,34 @@
       .cmp-overview-left, .cmp-overview-right { flex: 1 1 auto; max-width: none; }
       .cmp-overview-right { align-self: stretch; }
     }
+
+    /* ── 통화 현황 탭 ──────────────────────────────────── */
+    .kpis--5 { grid-template-columns: repeat(5, 1fr); }
+    .kpi-sub { font-size: 11px; color: var(--muted-2); margin-top: -4px; }
+    .call-view-toggle { display: inline-flex; gap: 2px; padding: 3px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; align-self: flex-end; }
+    .call-view-toggle button { border: 0; background: transparent; padding: 6px 12px; border-radius: 6px; font: inherit; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; }
+    .call-view-toggle button.active { background: var(--panel); color: var(--text); box-shadow: var(--shadow); }
+    .call-sync-info { font-size: 11px; color: var(--muted); align-self: flex-end; padding-bottom: 9px; margin-left: auto; white-space: nowrap; }
+    .call-state { padding: 40px 20px; text-align: center; font-size: 13px; color: var(--muted); background: var(--panel); border: 1px dashed var(--border); border-radius: var(--radius); margin-bottom: 12px; }
+    .call-state--error { color: var(--red); background: var(--red-50); border: 1px solid #FECACA; text-align: left; }
+    .call-state strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .call-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); }
+    .call-legend span { white-space: nowrap; }
+    .call-volume-header { flex-direction: row !important; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px; }
+    .call-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+    #callTable td:nth-child(4), #callTable th:nth-child(4),
+    #callTable td:nth-child(5), #callTable th:nth-child(5) { text-align: right; font-variant-numeric: tabular-nums; }
+    #callTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); position: sticky; bottom: 0; }
+    #tab-call .data-table-scroll { max-height: 360px; }
+    #tab-call .chart-card { min-height: 0; }
+    #tab-call .chart-area { flex: none; height: 240px; min-height: 0; }
+    #tab-call .chart-area--tall { height: 280px; }
+    .rate-good { color: var(--green); font-weight: 700; }
+    .rate-mid { color: var(--amber); font-weight: 700; }
+    .rate-low { color: var(--red); font-weight: 700; }
+    .rate-none { color: var(--muted-2); }
+    @media (max-width: 1100px) { .kpis--5 { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 600px) { .kpis--5 { grid-template-columns: 1fr 1fr; } .call-sync-info { margin-left: 0; } }
   </style>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
@@ -996,6 +1024,7 @@
       <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
       <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
       <button class="tab-btn" data-tab="complaint" type="button">민원 관리</button>
+      <button class="tab-btn" data-tab="call" type="button">통화 현황</button>
     </nav>
 
     <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
@@ -1583,6 +1612,96 @@
       </div>
 
     </div><!-- /tab-complaint -->
+
+    <!-- ══ Tab 4: 통화 현황 ══════════════════════════════════ -->
+    <div class="tab-panel hidden" id="tab-call">
+      <section class="filter-bar" aria-label="통화 현황 필터">
+        <label>월<select id="callMonthFilter"><option value="all">전체</option></select></label>
+        <div class="date-range-group">
+          <span class="date-range-label">기간</span>
+          <input type="text" id="callDateRangePicker" class="date-range-input" placeholder="기간 선택" readonly>
+        </div>
+        <div class="call-view-toggle" role="tablist" aria-label="보기 단위">
+          <button type="button" class="active" data-call-view="daily">일별</button>
+          <button type="button" data-call-view="monthly">월별</button>
+        </div>
+        <div class="filter-actions">
+          <button id="callResetBtn" class="btn btn-ghost" type="button">초기화</button>
+          <button id="callReloadBtn" class="btn btn-ghost" type="button">새로고침</button>
+        </div>
+        <span class="call-sync-info" id="callSyncInfo"></span>
+      </section>
+
+      <div id="callStatePanel" class="call-state">통화 데이터를 불러오는 중입니다…</div>
+
+      <div id="callContent" hidden>
+        <section class="kpis kpis--5" aria-label="통화 KPI">
+          <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
+            <div class="kpi-body"><span class="kpi-value" id="callKpiTotal">0</span><span class="kpi-unit">건</span></div>
+            <p class="kpi-label">전체 인입</p>
+          </article>
+          <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
+            <div class="kpi-body"><span class="kpi-value" id="callKpiAnswered">0</span><span class="kpi-unit">건</span></div>
+            <p class="kpi-label">응답 건수</p>
+          </article>
+          <article class="kpi-card" style="--kpi-color:var(--red);--kpi-bg:var(--red-50)">
+            <div class="kpi-body"><span class="kpi-value" id="callKpiMissed">0</span><span class="kpi-unit">건</span></div>
+            <p class="kpi-label">미응답 건수</p>
+          </article>
+          <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
+            <div class="kpi-body"><span class="kpi-value" id="callKpiRate">—</span><span class="kpi-unit">%</span></div>
+            <p class="kpi-label">통화 응답률</p>
+            <p class="kpi-sub">총 응답 ÷ 총 인입</p>
+          </article>
+          <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
+            <div class="kpi-body"><span class="kpi-value" id="callKpiMom">—</span><span class="kpi-unit">%p</span></div>
+            <p class="kpi-label">전월 대비 응답률</p>
+            <p class="kpi-sub" id="callKpiMomSub">—</p>
+          </article>
+        </section>
+
+        <div class="chart-row chart-row--2col">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">일별 응답률 추이</div>
+              <div class="chart-card-sub">인입 0건인 날은 제외</div>
+            </div>
+            <div class="chart-area"><canvas id="callDailyRateChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">월별 응답률 추이</div>
+              <div class="chart-card-sub">월 총 응답 ÷ 월 총 인입</div>
+            </div>
+            <div class="chart-area"><canvas id="callMonthlyRateChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-card">
+            <div class="chart-card-header call-volume-header">
+              <div>
+                <div class="chart-card-title">인입 · 응답 · 미응답 건수</div>
+                <div class="chart-card-sub" id="callVolumeSub">일별</div>
+              </div>
+              <div class="call-legend"><span><i style="background:#059669"></i>응답</span><span><i style="background:#F87171"></i>미응답</span><span>막대 위 숫자 = 전체 인입</span></div>
+            </div>
+            <div class="chart-area chart-area--tall"><canvas id="callVolumeChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="data-table-card">
+          <div class="data-table-card-header" id="callTableTitle">일별 상세</div>
+          <div class="data-table-scroll">
+            <table class="data-table" id="callTable">
+              <thead><tr><th id="callTableKeyHead">날짜</th><th>전체 인입</th><th>응답</th><th>미응답</th><th>응답률</th></tr></thead>
+              <tbody></tbody>
+              <tfoot></tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-call -->
   </main>
   <script id="saved-data" type="application/json">[
   {
@@ -7580,6 +7699,279 @@
       finally { btn.disabled=false; btn.textContent="새로고침"; }
     });
 
+    // ══ 통화 현황 탭 ══════════════════════════════════════════
+    // 데이터 소스: Supabase call_daily (date, total_calls, answered, unanswered, synced_at).
+    // 응답률 스프레드시트의 '일별 응답률' 시트를 Apps Script → Edge Function으로 동기화해 채운다.
+    // 기간 응답률은 일별 응답률의 단순 평균이 아니라 항상 Σ응답 ÷ Σ인입으로 계산하고,
+    // 인입 0건인 날은 응답률 계산에서 제외한다. 운영시간 기준 응답률은 집계 기준이 달라
+    // 여기서 산출하지 않는다(별도 확장 기능으로 남겨둠).
+    const callState = { rows: [], loaded: false, loading: false, error: null, view: "daily", month: "all", range: null, syncedAt: null };
+    let callFp = null;
+
+    function callRate(answered, total) { return total > 0 ? (answered / total) * 100 : null; }
+    function fmtRate(rate) { return rate == null ? "—" : rate.toFixed(1); }
+    function rateClass(rate) { return rate == null ? "rate-none" : rate >= 70 ? "rate-good" : rate >= 50 ? "rate-mid" : "rate-low"; }
+    function sumCallRows(rows) {
+      return rows.reduce((acc, r) => { acc.total += r.total; acc.answered += r.answered; acc.missed += r.missed; return acc; }, { total: 0, answered: 0, missed: 0 });
+    }
+    function aggregateCallMonthly(rows) {
+      const map = new Map();
+      rows.forEach((r) => {
+        const key = r.date.slice(0, 7);
+        const m = map.get(key) || { key, total: 0, answered: 0, missed: 0 };
+        m.total += r.total; m.answered += r.answered; m.missed += r.missed;
+        map.set(key, m);
+      });
+      return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
+    }
+    function prevMonthKey(key) {
+      const [y, m] = key.split("-").map(Number);
+      return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, "0")}`;
+    }
+    function monthKeyLabel(key) { const [y, m] = key.split("-"); return `${y}년 ${Number(m)}월`; }
+    function dayKeyLabel(key) { const [, m, d] = key.split("-"); return `${Number(m)}/${Number(d)}`; }
+
+    async function loadCallData(force) {
+      if (callState.loading || (callState.loaded && !force)) { renderCall(); return; }
+      callState.loading = true;
+      callState.error = null;
+      renderCall();
+      try {
+        const data = await fetchAllRows("call_daily", (q) => q.order("date", { ascending: true }));
+        callState.rows = data.map((r) => {
+          const total = Number(r.total_calls) || 0;
+          const answered = Number(r.answered) || 0;
+          const missed = r.unanswered == null ? Math.max(total - answered, 0) : Number(r.unanswered) || 0;
+          return { date: String(r.date).slice(0, 10), total, answered, missed };
+        }).filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date));
+        const synced = data.map((r) => r.synced_at).filter(Boolean).sort();
+        callState.syncedAt = synced.length ? synced[synced.length - 1] : null;
+        callState.loaded = true;
+        populateCallMonths();
+      } catch (err) {
+        callState.error = (err && err.message) || String(err);
+      } finally {
+        callState.loading = false;
+        renderCall();
+      }
+    }
+
+    function populateCallMonths() {
+      const sel = $("callMonthFilter");
+      const months = [...new Set(callState.rows.map((r) => r.date.slice(0, 7)))].sort().reverse();
+      sel.innerHTML = `<option value="all">전체</option>` + months.map((m) => `<option value="${m}">${monthKeyLabel(m)}</option>`).join("");
+      sel.value = months.includes(callState.month) ? callState.month : "all";
+      callState.month = sel.value;
+    }
+
+    function filteredCallRows() {
+      return callState.rows.filter((r) => {
+        if (callState.month !== "all" && r.date.slice(0, 7) !== callState.month) return false;
+        if (callState.range && (r.date < callState.range[0] || r.date > callState.range[1])) return false;
+        return true;
+      });
+    }
+
+    function showCallState(html, isError) {
+      const panel = $("callStatePanel");
+      panel.hidden = !html;
+      panel.className = isError ? "call-state call-state--error" : "call-state";
+      panel.innerHTML = html || "";
+      $("callContent").hidden = !!html;
+    }
+
+    function renderCall() {
+      if (!$("tab-call") || $("tab-call").classList.contains("hidden")) return;
+      $("callSyncInfo").textContent = callState.syncedAt
+        ? `마지막 동기화 ${new Date(callState.syncedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+        : "";
+      if (callState.loading) return showCallState("통화 데이터를 불러오는 중입니다…");
+      if (callState.error) {
+        return showCallState(`<strong>통화 데이터를 불러오지 못했습니다.</strong>Supabase 연결 상태와 call_daily 테이블을 확인해주세요.<br><small>${escapeHtml(callState.error)}</small>`, true);
+      }
+      if (!callState.rows.length) return showCallState("<strong>동기화된 통화 데이터가 없습니다.</strong>응답률 스프레드시트 동기화가 실행되면 여기에 표시됩니다.");
+      const rows = filteredCallRows();
+      if (!rows.length) return showCallState("선택한 기간에 통화 데이터가 없습니다.");
+      showCallState("");
+
+      // KPI
+      const sum = sumCallRows(rows);
+      const rate = callRate(sum.answered, sum.total);
+      $("callKpiTotal").textContent = nf.format(sum.total);
+      $("callKpiAnswered").textContent = nf.format(sum.answered);
+      $("callKpiMissed").textContent = nf.format(sum.missed);
+      $("callKpiRate").textContent = fmtRate(rate);
+
+      // 전월 대비: 선택 기간의 마지막 월(월 전체) vs 그 직전 월(월 전체)
+      const allMonthly = aggregateCallMonthly(callState.rows);
+      const baseKey = rows[rows.length - 1].date.slice(0, 7);
+      const cur = allMonthly.find((m) => m.key === baseKey);
+      const prev = allMonthly.find((m) => m.key === prevMonthKey(baseKey));
+      const curRate = cur ? callRate(cur.answered, cur.total) : null;
+      const prevRate = prev ? callRate(prev.answered, prev.total) : null;
+      const momEl = $("callKpiMom");
+      if (curRate != null && prevRate != null) {
+        const diff = curRate - prevRate;
+        momEl.textContent = `${diff > 0 ? "+" : ""}${diff.toFixed(1)}`;
+        momEl.style.color = diff > 0 ? "var(--green)" : diff < 0 ? "var(--red)" : "";
+        $("callKpiMomSub").textContent = `${monthKeyLabel(baseKey)} ${fmtRate(curRate)}% vs ${monthKeyLabel(prev.key)} ${fmtRate(prevRate)}%`;
+      } else {
+        momEl.textContent = "—";
+        momEl.style.color = "";
+        $("callKpiMomSub").textContent = `${monthKeyLabel(prevMonthKey(baseKey))} 데이터 없음`;
+      }
+
+      // 응답률 추이
+      const dailyValid = rows.filter((r) => r.total > 0);
+      drawRateLineChart($("callDailyRateChart"), dailyValid.map((r) => dayKeyLabel(r.date)), dailyValid.map((r) => callRate(r.answered, r.total)), "#7C3AED");
+      const monthly = aggregateCallMonthly(rows).filter((m) => m.total > 0);
+      drawRateLineChart($("callMonthlyRateChart"), monthly.map((m) => `${m.key.slice(2, 4)}년 ${Number(m.key.slice(5))}월`), monthly.map((m) => callRate(m.answered, m.total)), "#2563EB");
+
+      // 건수 비교 + 상세 테이블 (일별/월별 보기)
+      const isMonthly = callState.view === "monthly";
+      const items = isMonthly
+        ? aggregateCallMonthly(rows).map((m) => ({ label: monthKeyLabel(m.key), ...m }))
+        : rows.map((r) => ({ label: dayKeyLabel(r.date), key: r.date, total: r.total, answered: r.answered, missed: r.missed }));
+      $("callVolumeSub").textContent = isMonthly ? "월별" : "일별";
+      drawCallStackChart($("callVolumeChart"), items.map((i) => i.label), items.map((i) => i.answered), items.map((i) => i.missed));
+
+      $("callTableTitle").textContent = isMonthly ? "월별 상세" : "일별 상세";
+      $("callTableKeyHead").textContent = isMonthly ? "월" : "날짜";
+      const rowHtml = (key, t) => {
+        const r = callRate(t.answered, t.total);
+        return `<td>${key}</td><td>${nf.format(t.total)}</td><td>${nf.format(t.answered)}</td><td>${nf.format(t.missed)}</td>` +
+          `<td class="${rateClass(r)}">${r == null ? "데이터 없음" : fmtRate(r) + "%"}</td>`;
+      };
+      $("callTable").querySelector("tbody").innerHTML = items.slice().reverse()
+        .map((i) => `<tr>${rowHtml(isMonthly ? monthKeyLabel(i.key) : i.key, i)}</tr>`).join("");
+      $("callTable").querySelector("tfoot").innerHTML = `<tr>${rowHtml("합계", sum)}</tr>`;
+    }
+
+    // 응답률 전용 꺾은선 — 세로축을 0~100%로 고정해 기간이 바뀌어도 비교가 쉽도록 한다.
+    function drawRateLineChart(canvas, labels, values, color) {
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!values.length) return drawEmpty(ctx, width, height);
+      const { r, g, b } = hexToRgb(color);
+      const left = 60, right = width - 32, top = 20, bottom = height - 32;
+      const yOf = (v) => bottom - (v / 100) * (bottom - top);
+      ctx.font = "11px 'Segoe UI', sans-serif";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      [0, 25, 50, 75, 100].forEach((t) => {
+        const y = yOf(t);
+        ctx.strokeStyle = "#F3F4F6"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+        ctx.fillStyle = "#9CA3AF";
+        ctx.fillText(`${t}%`, left - 6, y);
+      });
+      const step = labels.length > 1 ? (right - left) / (labels.length - 1) : 0;
+      const pts = values.map((v, i) => [labels.length > 1 ? left + step * i : (left + right) / 2, yOf(v)]);
+      if (pts.length > 1) {
+        const grad = ctx.createLinearGradient(0, top, 0, bottom);
+        grad.addColorStop(0, `rgba(${r},${g},${b},0.14)`);
+        grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(pts[0][0], bottom);
+        pts.forEach(([x, y]) => ctx.lineTo(x, y));
+        ctx.lineTo(pts[pts.length - 1][0], bottom);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
+        ctx.stroke();
+      }
+      const showValues = pts.length <= 14;
+      pts.forEach(([x, y], i) => {
+        if (pts.length <= 40) {
+          ctx.fillStyle = "#fff"; ctx.strokeStyle = color; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        }
+        if (showValues) {
+          ctx.fillStyle = "#374151"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+          ctx.font = "600 11px 'Segoe UI', sans-serif";
+          ctx.fillText(`${values[i].toFixed(1)}%`, x, y - 6);
+        }
+      });
+      drawLabels(ctx, labels, pts.length > 1 ? left : (left + right) / 2, pts.length > 1 ? right : (left + right) / 2, bottom, width);
+    }
+
+    // 응답(아래) + 미응답(위) 누적 막대 — 막대 전체 높이가 전체 인입.
+    function drawCallStackChart(canvas, labels, answered, missed) {
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!labels.length) return drawEmpty(ctx, width, height);
+      const left = 52, right = width - 16, top = 22, bottom = height - 32;
+      const totals = answered.map((a, i) => a + missed[i]);
+      const { step, max } = niceAxisTicks(Math.max(...totals, 1), 4);
+      const yOf = (v) => bottom - (v / max) * (bottom - top);
+      ctx.font = "11px 'Segoe UI', sans-serif";
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      for (let t = 0; t <= max; t += step) {
+        const y = yOf(t);
+        ctx.strokeStyle = "#F3F4F6"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+        ctx.fillStyle = "#9CA3AF";
+        ctx.fillText(nf.format(t), left - 6, y);
+      }
+      const slot = (right - left) / labels.length;
+      const barW = Math.max(2, Math.min(40, slot * 0.66));
+      const showTotals = labels.length <= 31 && barW >= 10;
+      labels.forEach((_, i) => {
+        const cx = left + slot * (i + 0.5);
+        const yA = yOf(answered[i]);
+        const yT = yOf(totals[i]);
+        ctx.fillStyle = "#059669";
+        fillRoundedBar(ctx, cx - barW / 2, yA, barW, bottom - yA, 0);
+        ctx.fillStyle = "#F87171";
+        fillRoundedBar(ctx, cx - barW / 2, yT, barW, yA - yT, 3);
+        if (showTotals && totals[i] > 0) {
+          ctx.fillStyle = "#374151"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+          ctx.font = "10px 'Segoe UI', sans-serif";
+          ctx.fillText(nf.format(totals[i]), cx, yT - 3);
+        }
+      });
+      drawLabels(ctx, labels, left + slot / 2, right - slot / 2, bottom, width);
+    }
+
+    function initCallTab() {
+      const fpLocale = { weekdays: { shorthand: ["일","월","화","수","목","금","토"], longhand: ["일요일","월요일","화요일","수요일","목요일","금요일","토요일"] }, months: { shorthand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"], longhand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"] }, firstDayOfWeek: 0, rangeSeparator: " ~ " };
+      if (typeof flatpickr === "function") {
+        callFp = flatpickr("#callDateRangePicker", {
+          mode: "range", dateFormat: "Y-m-d", locale: fpLocale,
+          onChange: (dates, _str, fp) => {
+            if (dates.length !== 2) return;
+            callState.range = [fp.formatDate(dates[0], "Y-m-d"), fp.formatDate(dates[1], "Y-m-d")];
+            callState.month = "all";
+            $("callMonthFilter").value = "all";
+            renderCall();
+          },
+        });
+      }
+      $("callMonthFilter").addEventListener("change", (e) => {
+        callState.month = e.target.value;
+        callState.range = null;
+        if (callFp) callFp.clear();
+        renderCall();
+      });
+      document.querySelectorAll("[data-call-view]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          callState.view = btn.dataset.callView;
+          document.querySelectorAll("[data-call-view]").forEach((b) => b.classList.toggle("active", b === btn));
+          renderCall();
+        });
+      });
+      $("callResetBtn").addEventListener("click", () => {
+        callState.month = "all";
+        callState.range = null;
+        $("callMonthFilter").value = "all";
+        if (callFp) callFp.clear();
+        renderCall();
+      });
+      $("callReloadBtn").addEventListener("click", () => loadCallData(true));
+    }
+
     document.querySelectorAll(".tab-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const target = btn.dataset.tab;
@@ -7587,6 +7979,7 @@
         document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `tab-${target}`));
         if (target === "status") render();
         if (target === "complaint") { loadPhoneComplaints().then(phoneComplaintRender); renderCtSection(); }
+        if (target === "call") loadCallData();
       });
     });
 
@@ -7607,7 +8000,8 @@
     }
     phoneComplaintRender();
     initManualForm();
-    window.addEventListener("resize", () => { render(); });
+    initCallTab();
+    window.addEventListener("resize", () => { render(); renderCall(); });
     bootstrap();
   </script>
 </body>
