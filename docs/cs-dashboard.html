@@ -999,6 +999,11 @@
     .work-trend-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px; }
     .work-trend-controls { display: flex; flex-wrap: wrap; gap: 8px; }
     #tab-status .chart-card { min-height: 0; }
+    .work-kpi-breakdown { display: grid; gap: 4px; padding-top: 8px; border-top: 1px solid var(--border-2); font-size: 12px; color: var(--text-2); }
+    .work-kpi-breakdown > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; }
+    .work-kpi-breakdown b { justify-self: end; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+    .work-kpi-breakdown span:last-child { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+    .work-kpi-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
     .work-trend-area { flex: none; height: 300px; min-height: 0; }
     .work-table-scroll { max-height: none; }
     #workCounselorTable th, #workCounselorTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -1207,6 +1212,7 @@
         <div class="filter-actions">
           <button id="resetBtn" class="btn btn-ghost" type="button">초기화</button>
         </div>
+        <span class="call-sync-info" id="workSyncInfo"></span>
       </section>
 
       <!-- Error Panel Placeholder -->
@@ -5347,7 +5353,7 @@
       document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab==="status"));
       document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id!=="tab-status"));
       renderManualLog();
-      render();
+      applyFilters();
     }
 
     function norm(value) {
@@ -5707,21 +5713,66 @@
       $("status").textContent = text;
     }
 
-    // ══ 업무 현황: 업무별(통화·후처리·채널톡·개통) 총 처리건수 · 총 소요시간 ══
-    // 저장 데이터(work_records)는 대분류/소분류 단위 그대로 두고, 화면에서만 아래 기준으로
-    // 골라 합산한다. 여기 없는 소분류(1:1문의, 알뜰폰·너겟 접수, 고객 지원 업무 등)는
-    // 업무 현황에 표시하지 않는다. 소요시간은 분 단위로 저장돼 있어 분을 그대로 합산한다.
+    // ══ 업무 현황: 업무별(통화 수신·발신 · 후처리 · 채널톡 · 개통) 총 처리건수 · 총 소요시간 ══
+    // 데이터 출처
+    //  - 통화(수신·발신)·채널톡: 구글 시트 → Apps Script → Supabase work_daily_sheet (시간은 초 단위)
+    //  - 후처리·개통: work_records (업무 입력 · AI 입력, 시간은 분 단위)
+    // work_records 의 '유선 상담'·'채널톡' 기록은 시트 데이터로 대체되어 업무 현황에서는 쓰지 않는다
+    // (저장된 데이터는 그대로 둠). 1:1문의, 알뜰폰·너겟 접수, 고객 지원 업무 등은 표시하지 않는다.
     const WORK_TYPES = [
-      { key: "call",  label: "통화",   countLabel: "총 통화 건수",   timeLabel: "총 통화시간",     color: "#2563EB", bg: "var(--blue-50)",  match: (r) => r.sub === "유선 상담" },
-      { key: "after", label: "후처리", countLabel: "총 후처리 건수", timeLabel: "총 후처리 시간",  color: "#0891B2", bg: "#ECFEFF", dash: [6, 4], match: (r) => r.sub === "후처리(전화 상담)" },
-      { key: "chat",  label: "채널톡", countLabel: "총 상담 건수",   timeLabel: "총 상담시간",     color: "#059669", bg: "var(--green-50)", match: (r) => r.sub === "채널톡" },
-      { key: "open",  label: "개통",   countLabel: "총 개통 건수",   timeLabel: "총 개통 소요시간", color: "#D97706", bg: "var(--amber-50)", match: (r) => r.main === "개통 업무" && (r.sub === "온라인 개통" || r.sub === "오프라인 개통") },
+      { key: "call_in",  label: "수신",   name: "통화(수신)", color: "#2563EB" },
+      { key: "call_out", label: "발신",   name: "통화(발신)", color: "#7C3AED" },
+      { key: "after",    label: "후처리", name: "후처리",     color: "#0891B2", dash: [6, 4] },
+      { key: "chat",     label: "채널톡", name: "채널톡",     color: "#059669" },
+      { key: "open",     label: "개통",   name: "개통",       color: "#D97706" },
     ];
+    const WORK_CARDS = [
+      { types: ["call_in", "call_out"], title: "통화", countLabel: "총 통화 건수", timeLabel: "총 통화시간", color: "#2563EB", bg: "var(--blue-50)" },
+      { types: ["after"], title: "후처리", countLabel: "총 후처리 건수", timeLabel: "총 후처리 시간", color: "#0891B2", bg: "#ECFEFF" },
+      { types: ["chat"], title: "채널톡", countLabel: "총 상담 건수", timeLabel: "총 상담시간", color: "#059669", bg: "var(--green-50)" },
+      { types: ["open"], title: "개통", countLabel: "총 개통 건수", timeLabel: "총 개통 소요시간", color: "#D97706", bg: "var(--amber-50)" },
+    ];
+    const RECORD_WORK_TYPES = {
+      after: (r) => r.sub === "후처리(전화 상담)",
+      open: (r) => r.main === "개통 업무" && (r.sub === "온라인 개통" || r.sub === "오프라인 개통"),
+    };
+    const SHEET_WORK_TYPES = new Set(["call_in", "call_out", "chat"]);
+    const sheetWork = { rows: [], syncedAt: null, error: null };
     const workView = { metric: "count", view: "daily" };
 
-    function workTypeOf(row) {
-      const t = WORK_TYPES.find((w) => w.match(row));
-      return t ? t.key : null;
+    function recordWorkType(row) {
+      return Object.keys(RECORD_WORK_TYPES).find((k) => RECORD_WORK_TYPES[k](row)) || null;
+    }
+
+    async function loadSheetWork() {
+      try {
+        const data = await fetchAllRows("work_daily_sheet", (q) => q.order("date", { ascending: true }));
+        sheetWork.rows = data
+          .filter((r) => SHEET_WORK_TYPES.has(r.work_type))
+          .map((r) => ({ dateText: String(r.date).slice(0, 10), counselor: r.agent, type: r.work_type, count: Number(r.count) || 0, minutes: (Number(r.seconds) || 0) / 60 }));
+        const synced = data.map((r) => r.synced_at).filter(Boolean).sort();
+        sheetWork.syncedAt = synced.length ? synced[synced.length - 1] : null;
+        sheetWork.error = null;
+      } catch (err) {
+        sheetWork.rows = [];
+        sheetWork.error = (err && err.message) || String(err);
+      }
+    }
+
+    // 업무 현황에서 쓰는 공통 행: { dateText, counselor, type, count, minutes }
+    function workItems() {
+      const fromRecords = [];
+      state.rows.forEach((r) => {
+        const type = recordWorkType(r);
+        if (type) fromRecords.push({ dateText: r.dateText, counselor: r.counselor, type, count: r.count || 0, minutes: r.minutes || 0 });
+      });
+      return [...fromRecords, ...sheetWork.rows];
+    }
+
+    function renderWorkSyncInfo() {
+      $("workSyncInfo").textContent = sheetWork.syncedAt
+        ? `시트 동기화 ${new Date(sheetWork.syncedAt).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+        : "";
     }
 
     // 분 → "00시간 00분 00초" (24시간을 넘어도 시간 단위로 계속 누적)
@@ -5731,15 +5782,16 @@
       return `${pad(Math.floor(totalSec / 3600))}시간 ${pad(Math.floor((totalSec % 3600) / 60))}분 ${pad(totalSec % 60)}초`;
     }
 
-    function setFilters(rows) {
-      if (!rows.length) {
+    function setFilters() {
+      const items = workItems();
+      if (!items.length) {
         setDateRange("", "");
         $("counselorFilter").innerHTML = '<option value="all">전체</option>';
         return;
       }
       const todayKey = dateKey(new Date());
       setDateRange(todayKey, todayKey);
-      setSelectOptions("counselorFilter", [...new Set([...rows.map((row) => row.counselor), ...Object.values(MANUAL_COUNSELORS)])]);
+      setSelectOptions("counselorFilter", [...new Set([...items.map((row) => row.counselor), ...Object.values(MANUAL_COUNSELORS)])]);
     }
 
     function setSelectOptions(id, values, selected = "all") {
@@ -5752,16 +5804,16 @@
       return String(text).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
     }
 
-    // 조회 기간 · 상담사 필터 → 통화·후처리·채널톡·개통에 해당하는 행만 남긴다.
+    // 조회 기간 · 상담사 필터 → 업무 현황 대상 행(workItems)에 적용
     function applyFilters() {
       const startKey = $("startDate").value || null;
       const endKey = $("endDate").value || null;
       const counselor = $("counselorFilter").value;
-      state.filtered = state.rows.filter((row) => {
+      state.filtered = workItems().filter((row) => {
         if (startKey && row.dateText < startKey) return false;
         if (endKey && row.dateText > endKey) return false;
         if (counselor !== "all" && row.counselor !== counselor) return false;
-        return workTypeOf(row) !== null;
+        return true;
       });
       render();
     }
@@ -5770,30 +5822,38 @@
       const out = {};
       WORK_TYPES.forEach((w) => { out[w.key] = { count: 0, minutes: 0 }; });
       rows.forEach((r) => {
-        const k = workTypeOf(r);
-        if (!k) return;
-        out[k].count += r.count || 0;
-        out[k].minutes += r.minutes || 0;
+        if (!out[r.type]) return;
+        out[r.type].count += r.count || 0;
+        out[r.type].minutes += r.minutes || 0;
       });
       return out;
     }
 
     function renderKpis(rows) {
       const sums = sumByWorkType(rows);
-      $("workKpis").innerHTML = WORK_TYPES.map((w) => `
-        <article class="kpi-card" style="--kpi-color:${w.color};--kpi-bg:${w.bg}">
-          <div class="work-kpi-title">${w.label}</div>
+      const total = (types, f) => types.reduce((acc, t) => acc + sums[t][f], 0);
+      $("workKpis").innerHTML = WORK_CARDS.map((c) => {
+        const breakdown = c.types.length > 1
+          ? `<div class="work-kpi-breakdown">${c.types.map((t) => {
+              const w = WORK_TYPES.find((x) => x.key === t);
+              return `<div><span><i class="work-kpi-dot" style="background:${w.color}"></i>${w.label}</span><b>${nf.format(sums[t].count)}건</b><span>${fmtDuration(sums[t].minutes)}</span></div>`;
+            }).join("")}</div>`
+          : "";
+        return `
+        <article class="kpi-card" style="--kpi-color:${c.color};--kpi-bg:${c.bg}">
+          <div class="work-kpi-title">${c.title}</div>
           <div class="work-kpi-metrics">
             <div class="work-kpi-metric">
-              <div class="kpi-body"><span class="kpi-value">${nf.format(sums[w.key].count)}</span><span class="kpi-unit">건</span></div>
-              <p class="kpi-label">${w.countLabel}</p>
+              <div class="kpi-body"><span class="kpi-value">${nf.format(total(c.types, "count"))}</span><span class="kpi-unit">건</span></div>
+              <p class="kpi-label">${c.countLabel}</p>
             </div>
             <div class="work-kpi-metric">
-              <div class="work-kpi-time">${fmtDuration(sums[w.key].minutes)}</div>
-              <p class="kpi-label">${w.timeLabel}</p>
+              <div class="work-kpi-time">${fmtDuration(total(c.types, "minutes"))}</div>
+              <p class="kpi-label">${c.timeLabel}</p>
             </div>
-          </div>
-        </article>`).join("");
+          </div>${breakdown}
+        </article>`;
+      }).join("");
     }
 
     function renderWorkTrend(rows) {
@@ -5804,14 +5864,14 @@
       const series = WORK_TYPES.map((w) => {
         const totals = new Map(keys.map((k) => [k, 0]));
         rows.forEach((r) => {
-          if (workTypeOf(r) !== w.key) return;
+          if (r.type !== w.key) return;
           totals.set(keyOf(r), totals.get(keyOf(r)) + (isTime ? r.minutes || 0 : r.count || 0));
         });
-        return { label: w.label, color: w.color, dash: w.dash, values: keys.map((k) => totals.get(k)) };
+        return { label: w.name, color: w.color, dash: w.dash, values: keys.map((k) => totals.get(k)) };
       });
       const labels = keys.map((k) => (isMonthly ? `${k.slice(2, 4)}년 ${Number(k.slice(5, 7))}월` : `${Number(k.slice(5, 7))}/${Number(k.slice(8, 10))}`));
       $("workTrendSub").textContent = `${isMonthly ? "월별" : "일별"} ${isTime ? "총 소요시간 합계(시간)" : "처리건수 합계"}`;
-      $("workTrendLegend").innerHTML = WORK_TYPES.map((w) => `<span><i style="${w.dash ? `background:none;border-top:2px dashed ${w.color};height:0;border-radius:0` : `background:${w.color}`}"></i>${w.label}</span>`).join("");
+      $("workTrendLegend").innerHTML = WORK_TYPES.map((w) => `<span><i style="${w.dash ? `background:none;border-top:2px dashed ${w.color};height:0;border-radius:0` : `background:${w.color}`}"></i>${w.name}</span>`).join("");
       drawMultiLineChart($("workTrendChart"), labels, series, isTime);
     }
 
@@ -6205,9 +6265,8 @@
 
     function loadRows(rows, sourceLabel) {
       state.rows = rows;
-      if (!state.rows.length) throw new Error("시트에 표시할 데이터가 없습니다.");
       document.getElementById("loadErrorPanel")?.remove();
-      setFilters(state.rows);
+      setFilters();
       applyFilters();
       renderManualLog();
       setStatus(`${sourceLabel} · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
@@ -6220,15 +6279,24 @@
     }
 
     async function init() {
-      try {
-        loadRows(await loadSheet(), "Supabase 연결");
-      } catch (error) {
-        setStatus(error.message);
-        const panel = document.getElementById("errorPanel");
-        if (panel) {
-          panel.innerHTML = `<div class="error-panel">Supabase 연결을 확인해주세요.<br>${escapeHtml(error.message)}</div>`;
-        }
+      const [records] = await Promise.allSettled([loadSheet(), loadSheetWork()]);
+      const problems = [];
+      if (records.status === "fulfilled") {
+        loadRows(records.value, "Supabase 연결");
+      } else {
+        problems.push(`업무 기록 조회 실패: ${records.reason.message}`);
+        setFilters();
+        applyFilters();
+        setStatus(records.reason.message);
       }
+      if (sheetWork.error) problems.push(`통화·채널톡 시트 데이터 조회 실패: ${sheetWork.error}`);
+      const panel = document.getElementById("errorPanel");
+      if (panel) {
+        panel.innerHTML = problems.length
+          ? `<div class="error-panel">Supabase 연결을 확인해주세요.<br>${problems.map(escapeHtml).join("<br>")}</div>`
+          : "";
+      }
+      renderWorkSyncInfo();
       ctInit();
     }
 
@@ -6377,7 +6445,7 @@
         renderWorkTrend(state.filtered);
       });
     });
-    $("resetBtn").addEventListener("click", () => setFilters(state.rows) || applyFilters());
+    $("resetBtn").addEventListener("click", () => setFilters() || applyFilters());
     function clearPhoneFile() {
       $("phoneFile").value = "";
       $("phoneFileName").textContent = "파일을 선택해주세요";
@@ -6508,7 +6576,7 @@
           labels.push(`1:1 문의: ${pending.dm.name}`);
           pending.dm = null;
         }
-        setFilters(state.rows);
+        setFilters();
         applyFilters();
         showUploadMsg("success", `반영 완료: ${labels.join(", ")}`);
         setStatus(`업로드 반영 · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
