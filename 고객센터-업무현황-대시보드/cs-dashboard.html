@@ -991,6 +991,19 @@
     .rate-mid { color: var(--amber); font-weight: 700; }
     .rate-low { color: var(--red); font-weight: 700; }
     .rate-none { color: var(--muted-2); }
+    /* ── 업무 현황 탭 ──────────────────────────────────── */
+    .work-kpi-title { font-size: 13px; font-weight: 700; color: var(--kpi-color); }
+    .work-kpi-metrics { display: grid; gap: 10px; }
+    .work-kpi-metric .kpi-value { font-size: 24px; }
+    .work-kpi-time { font-size: 18px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.2; white-space: nowrap; }
+    .work-trend-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px; }
+    .work-trend-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+    #tab-status .chart-card { min-height: 0; }
+    .work-trend-area { flex: none; height: 300px; min-height: 0; }
+    .work-table-scroll { max-height: none; }
+    #workCounselorTable th, #workCounselorTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #workCounselorTable th:first-child, #workCounselorTable td:first-child { text-align: left; }
+    #workCounselorTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); }
     @media (max-width: 1100px) { .kpis--5 { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 600px) { .kpis--5 { grid-template-columns: 1fr 1fr; } .call-sync-info { margin-left: 0; } }
   </style>
@@ -1178,9 +1191,8 @@
 
       <!-- Filter Bar -->
       <section class="filter-bar" aria-label="필터">
-        <label>월<select id="monthFilter"><option value="all">전체</option></select></label>
         <div class="date-range-group">
-          <span class="date-range-label">날짜 범위</span>
+          <span class="date-range-label">조회 기간</span>
           <div class="date-shortcuts">
             <button type="button" class="shortcut-btn" data-range="today">오늘</button>
             <button type="button" class="shortcut-btn" data-range="week">최근 7일</button>
@@ -1192,8 +1204,6 @@
           <input type="hidden" id="endDate">
         </div>
         <label>상담사<select id="counselorFilter"><option value="all">전체</option></select></label>
-        <label>업무 대분류<select id="mainFilter"><option value="all">전체</option></select></label>
-        <label>업무 소분류<select id="subFilter"><option value="all">전체</option></select></label>
         <div class="filter-actions">
           <button id="resetBtn" class="btn btn-ghost" type="button">초기화</button>
         </div>
@@ -1202,136 +1212,42 @@
       <!-- Error Panel Placeholder -->
       <div id="errorPanel"></div>
 
-      <!-- KPIs -->
-      <section class="kpis" aria-label="KPI">
-        <article class="kpi-card" style="--kpi-color:var(--blue);--kpi-bg:var(--blue-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat" id="deltaCount">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="totalCount">0</span><span class="kpi-unit">건</span></div>
-          <p class="kpi-label">총 처리건수</p>
-        </article>
-        <article class="kpi-card" style="--kpi-color:var(--green);--kpi-bg:var(--green-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat" id="deltaMinutes">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="totalMinutes">0</span><span class="kpi-unit">분</span></div>
-          <p class="kpi-label">총 소요시간</p>
-        </article>
-        <article class="kpi-card" style="--kpi-color:var(--amber);--kpi-bg:var(--amber-50)">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat" id="deltaDaily">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="avgDailyCount">0</span><span class="kpi-unit">건/일</span></div>
-          <p class="kpi-label">일 평균 처리건수</p>
-        </article>
-        <article class="kpi-card" style="--kpi-color:var(--violet);--kpi-bg:#EDE9FE">
-          <div class="kpi-header">
-            <div class="kpi-icon-wrap" style="--kpi-color:var(--violet)">
-              <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="var(--violet)"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </div>
-            <span class="kpi-delta kpi-delta--flat" id="deltaAvg">—</span>
-          </div>
-          <div class="kpi-body"><span class="kpi-value" id="avgMinutes">0</span><span class="kpi-unit">분/건</span></div>
-          <p class="kpi-label">건당 평균 처리시간</p>
-        </article>
-      </section>
+      <!-- KPIs: 업무별 총 처리건수 · 총 소요시간 -->
+      <section class="kpis work-kpis" id="workKpis" aria-label="업무별 KPI"></section>
 
-      <!-- Row 2: Donut Charts -->
-      <div class="chart-row chart-row--2col">
+      <!-- 업무별 추이 -->
+      <div class="chart-row">
         <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">처리건수 구성</div>
-            <div class="chart-card-sub">업무 대분류별 비중</div>
+          <div class="work-trend-header">
+            <div class="chart-card-header">
+              <div class="chart-card-title">업무별 추이</div>
+              <div class="chart-card-sub" id="workTrendSub">일별 처리건수</div>
+            </div>
+            <div class="work-trend-controls">
+              <div class="call-view-toggle" role="tablist" aria-label="지표">
+                <button type="button" class="active" data-work-metric="count">처리건수</button>
+                <button type="button" data-work-metric="minutes">총 소요시간</button>
+              </div>
+              <div class="call-view-toggle" role="tablist" aria-label="보기 단위">
+                <button type="button" class="active" data-work-view="daily">일별</button>
+                <button type="button" data-work-view="monthly">월별</button>
+              </div>
+            </div>
           </div>
-          <div class="donut-layout">
-            <div class="donut-canvas-wrap"><canvas id="countChart" width="150" height="150"></canvas></div>
-            <ol class="donut-legend" id="countLegend"></ol>
-          </div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">소요시간 구성</div>
-            <div class="chart-card-sub">업무 대분류별 총 소요시간</div>
-          </div>
-          <div class="donut-layout">
-            <div class="donut-canvas-wrap"><canvas id="timeChart" width="150" height="150"></canvas></div>
-            <ol class="donut-legend" id="timeLegend"></ol>
-          </div>
+          <div class="call-legend" id="workTrendLegend"></div>
+          <div class="chart-area work-trend-area"><canvas id="workTrendChart"></canvas></div>
         </div>
       </div>
 
-      <!-- Row 3: Trend + Avg Bar + Ranking -->
-      <div class="chart-row chart-row--3col">
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">일자별 처리건수 추이</div>
-            <div class="chart-card-sub">필터 기간 기준</div>
-          </div>
-          <div class="chart-area"><canvas id="trendChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">업무별 평균 처리시간</div>
-            <div class="chart-card-sub">분/건 기준 내림차순</div>
-          </div>
-          <div class="chart-area"><canvas id="avgTimeChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-header">
-            <div class="chart-card-title">처리시간 순위</div>
-            <div class="chart-card-sub">소분류 기준 평균 처리시간 <span style="float:right;color:var(--muted);font-size:11px">단위: 분/건</span></div>
-          </div>
-          <ol class="rank-list" id="rankList"></ol>
-        </div>
-      </div>
-
-      <!-- Data Tables -->
-      <div class="data-tables">
-        <div class="data-table-card">
-          <div class="data-table-card-header">상담사별 업무 현황</div>
-          <div class="data-table-scroll">
-            <table class="data-table" id="counselorTable">
-              <thead><tr><th>상담사</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="data-table-card">
-          <div class="data-table-card-header">업무 대분류별 현황</div>
-          <div class="data-table-scroll">
-            <table class="data-table" id="mainTable">
-              <thead><tr><th>대분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="data-table-card">
-          <div class="data-table-card-header">업무 소분류별 현황</div>
-          <div class="data-table-scroll">
-            <table class="data-table" id="subTable">
-              <thead><tr><th>소분류</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-        <div class="data-table-card">
-          <div class="data-table-card-header">날짜별 업무 현황</div>
-          <div class="data-table-scroll">
-            <table class="data-table" id="dateTable">
-              <thead><tr><th>날짜</th><th>처리건수</th><th>소요시간(분)</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+      <!-- 상담사별 상세 현황 -->
+      <div class="data-table-card">
+        <div class="data-table-card-header">상담사별 업무 현황</div>
+        <div class="data-table-scroll work-table-scroll">
+          <table class="data-table" id="workCounselorTable">
+            <thead></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
         </div>
       </div>
 
@@ -5791,21 +5707,39 @@
       $("status").textContent = text;
     }
 
+    // ══ 업무 현황: 업무별(통화·후처리·채널톡·개통) 총 처리건수 · 총 소요시간 ══
+    // 저장 데이터(work_records)는 대분류/소분류 단위 그대로 두고, 화면에서만 아래 기준으로
+    // 골라 합산한다. 여기 없는 소분류(1:1문의, 알뜰폰·너겟 접수, 고객 지원 업무 등)는
+    // 업무 현황에 표시하지 않는다. 소요시간은 분 단위로 저장돼 있어 분을 그대로 합산한다.
+    const WORK_TYPES = [
+      { key: "call",  label: "통화",   countLabel: "총 통화 건수",   timeLabel: "총 통화시간",     color: "#2563EB", bg: "var(--blue-50)",  match: (r) => r.sub === "유선 상담" },
+      { key: "after", label: "후처리", countLabel: "총 후처리 건수", timeLabel: "총 후처리 시간",  color: "#0891B2", bg: "#ECFEFF", dash: [6, 4], match: (r) => r.sub === "후처리(전화 상담)" },
+      { key: "chat",  label: "채널톡", countLabel: "총 상담 건수",   timeLabel: "총 상담시간",     color: "#059669", bg: "var(--green-50)", match: (r) => r.sub === "채널톡" },
+      { key: "open",  label: "개통",   countLabel: "총 개통 건수",   timeLabel: "총 개통 소요시간", color: "#D97706", bg: "var(--amber-50)", match: (r) => r.main === "개통 업무" && (r.sub === "온라인 개통" || r.sub === "오프라인 개통") },
+    ];
+    const workView = { metric: "count", view: "daily" };
+
+    function workTypeOf(row) {
+      const t = WORK_TYPES.find((w) => w.match(row));
+      return t ? t.key : null;
+    }
+
+    // 분 → "00시간 00분 00초" (24시간을 넘어도 시간 단위로 계속 누적)
+    function fmtDuration(minutes) {
+      const totalSec = Math.round((minutes || 0) * 60);
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(Math.floor(totalSec / 3600))}시간 ${pad(Math.floor((totalSec % 3600) / 60))}분 ${pad(totalSec % 60)}초`;
+    }
+
     function setFilters(rows) {
       if (!rows.length) {
         setDateRange("", "");
-        $("monthFilter").innerHTML = '<option value="all">전체</option>';
         $("counselorFilter").innerHTML = '<option value="all">전체</option>';
-        $("mainFilter").innerHTML = '<option value="all">전체</option>';
-        $("subFilter").innerHTML = '<option value="all">전체</option>';
         return;
       }
       const todayKey = dateKey(new Date());
       setDateRange(todayKey, todayKey);
-      setSelectOptions("monthFilter", [...new Set(rows.map((row) => row.month))]);
       setSelectOptions("counselorFilter", [...new Set([...rows.map((row) => row.counselor), ...Object.values(MANUAL_COUNSELORS)])]);
-      setSelectOptions("mainFilter", [...new Set(rows.map((row) => row.main))]);
-      updateSubFilter();
     }
 
     function setSelectOptions(id, values, selected = "all") {
@@ -5814,151 +5748,135 @@
       $(id).value = unique.includes(selected) ? selected : "all";
     }
 
-    function rowsForSubFilter() {
-      const month = $("monthFilter").value;
-      const counselor = $("counselorFilter").value;
-      const main = $("mainFilter").value;
-      return state.rows.filter((row) => {
-        if (month !== "all" && row.month !== month) return false;
-        if (counselor !== "all" && row.counselor !== counselor) return false;
-        if (main !== "all" && row.main !== main) return false;
-        return true;
-      });
-    }
-
-    function updateDateRangeForMonth() {
-      const month = $("monthFilter").value;
-      const scoped = month === "all" ? state.rows : state.rows.filter((row) => row.month === month);
-      if (!scoped.length) return;
-      const dateTexts = scoped.map((row) => row.dateText).filter(Boolean).sort();
-      if (!dateTexts.length) return;
-      setDateRange(dateTexts[0], dateTexts[dateTexts.length - 1]);
-    }
-
-    function updateSubFilter() {
-      const previous = $("subFilter").value;
-      setSelectOptions("subFilter", [...new Set(rowsForSubFilter().map((row) => row.sub))], previous);
-    }
-
     function escapeHtml(text) {
       return String(text).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
     }
 
+    // 조회 기간 · 상담사 필터 → 통화·후처리·채널톡·개통에 해당하는 행만 남긴다.
     function applyFilters() {
       const startKey = $("startDate").value || null;
       const endKey = $("endDate").value || null;
-      const month = $("monthFilter").value;
       const counselor = $("counselorFilter").value;
-      const main = $("mainFilter").value;
-      const sub = $("subFilter").value;
       state.filtered = state.rows.filter((row) => {
-        if (month !== "all" && row.month !== month) return false;
         if (startKey && row.dateText < startKey) return false;
         if (endKey && row.dateText > endKey) return false;
         if (counselor !== "all" && row.counselor !== counselor) return false;
-        if (main !== "all" && row.main !== main) return false;
-        if (sub !== "all" && row.sub !== sub) return false;
-        return true;
+        return workTypeOf(row) !== null;
       });
       render();
     }
 
-    function contains(row, text) {
-      return `${row.main} ${row.sub}`.includes(text);
+    function sumByWorkType(rows) {
+      const out = {};
+      WORK_TYPES.forEach((w) => { out[w.key] = { count: 0, minutes: 0 }; });
+      rows.forEach((r) => {
+        const k = workTypeOf(r);
+        if (!k) return;
+        out[k].count += r.count || 0;
+        out[k].minutes += r.minutes || 0;
+      });
+      return out;
     }
 
     function renderKpis(rows) {
-      const totalCount = rows.reduce((sum, row) => sum + row.count, 0);
-      const totalMinutes = rows.reduce((sum, row) => sum + row.minutes, 0);
-      const uniqueDates = new Set(rows.map((r) => r.dateText).filter(Boolean));
-      const avgDaily = uniqueDates.size > 0 ? totalCount / uniqueDates.size : 0;
-      const avgPerJob = totalCount > 0 ? totalMinutes / totalCount : 0;
+      const sums = sumByWorkType(rows);
+      $("workKpis").innerHTML = WORK_TYPES.map((w) => `
+        <article class="kpi-card" style="--kpi-color:${w.color};--kpi-bg:${w.bg}">
+          <div class="work-kpi-title">${w.label}</div>
+          <div class="work-kpi-metrics">
+            <div class="work-kpi-metric">
+              <div class="kpi-body"><span class="kpi-value">${nf.format(sums[w.key].count)}</span><span class="kpi-unit">건</span></div>
+              <p class="kpi-label">${w.countLabel}</p>
+            </div>
+            <div class="work-kpi-metric">
+              <div class="work-kpi-time">${fmtDuration(sums[w.key].minutes)}</div>
+              <p class="kpi-label">${w.timeLabel}</p>
+            </div>
+          </div>
+        </article>`).join("");
+    }
 
-      $("totalCount").textContent = nf.format(totalCount);
-      $("totalMinutes").textContent = nf.format(Math.round(totalMinutes));
-      $("avgDailyCount").textContent = avgDaily.toFixed(1);
-      $("avgMinutes").textContent = avgPerJob.toFixed(1);
+    function renderWorkTrend(rows) {
+      const isMonthly = workView.view === "monthly";
+      const isTime = workView.metric === "minutes";
+      const keyOf = (r) => (isMonthly ? r.dateText.slice(0, 7) : r.dateText);
+      const keys = [...new Set(rows.map(keyOf))].sort();
+      const series = WORK_TYPES.map((w) => {
+        const totals = new Map(keys.map((k) => [k, 0]));
+        rows.forEach((r) => {
+          if (workTypeOf(r) !== w.key) return;
+          totals.set(keyOf(r), totals.get(keyOf(r)) + (isTime ? r.minutes || 0 : r.count || 0));
+        });
+        return { label: w.label, color: w.color, dash: w.dash, values: keys.map((k) => totals.get(k)) };
+      });
+      const labels = keys.map((k) => (isMonthly ? `${k.slice(2, 4)}년 ${Number(k.slice(5, 7))}월` : `${Number(k.slice(5, 7))}/${Number(k.slice(8, 10))}`));
+      $("workTrendSub").textContent = `${isMonthly ? "월별" : "일별"} ${isTime ? "총 소요시간 합계(시간)" : "처리건수 합계"}`;
+      $("workTrendLegend").innerHTML = WORK_TYPES.map((w) => `<span><i style="${w.dash ? `background:none;border-top:2px dashed ${w.color};height:0;border-radius:0` : `background:${w.color}`}"></i>${w.label}</span>`).join("");
+      drawMultiLineChart($("workTrendChart"), labels, series, isTime);
+    }
 
-      // Prior period comparison
-      const startVal = $("startDate").value;
-      const endVal = $("endDate").value;
-      function trendHtml(current, prior, id) {
-        const el = $(id);
-        if (!el) return;
-        if (!prior && prior !== 0) { el.className = "kpi-delta kpi-delta--flat"; el.textContent = "—"; return; }
-        const diff = current - prior;
-        const cls = diff > 0 ? "up" : diff < 0 ? "down" : "flat";
-        const arrow = diff > 0 ? "↑" : diff < 0 ? "↓" : "—";
-        const pct = prior > 0 ? Math.abs(((diff / prior) * 100)).toFixed(0) + "%" : "";
-        el.className = `kpi-delta kpi-delta--${cls}`;
-        el.textContent = `${arrow} ${pct || Math.abs(diff)}`;
+    // 여러 업무를 한 축에 겹쳐 그리는 꺾은선. 시간 지표는 분 합계를 시간으로 환산해 표시한다.
+    function drawMultiLineChart(canvas, labels, series, isTime) {
+      const { ctx, width, height } = canvasSetup(canvas);
+      ctx.clearRect(0, 0, width, height);
+      if (!labels.length) return drawEmpty(ctx, width, height);
+      const conv = (v) => (isTime ? v / 60 : v);
+      const maxVal = Math.max(1, ...series.flatMap((s) => s.values.map(conv)));
+      const { step, max } = niceAxisTicks(maxVal, 4);
+      const left = 56, right = width - 20, top = 16, bottom = height - 32;
+      const yOf = (v) => bottom - (conv(v) / max) * (bottom - top);
+      ctx.font = "11px 'Segoe UI', sans-serif";
+      ctx.textAlign = "right"; ctx.textBaseline = "middle";
+      for (let i = 0; i <= 4; i++) {
+        const t = step * i;
+        const y = bottom - (t / max) * (bottom - top);
+        ctx.strokeStyle = "#F3F4F6"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+        ctx.fillStyle = "#9CA3AF";
+        ctx.fillText(isTime ? `${Number(t.toFixed(1))}시간` : nf.format(t), left - 6, y);
       }
-      if (startVal && endVal) {
-        const s = new Date(startVal + "T00:00:00"), e = new Date(endVal + "T00:00:00");
-        const lenMs = e - s + 86400000;
-        const ps = new Date(s.getTime() - lenMs), pe = new Date(s.getTime() - 86400000);
-        const psKey = dateKey(ps), peKey = dateKey(pe);
-        const counselor = $("counselorFilter").value;
-        const main = $("mainFilter").value;
-        const sub = $("subFilter").value;
-        const prior = state.rows.filter((r) => {
-          if (!r.dateText || r.dateText < psKey || r.dateText > peKey) return false;
-          if (counselor !== "all" && r.counselor !== counselor) return false;
-          if (main !== "all" && r.main !== main) return false;
-          if (sub !== "all" && r.sub !== sub) return false;
-          return true;
-        });
-        const pc = prior.reduce((a, r) => a + r.count, 0);
-        const pm = prior.reduce((a, r) => a + r.minutes, 0);
-        const pd = new Set(prior.map((r) => r.dateText)).size;
-        trendHtml(totalCount, pc, "deltaCount");
-        trendHtml(totalMinutes, pm, "deltaMinutes");
-        trendHtml(avgDaily, pd > 0 ? pc / pd : 0, "deltaDaily");
-        trendHtml(avgPerJob, pc > 0 ? pm / pc : 0, "deltaAvg");
-      } else {
-        ["deltaCount","deltaMinutes","deltaDaily","deltaAvg"].forEach((id) => {
-          const el = $(id); if (el) { el.className = "kpi-delta kpi-delta--flat"; el.textContent = "—"; }
-        });
-      }
+      const single = labels.length === 1;
+      const xOf = (i) => (single ? (left + right) / 2 : left + ((right - left) * i) / (labels.length - 1));
+      series.forEach((s) => {
+        ctx.strokeStyle = s.color; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
+        if (!single) {
+          ctx.setLineDash(s.dash || []);
+          ctx.beginPath();
+          s.values.forEach((v, i) => (i === 0 ? ctx.moveTo(xOf(i), yOf(v)) : ctx.lineTo(xOf(i), yOf(v))));
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        if (labels.length <= 31) {
+          s.values.forEach((v, i) => {
+            ctx.fillStyle = "#fff"; ctx.strokeStyle = s.color; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(xOf(i), yOf(v), 3.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          });
+        }
+      });
+      drawLabels(ctx, labels, xOf(0), xOf(labels.length - 1), bottom, width);
+    }
+
+    function renderWorkCounselorTable(rows) {
+      const table = $("workCounselorTable");
+      table.querySelector("thead").innerHTML = `<tr><th>상담사</th>${WORK_TYPES.map((w) => `<th>${w.label} 건수</th><th>${w.label} 총 시간</th>`).join("")}</tr>`;
+      const selected = $("counselorFilter").value;
+      const names = new Set(rows.map((r) => r.counselor).filter(Boolean));
+      if (selected === "all") Object.values(MANUAL_COUNSELORS).forEach((n) => names.add(n));
+      else names.add(selected);
+      const cells = (sums) => WORK_TYPES.map((w) => `<td>${nf.format(sums[w.key].count)}</td><td>${fmtDuration(sums[w.key].minutes)}</td>`).join("");
+      const sorted = [...names].sort((a, b) => a.localeCompare(b, "ko"));
+      table.querySelector("tbody").innerHTML = sorted.length
+        ? sorted.map((name) => `<tr><td>${escapeHtml(name)}</td>${cells(sumByWorkType(rows.filter((r) => r.counselor === name)))}</tr>`).join("")
+        : `<tr><td colspan="${1 + WORK_TYPES.length * 2}" style="color:var(--muted);text-align:center;padding:16px;">데이터 없음</td></tr>`;
+      table.querySelector("tfoot").innerHTML = `<tr><td>합계</td>${cells(sumByWorkType(rows))}</tr>`;
     }
 
     function render() {
       const rows = state.filtered;
       renderKpis(rows);
-
-      const byDate = groupBy(rows, (row) => row.dateText).sort((a, b) => a.key.localeCompare(b.key));
-      drawLineChart($("trendChart"), byDate.map((d) => d.key), byDate.map((d) => d.count));
-
-      const byMain = groupBy(rows, (row) => row.main).sort((a, b) => b.count - a.count);
-      drawDonutChart($("countChart"), byMain.map((d) => d.key), byMain.map((d) => d.count), "countLegend", "건");
-      drawDonutChart($("timeChart"), byMain.map((d) => d.key), byMain.map((d) => d.minutes), "timeLegend", "분");
-
-      const barKey = $("mainFilter").value === "all" ? (row) => row.main : (row) => row.sub;
-      const avgData = groupBy(rows, barKey)
-        .filter((d) => d.count > 0)
-        .map((d) => ({ ...d, avg: d.minutes / d.count }))
-        .sort((a, b) => b.avg - a.avg)
-        .slice(0, 8);
-      drawHorizBar($("avgTimeChart"), avgData.map((d) => d.key), avgData.map((d) => d.avg));
-
-      renderRanking(rows);
-      renderStatusTables(rows);
+      renderWorkTrend(rows);
+      renderWorkCounselorTable(rows);
       setStatus(`${nf.format(rows.length)}개 행 표시 중 · ${new Date().toLocaleString("ko-KR")} 갱신`);
-    }
-
-    function renderStatusTables(rows) {
-      const empty = '<tr><td colspan="3" style="color:var(--muted);text-align:center;padding:16px;">데이터 없음</td></tr>';
-      function fill(id, items) {
-        const tbody = document.querySelector(`#${id} tbody`);
-        if (!tbody) return;
-        tbody.innerHTML = items.length
-          ? items.map((item) => `<tr><td>${escapeHtml(item.key)}</td><td>${nf.format(item.count)}</td><td>${nf.format(Math.round(item.minutes))}</td></tr>`).join("")
-          : empty;
-      }
-      fill("counselorTable", groupBy(rows, (r) => r.counselor).sort((a, b) => b.count - a.count));
-      fill("mainTable",      groupBy(rows, (r) => r.main).sort((a, b) => b.count - a.count));
-      fill("subTable",       groupBy(rows, (r) => r.sub).sort((a, b) => b.count - a.count));
-      fill("dateTable",      groupBy(rows, (r) => r.dateText).sort((a, b) => a.key.localeCompare(b.key)));
     }
 
     function canvasSetup(canvas) {
@@ -6285,33 +6203,6 @@
       return text.length > max ? `${text.slice(0, max - 1)}…` : text;
     }
 
-    function renderRanking(rows) {
-      const ranked = groupBy(rows, (row) => row.sub || row.main)
-        .filter((item) => item.count > 0)
-        .map((item) => {
-          const mainCat = rows.find((r) => (r.sub || r.main) === item.key)?.main || "";
-          return { ...item, avg: item.minutes / item.count, mainCat };
-        })
-        .sort((a, b) => b.avg - a.avg)
-        .slice(0, 5);
-      const el = $("rankList");
-      if (!el) return;
-      if (!ranked.length) {
-        el.innerHTML = '<li><div class="empty-state">표시할 데이터가 없습니다.</div></li>';
-        return;
-      }
-      el.innerHTML = ranked.map((item, i) => `
-        <li class="rank-item">
-          <span class="rank-no${i < 3 ? " top" : ""}">${i + 1}</span>
-          <div class="rank-name">
-            <strong title="${escapeHtml(item.key)}">${escapeHtml(shorten(item.key, 18))}</strong>
-            <small>${escapeHtml(shorten(item.mainCat, 14))}</small>
-          </div>
-          <span class="rank-val">${item.avg.toFixed(1)}분/건</span>
-        </li>
-      `).join("");
-    }
-
     function loadRows(rows, sourceLabel) {
       state.rows = rows;
       if (!state.rows.length) throw new Error("시트에 표시할 데이터가 없습니다.");
@@ -6471,20 +6362,21 @@
       btn.addEventListener("click", () => applyShortcut(btn.dataset.range));
     });
 
-    $("monthFilter").addEventListener("change", () => {
-      updateDateRangeForMonth();
-      updateSubFilter();
-      applyFilters();
+    $("counselorFilter").addEventListener("change", applyFilters);
+    document.querySelectorAll("[data-work-metric]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        workView.metric = btn.dataset.workMetric;
+        document.querySelectorAll("[data-work-metric]").forEach((b) => b.classList.toggle("active", b === btn));
+        renderWorkTrend(state.filtered);
+      });
     });
-    $("counselorFilter").addEventListener("change", () => {
-      updateSubFilter();
-      applyFilters();
+    document.querySelectorAll("[data-work-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        workView.view = btn.dataset.workView;
+        document.querySelectorAll("[data-work-view]").forEach((b) => b.classList.toggle("active", b === btn));
+        renderWorkTrend(state.filtered);
+      });
     });
-    $("mainFilter").addEventListener("change", () => {
-      updateSubFilter();
-      applyFilters();
-    });
-    $("subFilter").addEventListener("change", applyFilters);
     $("resetBtn").addEventListener("click", () => setFilters(state.rows) || applyFilters());
     function clearPhoneFile() {
       $("phoneFile").value = "";
