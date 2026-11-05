@@ -124,7 +124,8 @@ function pad2_(n) { return (n < 10 ? '0' : '') + n; }
 
 function notify_(msg) {
   Logger.log(msg);
-  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* 트리거/편집기 실행 시 UI 없음 */ }
+  // alert 는 시트 탭에서 확인을 누를 때까지 실행을 멈추므로 쓰지 않는다. 결과는 실행 로그 + 시트 토스트로만 알린다.
+  try { SpreadsheetApp.getActiveSpreadsheet().toast(msg.slice(0, 900), '결과', 30); } catch (e) { /* 트리거 실행 시 UI 없음 */ }
 }
 
 function createDailyTrigger() {

@@ -48,7 +48,8 @@ function previewWorkDaily() {
     : '정상 — 전송 대상 ' + result.rows.length + '행 (' + summarize_(result.rows) + ')') +
     (result.notes.length ? '\n\n참고:\n' + result.notes.join('\n') : '');
   Logger.log(msg);
-  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* 트리거/편집기 실행 시 UI 없음 */ }
+  // alert 는 시트 탭에서 확인을 누를 때까지 실행을 멈추므로 쓰지 않는다. 결과는 실행 로그 + 시트 토스트로만 알린다.
+  try { SpreadsheetApp.getActiveSpreadsheet().toast(msg.slice(0, 900), '결과', 30); } catch (e) { /* 트리거 실행 시 UI 없음 */ }
 }
 
 function syncWorkDaily() { sync_(false); }
