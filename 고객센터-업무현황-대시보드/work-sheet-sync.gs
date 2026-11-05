@@ -11,7 +11,7 @@
  *   채널톡  (채팅 목록, 채팅 1건 = 1행)
  *     managedAt(날짜) · managerIds(참여 상담사 ID, 쉼표 구분)
  *     - 참여한 상담사마다 1건씩 센다. CHANNEL_MANAGERS 에 없는 ID(봇·관리자 등)는 건너뛴다.
- *     - 시간 열이 없어 채널톡 시간은 0으로 보낸다.
+ *     - 시간 열이 없어 건수만 보낸다(대시보드가 건당 시간으로 환산).
  *   개통  (날짜 · 상담사 · 구분 · 건수 · 소요시간(분))
  *     - 구분 '개통 업무'·'수동 개통'을 모두 개통으로 합산한다.
  *
@@ -37,6 +37,8 @@ var LOG_SHEET_NAME = '동기화 로그';
 var CHANNEL_MANAGERS = {
   '623139': '김순옥',
   '623618': '진수진',
+  '670617': '박재혁',
+  '695140': '민지영',
 };
 
 function previewWorkDaily() {
@@ -136,7 +138,7 @@ function readWorkSheet_() {
     var t2 = readTable_(ch, ['managedAt', 'managerIds']);
     if (t2.error) errors.push(CHANNEL_SHEET + ': ' + t2.error);
     else {
-      var unknown = {}, seenChat = {}, dup = 0;
+      var seenChat = {}, dup = 0;
       t2.rows.forEach(function (row) {
         var id = norm_(row.text['id']);
         if (id) { if (seenChat[id]) { dup++; return; } seenChat[id] = true; }
@@ -145,12 +147,9 @@ function readWorkSheet_() {
         String(row.text['managerIds']).split(/[,\s]+/).filter(Boolean).forEach(function (mid) {
           var name = CHANNEL_MANAGERS[mid];
           if (name) add(date, name, 'chat', 1, 0);
-          else unknown[mid] = (unknown[mid] || 0) + 1;
         });
       });
       if (dup) notes.push('채널톡: 같은 id 중복 ' + dup + '행은 1번만 셌습니다.');
-      var u = Object.keys(unknown).map(function (k) { return k + '(' + unknown[k] + '건)'; });
-      if (u.length) notes.push('채널톡: CHANNEL_MANAGERS 에 없는 ID라 제외 — ' + u.join(', '));
     }
   }
 
