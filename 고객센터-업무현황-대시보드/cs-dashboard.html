@@ -5727,7 +5727,7 @@
     // 데이터 출처
     //  - 통화(수신·발신)·채널톡: 구글 시트 → Apps Script → Supabase work_daily_sheet (시간은 초 단위)
     //  - 후처리: 시트의 통화(수신) 건수 × AFTER_CALL_MINUTES 분으로 산출 (발신에는 붙이지 않음)
-    //  - 개통: work_records (업무 입력 · AI 입력, 시간은 분 단위)
+    //  - 개통: 시트 개통 탭(work_daily_sheet open) 우선, 시트에 없는 날짜·상담사는 work_records (업무 입력 · AI 입력)
     // work_records 의 '유선 상담'·'채널톡'·'후처리(전화 상담)' 기록은 위 기준으로 대체되어 업무 현황에서는 쓰지 않는다
     // (저장된 데이터는 그대로 둠). 1:1문의, 알뜰폰·너겟 접수, 고객 지원 업무 등은 표시하지 않는다.
     const WORK_TYPES = [
@@ -5747,7 +5747,7 @@
     const RECORD_WORK_TYPES = {
       open: (r) => r.main === "개통 업무" && (r.sub === "온라인 개통" || r.sub === "오프라인 개통"),
     };
-    const SHEET_WORK_TYPES = new Set(["call_in", "call_out", "chat"]);
+    const SHEET_WORK_TYPES = new Set(["call_in", "call_out", "chat", "open"]);
     const sheetWork = { rows: [], syncedAt: null, error: null };
     const workView = { metric: "count", view: "daily" };
 
@@ -5771,10 +5771,13 @@
     }
 
     // 업무 현황에서 쓰는 공통 행: { dateText, counselor, type, count, minutes }
+    // 개통은 시트('개통' 탭)에 있는 날짜·상담사는 시트 값을 쓰고, 시트에 없는 날짜·상담사만 업무 입력 기록으로 채운다
     function workItems() {
+      const sheetOpen = new Set(sheetWork.rows.filter((r) => r.type === "open").map((r) => `${r.dateText}|${r.counselor}`));
       const fromRecords = [];
       state.rows.forEach((r) => {
         const type = recordWorkType(r);
+        if (type === "open" && sheetOpen.has(`${r.dateText}|${r.counselor}`)) return;
         if (type) fromRecords.push({ dateText: r.dateText, counselor: r.counselor, type, count: r.count || 0, minutes: r.minutes || 0 });
       });
       const afterCall = sheetWork.rows

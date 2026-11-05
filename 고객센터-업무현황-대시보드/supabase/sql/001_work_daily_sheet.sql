@@ -7,7 +7,7 @@
 create table if not exists public.work_daily_sheet (
   date        date        not null,
   agent       text        not null check (char_length(agent) between 1 and 20),
-  work_type   text        not null check (work_type in ('call_in', 'call_out', 'chat')),
+  work_type   text        not null check (work_type in ('call_in', 'call_out', 'chat', 'open')),
   count       integer     not null default 0 check (count >= 0),
   seconds     integer     not null default 0 check (seconds >= 0),
   synced_at   timestamptz not null default now(),

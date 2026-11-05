@@ -13,7 +13,7 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const WORK_TYPES = new Set(["call_in", "call_out", "chat"]);
+const WORK_TYPES = new Set(["call_in", "call_out", "chat", "open"]);
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 type Row = Record<string, string | number | null>;
