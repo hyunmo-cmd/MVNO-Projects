@@ -69,7 +69,10 @@ function sync_(allowShrink) {
   var secret = props.getProperty('SHEET_SYNC_SECRET');
   if (!url || !secret) return writeLog_('error', null, '스크립트 속성 SYNC_URL / SHEET_SYNC_SECRET 이 없습니다.');
 
+  // 단계별 실행 로그 — 실패 시 어느 단계에서 멈췄는지 확인용
+  Logger.log('1/3 시트 읽는 중');
   var result = readWorkSheet_();
+  Logger.log('2/3 전송 중 — ' + result.rows.length + '행, 오류 ' + result.errors.length + '건');
   if (result.errors.length) {
     return writeLog_('error', null, '시트 검증 실패 — 전송하지 않음: ' + result.errors.slice(0, 20).join(' / '));
   }
@@ -89,6 +92,7 @@ function sync_(allowShrink) {
   }
   var code = res.getResponseCode();
   var text = res.getContentText().slice(0, 1000);
+  Logger.log('3/3 응답 HTTP ' + code + ' ' + text);
   if (code === 200) writeLog_('success', result.rows.length, text);
   else writeLog_('error', result.rows.length, 'HTTP ' + code + ': ' + text);
 }
