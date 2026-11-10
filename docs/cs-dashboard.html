@@ -7985,7 +7985,7 @@
     // 접속 시 Apps Script 웹 앱에 시트 → Supabase 동기화를 요청하고, 새로 반영되면 화면을 다시 그린다.
     // (5분 안에 이미 동기화됐으면 웹 앱이 건너뛰고 skipped 를 돌려준다. 주소가 비어 있으면 요청하지 않음)
     const WORK_SYNC_WEBAPP_URL = "";
-    const CALL_SYNC_WEBAPP_URL = "";
+    const CALL_SYNC_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzp1M3xXASZrX1IAJcPpUUO89Q7KNU2JoRKxY4wDNff0xF78kOmNfV7noriLr5qEwe7/exec";
     async function requestSheetSync(url) {
       if (!url) return null;
       try {
