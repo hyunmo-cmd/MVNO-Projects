@@ -7982,11 +7982,39 @@
       });
     });
 
+    // 접속 시 Apps Script 웹 앱에 시트 → Supabase 동기화를 요청하고, 새로 반영되면 화면을 다시 그린다.
+    // (5분 안에 이미 동기화됐으면 웹 앱이 건너뛰고 skipped 를 돌려준다. 주소가 비어 있으면 요청하지 않음)
+    const WORK_SYNC_WEBAPP_URL = "";
+    const CALL_SYNC_WEBAPP_URL = "";
+    async function requestSheetSync(url) {
+      if (!url) return null;
+      try {
+        const res = await fetch(url);
+        return await res.json();
+      } catch (err) {
+        console.warn("시트 동기화 요청 실패:", err.message);
+        return null;
+      }
+    }
+    function syncSheetsOnOpen(ready) {
+      requestSheetSync(WORK_SYNC_WEBAPP_URL).then(async (r) => {
+        if (!r || !r.ok || r.skipped) return;
+        await ready;
+        await loadSheetWork();
+        applyFilters(); // 사용자가 고른 기간·상담사 필터는 유지
+        renderWorkSyncInfo();
+      });
+      requestSheetSync(CALL_SYNC_WEBAPP_URL).then((r) => {
+        if (!r || !r.ok || r.skipped) return;
+        if (callState.loaded) loadCallData(true);
+      });
+    }
+
     async function bootstrap() {
       await migrateLegacyLocalData();
       loadDmComplaints();
       loadPhoneComplaints().then(phoneComplaintRender);
-      init();
+      syncSheetsOnOpen(init());
     }
     phoneComplaintRender();
     initManualForm();

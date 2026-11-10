@@ -26,12 +26,20 @@
  *   syncWorkDaily()           : 지금 바로 동기화 (최초 전체 반영 포함)
  *   installHourlyTrigger()    : 1시간마다 syncWorkDaily 자동 실행 등록 (한 번만)
  *   syncWorkDailyAllowShrink(): 행을 대량 삭제한 게 의도된 경우에만 1회 실행
+ *
+ * 대시보드 접속 시 자동 동기화 (웹 앱)
+ *   배포 > 새 배포 > 유형: 웹 앱 / 실행 사용자: 나 / 액세스: 모든 사용자 로 배포하고,
+ *   웹 앱 URL 을 대시보드 WORK_SYNC_WEBAPP_URL 에 넣는다.
+ *   대시보드가 열릴 때 doGet 이 호출되어 syncWorkDaily 와 같은 동기화를 한다.
+ *   응답은 성공 여부와 행 수뿐이며 시트 데이터는 돌려주지 않는다.
+ *   여러 명이 동시에 열어도 SYNC_MIN_INTERVAL_MS 안에 이미 동기화했으면 건너뛴다.
  */
 
 var GENESYS_PREFIX = '제네시스_';
 var CHANNEL_SHEET = '채널톡';
 var OPEN_SHEET = '개통';
 var LOG_SHEET_NAME = '동기화 로그';
+var SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 웹 앱 호출 간 최소 간격
 
 // 채널톡 상담사 ID → 이름. 새 상담사가 오면 여기에 추가한다.
 var CHANNEL_MANAGERS = {
@@ -53,6 +61,27 @@ function previewWorkDaily() {
 }
 
 function syncWorkDaily() { sync_(false); }
+
+// 웹 앱 진입점: 대시보드 접속 시 호출. 동시 실행·잦은 호출은 건너뛴다.
+function doGet() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) return json_({ ok: true, skipped: 'running' });
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var last = Number(props.getProperty('LAST_WEBAPP_SYNC_MS') || 0);
+    if (Date.now() - last < SYNC_MIN_INTERVAL_MS) return json_({ ok: true, skipped: 'recent' });
+    props.setProperty('LAST_WEBAPP_SYNC_MS', String(Date.now()));
+    return json_(sync_(false));
+  } catch (e) {
+    return json_({ ok: false, message: String(e) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
 function syncWorkDailyAllowShrink() { sync_(true); }
 
 function installHourlyTrigger() {
@@ -93,8 +122,8 @@ function sync_(allowShrink) {
   var code = res.getResponseCode();
   var text = res.getContentText().slice(0, 1000);
   Logger.log('3/3 응답 HTTP ' + code + ' ' + text);
-  if (code === 200) writeLog_('success', result.rows.length, text);
-  else writeLog_('error', result.rows.length, 'HTTP ' + code + ': ' + text);
+  if (code === 200) return writeLog_('success', result.rows.length, text);
+  return writeLog_('error', result.rows.length, 'HTTP ' + code + ': ' + text);
 }
 
 function readWorkSheet_() {
@@ -243,4 +272,5 @@ function writeLog_(status, rowCount, message) {
   sheet.appendRow([new Date(), status === 'success' ? '성공' : '실패', rowCount == null ? '' : rowCount, message]);
   var extra = sheet.getLastRow() - 501;
   if (extra > 0) sheet.deleteRows(2, extra); // 최근 500건만 보관
+  return { ok: status === 'success', rows: rowCount, message: status === 'success' ? '' : String(message).slice(0, 300) };
 }

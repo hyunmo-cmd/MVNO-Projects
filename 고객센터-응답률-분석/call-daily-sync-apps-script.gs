@@ -46,10 +46,10 @@ function sync_(allowShrink) {
   var props = PropertiesService.getScriptProperties();
   var url = props.getProperty('SYNC_URL');
   var secret = props.getProperty('SHEET_SYNC_SECRET');
-  if (!url || !secret) return notify_('스크립트 속성 SYNC_URL / SHEET_SYNC_SECRET 이 없습니다.');
+  if (!url || !secret) return done_(false, '스크립트 속성 SYNC_URL / SHEET_SYNC_SECRET 이 없습니다.');
 
   var rows = readCallDailyRows();
-  if (!rows.length) return notify_('반영할 행이 없습니다. 시트 구조를 확인하세요.');
+  if (!rows.length) return done_(false, '반영할 행이 없습니다. 시트 구조를 확인하세요.');
 
   var res;
   try {
@@ -61,11 +61,41 @@ function sync_(allowShrink) {
       muteHttpExceptions: true
     });
   } catch (e) {
-    return notify_('요청 실패: ' + e);
+    return done_(false, '요청 실패: ' + e);
   }
   var code = res.getResponseCode();
   var text = res.getContentText().slice(0, 1000);
-  notify_(code === 200 ? '성공 (' + rows.length + '일): ' + text : '실패 HTTP ' + code + ': ' + text);
+  return done_(code === 200, code === 200 ? '성공 (' + rows.length + '일): ' + text : '실패 HTTP ' + code + ': ' + text, rows.length);
+}
+
+function done_(ok, msg, count) {
+  notify_(msg);
+  return { ok: ok, rows: count || 0, message: ok ? '' : String(msg).slice(0, 300) };
+}
+
+// 웹 앱 진입점: 대시보드 접속 시 호출. 동시 실행·잦은 호출은 건너뛴다.
+// 배포 > 새 배포 > 유형: 웹 앱 / 실행 사용자: 나 / 액세스: 모든 사용자 → URL 을 대시보드 CALL_SYNC_WEBAPP_URL 에 넣는다.
+// 응답은 성공 여부와 일수뿐이며 시트 데이터는 돌려주지 않는다.
+var SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000;
+
+function doGet() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) return json_({ ok: true, skipped: 'running' });
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var last = Number(props.getProperty('LAST_WEBAPP_SYNC_MS') || 0);
+    if (Date.now() - last < SYNC_MIN_INTERVAL_MS) return json_({ ok: true, skipped: 'recent' });
+    props.setProperty('LAST_WEBAPP_SYNC_MS', String(Date.now()));
+    return json_(sync_(false));
+  } catch (e) {
+    return json_({ ok: false, message: String(e) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function readCallDailyRows() {
