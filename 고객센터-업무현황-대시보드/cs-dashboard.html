@@ -5961,8 +5961,17 @@
     //  - 통화: 수신 + 발신 건수 / 후처리: 기존 후처리 시간 / 채널톡·개통: 건수 + 총 시간 (모두 합계, 평균 아님)
     //  - 출처별 실제 수집 기간(workCoverage) 밖의 날짜는 '—'(미수집), 기간 안인데 실적이 없으면 0
     //  - 조회 기간 일부만 수집된 출처는 머리글에 수집 범위를 표시해 전체 합계로 보이지 않게 한다
+    //  - 근무 대비: 통화 시간 ÷ (근무일수 × WORK_HOURS_PER_DAY). 근무일수 = 그 상담사의 통화 또는 개통 실적이 있는 날 수
+    //    (채널톡만 있는 날은 휴일에도 담당자로 잡히는 경우가 있어 제외. 산출 기준은 화면에 표시하지 않는다)
+    const WORK_HOURS_PER_DAY = 8;
+    const WORK_DAY_TYPES = ["call_in", "call_out", "open"];
+    const callMinutes = (s) => s.call_in.minutes + s.call_out.minutes;
     const WORK_TABLE_GROUPS = [
-      { title: "통화", src: "call", cols: [{ label: "건수", value: (s) => s.call_in.count + s.call_out.count }] },
+      { title: "통화", src: "call", cols: [
+        { label: "건수", value: (s) => s.call_in.count + s.call_out.count },
+        { label: "통화 시간", time: true, value: callMinutes },
+        { label: "근무 대비", pct: true, value: (s, workDays) => (workDays ? (callMinutes(s) / (workDays * WORK_HOURS_PER_DAY * 60)) * 100 : 0) },
+      ] },
       { title: "후처리", src: "after", cols: [{ label: "총 시간", time: true, value: (s) => s.after.minutes }] },
       { title: "채널톡", src: "chat", cols: [{ label: "건수", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
       { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
@@ -5992,6 +6001,7 @@
       });
       const counselors = [...byName.entries()].map(([name, days]) => ({
         name,
+        workDays: [...days.values()].filter((list) => list.some((r) => WORK_DAY_TYPES.includes(r.type))).length,
         sums: sumByWorkType([...days.values()].flat()),
         days: [...days.keys()].sort().map((date) => ({ date, sums: sumByWorkType(days.get(date)) })),
       }));
@@ -6003,6 +6013,7 @@
         cov: workCoverage(items),
         counselors,
         total: sumByWorkType(monthItems),
+        totalWorkDays: counselors.reduce((n, c) => n + c.workDays, 0),
       };
     }
 
@@ -6036,11 +6047,11 @@
         const tail = c.to < data.expectedEnd ? `~${md(c.to)}` : "";
         return head || tail ? `<span class="wct-partial">${head && tail ? `${md(c.from)}~${md(c.to)}` : head || tail} 집계</span>` : "";
       };
-      const cellsFor = (sums, from, to) => WORK_TABLE_GROUPS.map((g) => g.cols.map((col, i) => {
+      const cellsFor = (sums, from, to, workDays) => WORK_TABLE_GROUPS.map((g) => g.cols.map((col, i) => {
         const cls = i === 0 ? ' class="wct-group-start"' : "";
         if (!covers(data.cov[g.src], from, to)) return `<td${cls}><span class="wct-na">—</span></td>`;
-        const v = col.value(sums);
-        return `<td${cls}>${col.time ? fmtHms(v) : nf.format(v)}</td>`;
+        const v = col.value(sums, workDays);
+        return `<td${cls}>${col.time ? fmtHms(v) : col.pct ? `${v.toFixed(1)}%` : nf.format(v)}</td>`;
       }).join("")).join("");
 
       const table = $("workCounselorTable");
@@ -6052,13 +6063,13 @@
       table.querySelector("tbody").innerHTML = data.counselors.length
         ? data.counselors.map((c) => {
             const open = workTableOpen.has(c.name);
-            const row = `<tr><td class="wct-name"><button type="button" class="wct-toggle" data-wct-name="${escapeHtml(c.name)}" aria-expanded="${open}" title="일별 내역">${open ? "▼" : "▶"}</button>${escapeHtml(c.name)}</td>${cellsFor(c.sums, data.start, data.end)}</tr>`;
-            const days = open ? c.days.map((d) => `<tr class="wct-day"><td class="wct-name">${md(d.date)}</td>${cellsFor(d.sums, d.date, d.date)}</tr>`).join("") : "";
+            const row = `<tr><td class="wct-name"><button type="button" class="wct-toggle" data-wct-name="${escapeHtml(c.name)}" aria-expanded="${open}" title="일별 내역">${open ? "▼" : "▶"}</button>${escapeHtml(c.name)}</td>${cellsFor(c.sums, data.start, data.end, c.workDays)}</tr>`;
+            const days = open ? c.days.map((d) => `<tr class="wct-day"><td class="wct-name">${md(d.date)}</td>${cellsFor(d.sums, d.date, d.date, 1)}</tr>`).join("") : "";
             return row + days;
           }).join("")
         : `<tr><td colspan="${colCount}" style="color:var(--muted);text-align:center;padding:16px;">선택한 기간의 데이터가 없습니다</td></tr>`;
       table.querySelector("tfoot").innerHTML = data.counselors.length
-        ? `<tr><td class="wct-name">합계 (${data.counselors.length}명)</td>${cellsFor(data.total, data.start, data.end)}</tr>`
+        ? `<tr><td class="wct-name">합계 (${data.counselors.length}명)</td>${cellsFor(data.total, data.start, data.end, data.totalWorkDays)}</tr>`
         : "";
       const period = data.start === data.end ? md(data.start) : `${data.start.slice(0, 4)}.${md(data.start)} ~ ${md(data.end)}`;
       $("workTableSub").textContent = `${period} 누적 · 상담사를 펼치면 일별 내역`;
