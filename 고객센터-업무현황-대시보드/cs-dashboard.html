@@ -5740,7 +5740,7 @@
     // ══ 업무 현황: 업무별(통화 수신·발신 · 후처리 · 채널톡 · 개통) 총 처리건수 · 총 소요시간 ══
     // 데이터 출처
     //  - 통화(수신·발신)·채널톡: 구글 시트 → Apps Script → Supabase work_daily_sheet (시간은 초 단위)
-    //  - 후처리: 시트의 통화(수신) 건수 × AFTER_CALL_MINUTES 분으로 산출 (발신에는 붙이지 않음)
+    //  - 후처리: afterCallRule 참고 — 2026-11 부터 (수신+발신) × 1분, 그 전은 수신 × 5분
     //  - 채널톡 시간: 시트의 채널톡 건수 × CHAT_MINUTES 분으로 산출
     //  (산출 기준은 화면에 표시하지 않는다)
     //  - 개통: 시트 개통 탭(work_daily_sheet open) 우선, 시트에 없는 날짜·상담사는 work_records (업무 입력 · AI 입력)
@@ -5759,7 +5759,18 @@
       { types: ["chat"], title: "채널톡", countLabel: "총 상담 건수", timeLabel: "총 상담시간", color: "#059669", bg: "var(--green-50)" },
       { types: ["open"], title: "개통", countLabel: "총 개통 건수", timeLabel: "총 개통 소요시간", color: "#D97706", bg: "var(--amber-50)" },
     ];
-    const AFTER_CALL_MINUTES = 5; // 수신 1건당 후처리 시간(분)
+    const AFTER_CALL_MINUTES = 5; // 2026-10 까지: 수신 1건당 후처리 시간(분)
+    // 후처리 산출 기준 (날짜별). 2026-11-01 부터 수신·발신 모두 1건당 1분 — 지난 기간 숫자는 바꾸지 않는다
+    function afterCallRule(dateText) {
+      return dateText >= "2026-11-01"
+        ? { types: ["call_in", "call_out"], minutes: 1 }
+        : { types: ["call_in"], minutes: AFTER_CALL_MINUTES };
+    }
+    function afterCallItems(rows) {
+      return rows
+        .filter((r) => afterCallRule(r.dateText).types.includes(r.type))
+        .map((r) => ({ dateText: r.dateText, counselor: r.counselor, type: "after", count: r.count, minutes: r.count * afterCallRule(r.dateText).minutes }));
+    }
     const CHAT_MINUTES = 5;       // 채널톡 1건당 상담 시간(분) — 시트에 시간 열이 없어 건수로 산출
     const RECORD_WORK_TYPES = {
       open: (r) => r.main === "개통 업무" && (r.sub === "온라인 개통" || r.sub === "오프라인 개통"),
@@ -5801,10 +5812,7 @@
         if (type === "open" && sheetOpen.has(`${r.dateText}|${r.counselor}`)) return;
         if (type) fromRecords.push({ dateText: r.dateText, counselor: r.counselor, type, count: r.count || 0, minutes: r.minutes || 0 });
       });
-      const afterCall = sheetWork.rows
-        .filter((r) => r.type === "call_in")
-        .map((r) => ({ dateText: r.dateText, counselor: r.counselor, type: "after", count: r.count, minutes: r.count * AFTER_CALL_MINUTES }));
-      return [...fromRecords, ...sheetWork.rows, ...afterCall];
+      return [...fromRecords, ...sheetWork.rows, ...afterCallItems(sheetWork.rows)];
     }
 
     function renderWorkSyncInfo() {
@@ -5968,7 +5976,8 @@
     const callMinutes = (s) => s.call_in.minutes + s.call_out.minutes;
     const WORK_TABLE_GROUPS = [
       { title: "통화", src: "call", cols: [
-        { label: "건수", value: (s) => s.call_in.count + s.call_out.count },
+        { label: "수신", value: (s) => s.call_in.count },
+        { label: "발신", value: (s) => s.call_out.count },
         { label: "통화 시간", time: true, value: callMinutes },
         { label: "근무 대비", pct: true, value: (s, workDays) => (workDays ? (callMinutes(s) / (workDays * WORK_HOURS_PER_DAY * 60)) * 100 : 0) },
       ] },
