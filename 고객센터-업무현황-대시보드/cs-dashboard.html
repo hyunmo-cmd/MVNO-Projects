@@ -1009,6 +1009,19 @@
     #workCounselorTable th, #workCounselorTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #workCounselorTable th:first-child, #workCounselorTable td:first-child { text-align: left; }
     #workCounselorTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); }
+    /* 업무 현황 월별 표: 2단 머리글 · 상담사 펼치기 · 일별 행 */
+    #tab-status [hidden] { display: none !important; }
+    #workCounselorTable thead th, #workCounselorTable thead th:first-child { text-align: center; }
+    #workCounselorTable thead th.wct-name, #workCounselorTable td.wct-name { text-align: left; }
+    #workCounselorTable thead tr:first-child th:not(.wct-name) { border-bottom: 1px solid var(--border); }
+    #workCounselorTable .wct-group-start { border-left: 1px solid var(--border); }
+    #workCounselorTable .wct-toggle { border: 0; background: none; cursor: pointer; color: var(--muted); width: 18px; padding: 0; margin-right: 4px; font-size: 10px; }
+    #workCounselorTable .wct-toggle:hover { color: var(--text); }
+    #workCounselorTable tr.wct-day td { background: var(--bg); color: var(--text-2); font-size: 12px; }
+    #workCounselorTable tr.wct-day td.wct-name { padding-left: 34px; color: var(--muted); }
+    #workCounselorTable .wct-na { color: var(--muted); }
+    #workCounselorTable .wct-partial { display: block; font-size: 10px; font-weight: 500; color: #D97706; }
+    .wct-sub { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
     @media (max-width: 1100px) { .kpis--5 { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 600px) { .kpis--5 { grid-template-columns: 1fr 1fr; } .call-sync-info { margin-left: 0; } }
   </style>
@@ -1194,10 +1207,14 @@
     <!-- ══ Tab 2: 업무 현황 ══════════════════════════════════ -->
     <div class="tab-panel hidden" id="tab-status">
 
-      <!-- Filter Bar -->
+      <!-- Filter Bar: 조회 월 -->
       <section class="filter-bar" aria-label="필터">
+        <label>조회 월<select id="workMonth"></select></label>
+        <span class="call-sync-info" id="workSyncInfo"></span>
+      </section>
+      <!-- 이전 기간·상담사 필터: 업무 현황 표는 조회 월만 쓴다. 기존 스크립트가 참조하므로 숨김 처리만 함 -->
+      <div hidden>
         <div class="date-range-group">
-          <span class="date-range-label">조회 기간</span>
           <div class="date-shortcuts">
             <button type="button" class="shortcut-btn" data-range="today">오늘</button>
             <button type="button" class="shortcut-btn" data-range="week">최근 7일</button>
@@ -1208,21 +1225,18 @@
           <input type="hidden" id="startDate">
           <input type="hidden" id="endDate">
         </div>
-        <label>상담사<select id="counselorFilter"><option value="all">전체</option></select></label>
-        <div class="filter-actions">
-          <button id="resetBtn" class="btn btn-ghost" type="button">초기화</button>
-        </div>
-        <span class="call-sync-info" id="workSyncInfo"></span>
-      </section>
+        <select id="counselorFilter"><option value="all">전체</option></select>
+        <button id="resetBtn" class="btn btn-ghost" type="button">초기화</button>
+      </div>
 
       <!-- Error Panel Placeholder -->
       <div id="errorPanel"></div>
 
-      <!-- KPIs: 업무별 총 처리건수 · 총 소요시간 -->
-      <section class="kpis work-kpis" id="workKpis" aria-label="업무별 KPI"></section>
+      <!-- KPIs: 업무별 총 처리건수 · 총 소요시간 (월별 표 개편으로 숨김) -->
+      <section class="kpis work-kpis" id="workKpis" aria-label="업무별 KPI" hidden></section>
 
-      <!-- 업무별 추이 -->
-      <div class="chart-row">
+      <!-- 업무별 추이 (월별 표 개편으로 숨김) -->
+      <div class="chart-row" hidden>
         <div class="chart-card">
           <div class="work-trend-header">
             <div class="chart-card-header">
@@ -1247,7 +1261,7 @@
 
       <!-- 상담사별 상세 현황 -->
       <div class="data-table-card">
-        <div class="data-table-card-header">상담사별 업무 현황</div>
+        <div class="data-table-card-header">상담사별 업무 현황 <span class="wct-sub" id="workTableSub"></span></div>
         <div class="data-table-scroll work-table-scroll">
           <table class="data-table" id="workCounselorTable">
             <thead></thead>
@@ -5940,28 +5954,135 @@
       drawLabels(ctx, labels, xOf(0), xOf(labels.length - 1), bottom, width);
     }
 
-    function renderWorkCounselorTable(rows) {
+    // ══ 업무 현황 월별 표 ══════════════════════════════════════
+    // 상담사 1행 = 선택 월 누적, 펼치면 같은 지표의 일별 내역. 집계 원천은 workItems() 그대로.
+    //  - 통화: 수신 + 발신 건수 / 후처리: 기존 후처리 시간 / 채널톡·개통: 건수 + 총 시간 (모두 합계, 평균 아님)
+    //  - 출처별 실제 수집 기간(workCoverage) 밖의 날짜는 '—'(미수집), 기간 안인데 실적이 없으면 0
+    //  - 선택 월 일부만 수집된 출처는 머리글에 수집 범위를 표시해 전체 합계로 보이지 않게 한다
+    const WORK_TABLE_GROUPS = [
+      { title: "통화", src: "call", cols: [{ label: "건수", value: (s) => s.call_in.count + s.call_out.count }] },
+      { title: "후처리", src: "after", cols: [{ label: "총 시간", time: true, value: (s) => s.after.minutes }] },
+      { title: "채널톡", src: "chat", cols: [{ label: "건수", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
+      { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
+    ];
+    const WORK_SOURCES = { call: ["call_in", "call_out"], after: ["after"], chat: ["chat"], open: ["open"] };
+    const workTableOpen = new Set(); // 펼친 상담사 — 월을 바꿔도 유지되고 새 월 기준으로 다시 그린다
+
+    // 출처별 수집 기간 { from, to } (데이터가 전혀 없으면 null)
+    function workCoverage(items) {
+      const cov = {};
+      Object.entries(WORK_SOURCES).forEach(([src, types]) => {
+        const dates = items.filter((r) => types.includes(r.type)).map((r) => r.dateText).sort();
+        cov[src] = dates.length ? { from: dates[0], to: dates[dates.length - 1] } : null;
+      });
+      return cov;
+    }
+
+    function monthBounds(month) {
+      const [y, m] = month.split("-").map(Number);
+      return { start: `${month}-01`, end: `${month}-${String(new Date(y, m, 0).getDate()).padStart(2, "0")}` };
+    }
+
+    function buildWorkMonth(items, month, todayKey) {
+      const { start, end } = monthBounds(month);
+      const monthItems = items.filter((r) => r.counselor && r.dateText >= start && r.dateText <= end);
+      const byName = new Map();
+      monthItems.forEach((r) => {
+        if (!byName.has(r.counselor)) byName.set(r.counselor, new Map());
+        const days = byName.get(r.counselor);
+        if (!days.has(r.dateText)) days.set(r.dateText, []);
+        days.get(r.dateText).push(r);
+      });
+      const counselors = [...byName.entries()].map(([name, days]) => ({
+        name,
+        sums: sumByWorkType([...days.values()].flat()),
+        days: [...days.keys()].sort().map((date) => ({ date, sums: sumByWorkType(days.get(date)) })),
+      }));
+      const callCount = (s) => s.call_in.count + s.call_out.count;
+      counselors.sort((a, b) => callCount(b.sums) - callCount(a.sums) || a.name.localeCompare(b.name, "ko"));
+      return {
+        start, end,
+        expectedEnd: todayKey < end ? todayKey : end,
+        cov: workCoverage(items),
+        counselors,
+        total: sumByWorkType(monthItems),
+      };
+    }
+
+    // 분 → "32:15:00" (24시간을 넘어도 누적). 실제 0은 "0"
+    function fmtHms(minutes) {
+      const totalSec = Math.round((minutes || 0) * 60);
+      if (!totalSec) return "0";
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${Math.floor(totalSec / 3600)}:${pad(Math.floor((totalSec % 3600) / 60))}:${pad(totalSec % 60)}`;
+    }
+
+    function populateWorkMonths(items) {
+      const sel = $("workMonth");
+      const thisMonth = dateKey(new Date()).slice(0, 7);
+      const months = [...new Set([thisMonth, ...items.map((r) => r.dateText.slice(0, 7))])].filter(Boolean).sort().reverse();
+      const cur = sel.value || thisMonth;
+      sel.innerHTML = months.map((m) => `<option value="${m}">${m.slice(0, 4)}년 ${Number(m.slice(5, 7))}월</option>`).join("");
+      sel.value = months.includes(cur) ? cur : thisMonth;
+    }
+
+    function renderWorkCounselorTable() {
+      const items = workItems();
+      populateWorkMonths(items);
+      const month = $("workMonth").value;
+      const data = buildWorkMonth(items, month, dateKey(new Date()));
+      const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
+      const covers = (c, from, to) => !!c && c.from <= to && c.to >= from;
+
+      // 선택 월에서 일부 기간만 수집된 출처 → 머리글에 수집 범위 표시
+      const partialNote = (src) => {
+        const c = data.cov[src];
+        if (!covers(c, data.start, data.end)) return "";
+        const head = c.from > data.start ? `${md(c.from)}~` : "";
+        const tail = c.to < data.expectedEnd ? `~${md(c.to)}` : "";
+        return head || tail ? `<span class="wct-partial">${head && tail ? `${md(c.from)}~${md(c.to)}` : head || tail} 집계</span>` : "";
+      };
+      const cellsFor = (sums, from, to) => WORK_TABLE_GROUPS.map((g) => g.cols.map((col, i) => {
+        const cls = i === 0 ? ' class="wct-group-start"' : "";
+        if (!covers(data.cov[g.src], from, to)) return `<td${cls}><span class="wct-na">—</span></td>`;
+        const v = col.value(sums);
+        return `<td${cls}>${col.time ? fmtHms(v) : nf.format(v)}</td>`;
+      }).join("")).join("");
+
       const table = $("workCounselorTable");
-      table.querySelector("thead").innerHTML = `<tr><th>상담사</th>${WORK_TYPES.map((w) => `<th>${w.label} 건수</th><th>${w.label} 총 시간</th>`).join("")}</tr>`;
-      const selected = $("counselorFilter").value;
-      const names = new Set(rows.map((r) => r.counselor).filter(Boolean));
-      if (selected === "all") Object.values(MANUAL_COUNSELORS).forEach((n) => names.add(n));
-      else names.add(selected);
-      const cells = (sums) => WORK_TYPES.map((w) => `<td>${nf.format(sums[w.key].count)}</td><td>${fmtDuration(sums[w.key].minutes)}</td>`).join("");
-      const sorted = [...names].sort((a, b) => a.localeCompare(b, "ko"));
-      table.querySelector("tbody").innerHTML = sorted.length
-        ? sorted.map((name) => `<tr><td>${escapeHtml(name)}</td>${cells(sumByWorkType(rows.filter((r) => r.counselor === name)))}</tr>`).join("")
-        : `<tr><td colspan="${1 + WORK_TYPES.length * 2}" style="color:var(--muted);text-align:center;padding:16px;">데이터 없음</td></tr>`;
-      table.querySelector("tfoot").innerHTML = `<tr><td>합계</td>${cells(sumByWorkType(rows))}</tr>`;
+      table.querySelector("thead").innerHTML =
+        `<tr><th class="wct-name" rowspan="2">상담사</th>${WORK_TABLE_GROUPS.map((g) => `<th class="wct-group-start" colspan="${g.cols.length}">${g.title}${partialNote(g.src)}</th>`).join("")}</tr>` +
+        `<tr>${WORK_TABLE_GROUPS.map((g) => g.cols.map((c, i) => `<th${i === 0 ? ' class="wct-group-start"' : ""}>${c.label}</th>`).join("")).join("")}</tr>`;
+
+      const colCount = 1 + WORK_TABLE_GROUPS.reduce((n, g) => n + g.cols.length, 0);
+      table.querySelector("tbody").innerHTML = data.counselors.length
+        ? data.counselors.map((c) => {
+            const open = workTableOpen.has(c.name);
+            const row = `<tr><td class="wct-name"><button type="button" class="wct-toggle" data-wct-name="${escapeHtml(c.name)}" aria-expanded="${open}" title="일별 내역">${open ? "▼" : "▶"}</button>${escapeHtml(c.name)}</td>${cellsFor(c.sums, data.start, data.end)}</tr>`;
+            const days = open ? c.days.map((d) => `<tr class="wct-day"><td class="wct-name">${md(d.date)}</td>${cellsFor(d.sums, d.date, d.date)}</tr>`).join("") : "";
+            return row + days;
+          }).join("")
+        : `<tr><td colspan="${colCount}" style="color:var(--muted);text-align:center;padding:16px;">선택한 월의 데이터가 없습니다</td></tr>`;
+      table.querySelector("tfoot").innerHTML = data.counselors.length
+        ? `<tr><td class="wct-name">합계 (${data.counselors.length}명)</td>${cellsFor(data.total, data.start, data.end)}</tr>`
+        : "";
+      $("workTableSub").textContent = `${month.slice(0, 4)}년 ${Number(month.slice(5, 7))}월 누적 · 상담사를 펼치면 일별 내역`;
+      return data;
     }
 
     function render() {
-      const rows = state.filtered;
-      renderKpis(rows);
-      renderWorkTrend(rows);
-      renderWorkCounselorTable(rows);
-      setStatus(`${nf.format(rows.length)}개 행 표시 중 · ${new Date().toLocaleString("ko-KR")} 갱신`);
+      const data = renderWorkCounselorTable();
+      setStatus(`${data.start.slice(0, 7)} · 상담사 ${data.counselors.length}명 · ${new Date().toLocaleString("ko-KR")} 갱신`);
     }
+
+    $("workMonth").addEventListener("change", render);
+    $("workCounselorTable").addEventListener("click", (e) => {
+      const btn = e.target.closest(".wct-toggle");
+      if (!btn) return;
+      const name = btn.dataset.wctName;
+      if (workTableOpen.has(name)) workTableOpen.delete(name); else workTableOpen.add(name);
+      renderWorkCounselorTable();
+    });
 
     function canvasSetup(canvas) {
       const rect = canvas.parentElement.getBoundingClientRect();
