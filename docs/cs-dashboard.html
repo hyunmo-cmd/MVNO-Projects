@@ -1006,6 +1006,8 @@
     .work-kpi-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
     .work-trend-area { flex: none; height: 300px; min-height: 0; }
     .work-table-scroll { max-height: none; }
+    .db-kpis { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 700px) { .db-kpis { grid-template-columns: 1fr 1fr; } }
     #dbPerfTable th, #dbPerfTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #dbPerfTable .wct-name { text-align: left; }
     #dbPerfTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); }
@@ -1059,6 +1061,7 @@
       <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
       <button class="tab-btn" data-tab="complaint" type="button">민원 관리</button>
       <button class="tab-btn" data-tab="call" type="button">통화 현황</button>
+      <button class="tab-btn" data-tab="db" type="button">DB 실적</button>
     </nav>
 
     <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
@@ -1274,9 +1277,32 @@
         </div>
       </div>
 
-      <!-- DB 실적 (알뜰폰 OB 청약대기 트래킹 시트) — 상담사 구분 없음, 조회 기간 공통 -->
+    </div><!-- /tab-status -->
+
+    <!-- ══ DB 실적 (알뜰폰 OB 청약대기 트래킹 시트) — 상담사 구분 없음 ══ -->
+    <div class="tab-panel hidden" id="tab-db">
+      <section class="filter-bar" aria-label="DB 실적 필터">
+        <div class="date-range-group">
+          <span class="date-range-label">조회 기간</span>
+          <div class="date-shortcuts">
+            <button type="button" class="shortcut-btn" data-db-range="today">오늘</button>
+            <button type="button" class="shortcut-btn" data-db-range="week">최근 7일</button>
+            <button type="button" class="shortcut-btn active" data-db-range="thisMonth">이번 달</button>
+            <button type="button" class="shortcut-btn" data-db-range="lastMonth">지난 달</button>
+            <button type="button" class="shortcut-btn" data-db-range="all">전체</button>
+          </div>
+          <input type="text" id="dbDateRangePicker" class="date-range-input" placeholder="날짜 범위 선택" readonly>
+        </div>
+        <div class="filter-actions">
+          <button id="dbReloadBtn" class="btn btn-ghost" type="button">새로고침</button>
+        </div>
+        <span class="call-sync-info" id="dbPerfSub"></span>
+      </section>
+
+      <section class="kpis db-kpis" id="dbKpis" aria-label="DB 실적 KPI"></section>
+
       <div class="data-table-card">
-        <div class="data-table-card-header">DB 실적 <span class="wct-sub" id="dbPerfSub"></span></div>
+        <div class="data-table-card-header">일별 DB 실적 <span class="wct-sub" id="dbPeriodSub"></span></div>
         <div class="data-table-scroll work-table-scroll">
           <table class="data-table" id="dbPerfTable">
             <thead><tr><th class="wct-name">일자</th><th>인입</th><th>OB</th><th>유심 구매</th><th>개통완료</th></tr></thead>
@@ -1285,8 +1311,7 @@
           </table>
         </div>
       </div>
-
-    </div><!-- /tab-status -->
+    </div><!-- /tab-db -->
 
     <!-- ══ Tab 3: 민원 관리 ══════════════════════════════════ -->
     <div class="tab-panel hidden" id="tab-complaint">
@@ -6106,12 +6131,44 @@
 
     // ── DB 실적: OB 청약대기 트래킹 시트 → Apps Script 웹 앱(doGet)이 날짜별 건수만 돌려준다 ──
     // { date, inflow, ob, usim, opened } — 인입(계약번호 날짜) / OB 일자 / 유심 구매일 / 개통일 기준. 고객 정보는 받지 않는다.
+    // 'DB 실적' 탭 전용 — 업무 현황 탭과 조회 기간을 따로 쓴다 (기본 이번 달)
     const DB_PERF_KEYS = ["inflow", "ob", "usim", "opened"];
-    const DB_PERF_WEBAPP_URL = "";
-    const dbPerf = { days: null, updated: "", error: null };
+    const DB_PERF_LABELS = { inflow: "인입", ob: "OB", usim: "유심 구매", opened: "개통완료" };
+    const DB_PERF_COLORS = { inflow: ["var(--blue)", "var(--blue-50)"], ob: ["#7C3AED", "#F5F3FF"], usim: ["#0891B2", "#ECFEFF"], opened: ["var(--green)", "var(--green-50)"] };
+    const DB_PERF_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7JcGRAbSkg4MDGkcwEkHBlA2l64p0HEwl5DXL-SLHRT7ivo1pVBwlo9QwowmrMHw/exec";
+    const dbPerf = { days: null, updated: "", error: null, loading: false };
+    const dbView = { range: "thisMonth", start: "", end: "" };
+    let dbFp = null, dbFpSuppress = false;
+
+    function dbRangeDates(range) {
+      const today = new Date();
+      const ym = (y, m, d) => dateKey(new Date(y, m, d));
+      if (range === "today") return [dateKey(today), dateKey(today)];
+      if (range === "week") { const s = new Date(today); s.setDate(s.getDate() - 6); return [dateKey(s), dateKey(today)]; }
+      if (range === "lastMonth") return [ym(today.getFullYear(), today.getMonth() - 1, 1), ym(today.getFullYear(), today.getMonth(), 0)];
+      if (range === "all") {
+        const ds = dbPerf.days || [];
+        return ds.length ? [ds[0].date, ds[ds.length - 1].date] : ["", ""];
+      }
+      return [ym(today.getFullYear(), today.getMonth(), 1), ym(today.getFullYear(), today.getMonth() + 1, 0)];
+    }
+
+    function setDbRange(range, start, end) {
+      if (range) [start, end] = dbRangeDates(range);
+      dbView.range = range || "";
+      dbView.start = start;
+      dbView.end = end;
+      document.querySelectorAll("[data-db-range]").forEach((b) => b.classList.toggle("active", b.dataset.dbRange === dbView.range));
+      dbFpSuppress = true;
+      try { if (dbFp) { if (start && end) dbFp.setDate([start, end]); else dbFp.clear(); } } finally { dbFpSuppress = false; }
+      renderDbPerfTable();
+    }
 
     async function loadDbPerf() {
       if (!DB_PERF_WEBAPP_URL) { dbPerf.error = "연동 전"; renderDbPerfTable(); return; }
+      if (dbPerf.loading) return;
+      dbPerf.loading = true;
+      renderDbPerfTable();
       try {
         const res = await fetch(DB_PERF_WEBAPP_URL);
         const body = await res.json();
@@ -6122,19 +6179,32 @@
       } catch (err) {
         dbPerf.days = null;
         dbPerf.error = (err && err.message) || String(err);
+      } finally {
+        dbPerf.loading = false;
       }
-      renderDbPerfTable();
+      if (dbView.range === "all") setDbRange("all"); // 전체 범위는 데이터를 받은 뒤 확정
+      else renderDbPerfTable();
     }
 
     function renderDbPerfTable() {
-      const { start, end } = workPeriod();
+      if (!dbView.start && dbView.range !== "all") [dbView.start, dbView.end] = dbRangeDates(dbView.range || "thisMonth");
+      const start = dbView.start || "0000-00-00", end = dbView.end || "9999-12-31";
       const tbody = $("dbPerfTable").querySelector("tbody");
       const tfoot = $("dbPerfTable").querySelector("tfoot");
       const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
+      const kpis = (sums) => {
+        $("dbKpis").innerHTML = DB_PERF_KEYS.map((k) => `
+          <article class="kpi-card" style="--kpi-color:${DB_PERF_COLORS[k][0]};--kpi-bg:${DB_PERF_COLORS[k][1]}">
+            <div class="kpi-body"><span class="kpi-value">${sums ? nf.format(sums[k]) : "—"}</span><span class="kpi-unit">${sums ? "건" : ""}</span></div>
+            <p class="kpi-label">${DB_PERF_LABELS[k]}</p>
+          </article>`).join("");
+      };
+      $("dbPeriodSub").textContent = dbView.start ? `${dbView.start.slice(0, 4)}.${md(dbView.start)} ~ ${md(dbView.end)}` : "";
       if (!dbPerf.days) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:16px;">${dbPerf.error ? `DB 실적을 불러오지 못했습니다 (${escapeHtml(dbPerf.error)})` : "불러오는 중…"}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:16px;">${dbPerf.error && !dbPerf.loading ? `DB 실적을 불러오지 못했습니다 (${escapeHtml(dbPerf.error)})` : "불러오는 중…"}</td></tr>`;
         tfoot.innerHTML = "";
         $("dbPerfSub").textContent = "";
+        kpis(null);
         return;
       }
       const days = dbPerf.days.filter((d) => d.date >= start && d.date <= end);
@@ -6146,12 +6216,28 @@
         : `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:16px;">${before ? "—" : "선택한 기간의 DB 실적이 없습니다"}</td></tr>`;
       const sum = (k) => days.reduce((a, d) => a + (d[k] || 0), 0);
       tfoot.innerHTML = days.length ? `<tr><td class="wct-name">합계</td>${DB_PERF_KEYS.map((k) => `<td>${nf.format(sum(k))}</td>`).join("")}</tr>` : "";
+      kpis(before ? null : Object.fromEntries(DB_PERF_KEYS.map((k) => [k, sum(k)])));
       const partial = firstDate && start < firstDate && end >= firstDate ? ` · ${md(firstDate)}부터 집계` : "";
       $("dbPerfSub").textContent = `${dbPerf.updated ? dbPerf.updated.replace(/^Last updated:\s*/i, "시트 갱신 ") : ""}${partial}`;
     }
 
+    try {
+      dbFp = flatpickr("#dbDateRangePicker", {
+        mode: "range",
+        dateFormat: "Y-m-d",
+        locale: { weekdays: { shorthand: ["일", "월", "화", "수", "목", "금", "토"], longhand: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"] },
+          months: { shorthand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"], longhand: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"] },
+          firstDayOfWeek: 0, rangeSeparator: " ~ " },
+        onChange(sel) { if (!dbFpSuppress && sel.length === 2) setDbRange("", dateKey(sel[0]), dateKey(sel[1])); },
+      });
+    } catch (e) {
+      console.warn("DB 실적 달력 초기화 실패:", e);
+    }
+    document.querySelectorAll("[data-db-range]").forEach((b) => b.addEventListener("click", () => setDbRange(b.dataset.dbRange)));
+    $("dbReloadBtn").addEventListener("click", loadDbPerf);
+    setDbRange("thisMonth");
+
     function render() {
-      renderDbPerfTable();
       const data = renderWorkCounselorTable();
       setStatus(`${data.start} ~ ${data.end} · 상담사 ${data.counselors.length}명 · ${new Date().toLocaleString("ko-KR")} 갱신`);
     }
