@@ -1006,7 +1006,8 @@
     .work-kpi-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
     .work-trend-area { flex: none; height: 300px; min-height: 0; }
     .work-table-scroll { max-height: none; }
-    .db-kpis { grid-template-columns: repeat(4, 1fr); }
+    .db-kpis { grid-template-columns: repeat(5, 1fr); }
+    @media (max-width: 1100px) { .db-kpis { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 700px) { .db-kpis { grid-template-columns: 1fr 1fr; } }
     #dbPerfTable th, #dbPerfTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #dbPerfTable .wct-name { text-align: left; }
@@ -6192,12 +6193,18 @@
       const tbody = $("dbPerfTable").querySelector("tbody");
       const tfoot = $("dbPerfTable").querySelector("tfoot");
       const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
+      // 전환율 = 기간 내 개통완료 ÷ 기간 내 OB (일별은 날짜 기준이 달라 표시하지 않음, 산출 기준은 화면에 표시하지 않음)
       const kpis = (sums) => {
+        const rate = sums && sums.ob ? `${((sums.opened / sums.ob) * 100).toFixed(1)}` : null;
         $("dbKpis").innerHTML = DB_PERF_KEYS.map((k) => `
           <article class="kpi-card" style="--kpi-color:${DB_PERF_COLORS[k][0]};--kpi-bg:${DB_PERF_COLORS[k][1]}">
             <div class="kpi-body"><span class="kpi-value">${sums ? nf.format(sums[k]) : "—"}</span><span class="kpi-unit">${sums ? "건" : ""}</span></div>
             <p class="kpi-label">${DB_PERF_LABELS[k]}</p>
-          </article>`).join("");
+          </article>`).join("") + `
+          <article class="kpi-card" style="--kpi-color:#D97706;--kpi-bg:var(--amber-50)">
+            <div class="kpi-body"><span class="kpi-value">${rate ?? "—"}</span><span class="kpi-unit">${rate ? "%" : ""}</span></div>
+            <p class="kpi-label">전환율</p>
+          </article>`;
       };
       $("dbPeriodSub").textContent = dbView.start ? `${dbView.start.slice(0, 4)}.${md(dbView.start)} ~ ${md(dbView.end)}` : "";
       if (!dbPerf.days) {
