@@ -1006,8 +1006,7 @@
     .work-kpi-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
     .work-trend-area { flex: none; height: 300px; min-height: 0; }
     .work-table-scroll { max-height: none; }
-    .db-kpis { grid-template-columns: repeat(5, 1fr); }
-    @media (max-width: 1100px) { .db-kpis { grid-template-columns: repeat(3, 1fr); } }
+    .db-kpis { grid-template-columns: repeat(4, 1fr); }
     @media (max-width: 700px) { .db-kpis { grid-template-columns: 1fr 1fr; } }
     #dbPerfTable th, #dbPerfTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #dbPerfTable .wct-name { text-align: left; }
@@ -1306,7 +1305,7 @@
         <div class="data-table-card-header">일별 DB 실적 <span class="wct-sub" id="dbPeriodSub"></span></div>
         <div class="data-table-scroll work-table-scroll">
           <table class="data-table" id="dbPerfTable">
-            <thead><tr><th class="wct-name">일자</th><th>인입</th><th>OB</th><th>유심 구매</th><th>개통완료</th></tr></thead>
+            <thead><tr><th class="wct-name">일자</th><th>인입</th><th>유심 구매</th><th>개통완료</th></tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
           </table>
@@ -6131,11 +6130,11 @@
     }
 
     // ── DB 실적: OB 청약대기 트래킹 시트 → Apps Script 웹 앱(doGet)이 날짜별 건수만 돌려준다 ──
-    // { date, inflow, ob, usim, opened } — 인입(계약번호 날짜) / OB 일자 / 유심 구매일 / 개통일 기준. 고객 정보는 받지 않는다.
+    // { date, inflow, ob, usim, opened } — 인입(계약번호 날짜) / OB 일자 / 유심 구매일 / 개통일 기준. ob 는 받지만 표시하지 않는다. 고객 정보는 받지 않는다.
     // 'DB 실적' 탭 전용 — 업무 현황 탭과 조회 기간을 따로 쓴다 (기본 이번 달)
-    const DB_PERF_KEYS = ["inflow", "ob", "usim", "opened"];
-    const DB_PERF_LABELS = { inflow: "인입", ob: "OB", usim: "유심 구매", opened: "개통완료" };
-    const DB_PERF_COLORS = { inflow: ["var(--blue)", "var(--blue-50)"], ob: ["#7C3AED", "#F5F3FF"], usim: ["#0891B2", "#ECFEFF"], opened: ["var(--green)", "var(--green-50)"] };
+    const DB_PERF_KEYS = ["inflow", "usim", "opened"]; // OB 는 표시하지 않음(사용자 요청)
+    const DB_PERF_LABELS = { inflow: "인입", usim: "유심 구매", opened: "개통완료" };
+    const DB_PERF_COLORS = { inflow: ["var(--blue)", "var(--blue-50)"], usim: ["#0891B2", "#ECFEFF"], opened: ["var(--green)", "var(--green-50)"] };
     const DB_PERF_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7JcGRAbSkg4MDGkcwEkHBlA2l64p0HEwl5DXL-SLHRT7ivo1pVBwlo9QwowmrMHw/exec";
     const dbPerf = { days: null, updated: "", error: null, loading: false };
     const dbView = { range: "thisMonth", start: "", end: "" };
@@ -6193,9 +6192,9 @@
       const tbody = $("dbPerfTable").querySelector("tbody");
       const tfoot = $("dbPerfTable").querySelector("tfoot");
       const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
-      // 전환율 = 기간 내 개통완료 ÷ 기간 내 OB (일별은 날짜 기준이 달라 표시하지 않음, 산출 기준은 화면에 표시하지 않음)
+      // 전환율 = 기간 내 개통완료 ÷ 기간 내 인입 (일별은 날짜 기준이 달라 표시하지 않음, 산출 기준은 화면에 표시하지 않음)
       const kpis = (sums) => {
-        const rate = sums && sums.ob ? `${((sums.opened / sums.ob) * 100).toFixed(1)}` : null;
+        const rate = sums && sums.inflow ? `${((sums.opened / sums.inflow) * 100).toFixed(1)}` : null;
         $("dbKpis").innerHTML = DB_PERF_KEYS.map((k) => `
           <article class="kpi-card" style="--kpi-color:${DB_PERF_COLORS[k][0]};--kpi-bg:${DB_PERF_COLORS[k][1]}">
             <div class="kpi-body"><span class="kpi-value">${sums ? nf.format(sums[k]) : "—"}</span><span class="kpi-unit">${sums ? "건" : ""}</span></div>
@@ -6208,7 +6207,7 @@
       };
       $("dbPeriodSub").textContent = dbView.start ? `${dbView.start.slice(0, 4)}.${md(dbView.start)} ~ ${md(dbView.end)}` : "";
       if (!dbPerf.days) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:16px;">${dbPerf.error && !dbPerf.loading ? `DB 실적을 불러오지 못했습니다 (${escapeHtml(dbPerf.error)})` : "불러오는 중…"}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:16px;">${dbPerf.error && !dbPerf.loading ? `DB 실적을 불러오지 못했습니다 (${escapeHtml(dbPerf.error)})` : "불러오는 중…"}</td></tr>`;
         tfoot.innerHTML = "";
         $("dbPerfSub").textContent = "";
         kpis(null);
@@ -6220,7 +6219,7 @@
       const before = !firstDate || end < firstDate;
       tbody.innerHTML = days.length
         ? days.map((d) => `<tr><td class="wct-name">${md(d.date)}</td>${DB_PERF_KEYS.map((k) => `<td>${nf.format(d[k] || 0)}</td>`).join("")}</tr>`).join("")
-        : `<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:16px;">${before ? "—" : "선택한 기간의 DB 실적이 없습니다"}</td></tr>`;
+        : `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:16px;">${before ? "—" : "선택한 기간의 DB 실적이 없습니다"}</td></tr>`;
       const sum = (k) => days.reduce((a, d) => a + (d[k] || 0), 0);
       tfoot.innerHTML = days.length ? `<tr><td class="wct-name">합계</td>${DB_PERF_KEYS.map((k) => `<td>${nf.format(sum(k))}</td>`).join("")}</tr>` : "";
       kpis(before ? null : Object.fromEntries(DB_PERF_KEYS.map((k) => [k, sum(k)])));
