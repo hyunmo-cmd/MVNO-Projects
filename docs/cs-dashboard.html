@@ -1305,7 +1305,7 @@
         <div class="data-table-card-header">일별 DB 실적 <span class="wct-sub" id="dbPeriodSub"></span></div>
         <div class="data-table-scroll work-table-scroll">
           <table class="data-table" id="dbPerfTable">
-            <thead><tr><th class="wct-name">일자</th><th>인입</th><th>부재</th><th>고객제외</th><th>청약대기</th><th>유심 구매</th><th>개통완료</th></tr></thead>
+            <thead><tr><th class="wct-name">일자</th><th>인입</th><th>부재</th><th>고객제외(중복 신청)</th><th>청약대기</th><th>유심 구매</th><th>개통완료</th></tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
           </table>
@@ -6134,7 +6134,7 @@
     //  인입·부재·고객제외·청약대기 = 시트2 계약번호 날짜(인입일) 기준, 유심 구매일 / 개통일 기준. ob 는 받지만 표시하지 않는다. 고객 정보는 받지 않는다.
     // 'DB 실적' 탭 전용 — 업무 현황 탭과 조회 기간을 따로 쓴다 (기본 이번 달)
     const DB_PERF_KEYS = ["inflow", "absent", "excluded", "pending", "usim", "opened"]; // OB 는 표시하지 않음(사용자 요청)
-    const DB_PERF_LABELS = { inflow: "인입", absent: "부재", excluded: "고객제외", pending: "청약대기", usim: "유심 구매", opened: "개통완료" };
+    const DB_PERF_LABELS = { inflow: "인입", absent: "부재", excluded: "고객제외(중복 신청)", pending: "청약대기", usim: "유심 구매", opened: "개통완료" };
     const DB_PERF_COLORS = { inflow: ["var(--blue)", "var(--blue-50)"], absent: ["#6B7280", "#F3F4F6"], excluded: ["var(--red)", "var(--red-50)"], pending: ["#7C3AED", "#F5F3FF"], usim: ["#0891B2", "#ECFEFF"], opened: ["var(--green)", "var(--green-50)"] };
     const DB_PERF_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7JcGRAbSkg4MDGkcwEkHBlA2l64p0HEwl5DXL-SLHRT7ivo1pVBwlo9QwowmrMHw/exec";
     const dbPerf = { days: null, updated: "", error: null, loading: false };
