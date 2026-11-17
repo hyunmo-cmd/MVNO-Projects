@@ -1010,6 +1010,7 @@
     @media (max-width: 700px) { .db-kpis { grid-template-columns: 1fr 1fr; } }
     #dbPerfTable th, #dbPerfTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #dbPerfTable .wct-name { text-align: left; }
+    #dbPerfTable thead th { white-space: normal; max-width: 160px; vertical-align: bottom; } /* 긴 지표명(청약대기 등)은 줄바꿈 */
     #dbPerfTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); }
     #workCounselorTable th, #workCounselorTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #workCounselorTable th:first-child, #workCounselorTable td:first-child { text-align: left; }
