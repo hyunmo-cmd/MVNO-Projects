@@ -1006,6 +1006,9 @@
     .work-kpi-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; }
     .work-trend-area { flex: none; height: 300px; min-height: 0; }
     .work-table-scroll { max-height: none; }
+    #dbPerfTable th, #dbPerfTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #dbPerfTable .wct-name { text-align: left; }
+    #dbPerfTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); }
     #workCounselorTable th, #workCounselorTable td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     #workCounselorTable th:first-child, #workCounselorTable td:first-child { text-align: left; }
     #workCounselorTable tfoot td { font-weight: 700; color: var(--text); background: var(--bg); border-top: 1px solid var(--border); }
@@ -1265,6 +1268,18 @@
         <div class="data-table-scroll work-table-scroll">
           <table class="data-table" id="workCounselorTable">
             <thead></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- DB 실적 (알뜰폰 OB 청약대기 트래킹 시트) — 상담사 구분 없음, 조회 기간 공통 -->
+      <div class="data-table-card">
+        <div class="data-table-card-header">DB 실적 <span class="wct-sub" id="dbPerfSub"></span></div>
+        <div class="data-table-scroll work-table-scroll">
+          <table class="data-table" id="dbPerfTable">
+            <thead><tr><th class="wct-name">일자</th><th>OB</th><th>유심 구매</th><th>개통완료</th></tr></thead>
             <tbody></tbody>
             <tfoot></tfoot>
           </table>
@@ -6089,7 +6104,53 @@
       return data;
     }
 
+    // ── DB 실적: OB 청약대기 트래킹 시트 → Apps Script 웹 앱(doGet)이 날짜별 건수만 돌려준다 ──
+    // { date, ob, usim, opened } — OB 일자 / 유심 구매일 / 개통일 기준. 고객 정보는 받지 않는다.
+    const DB_PERF_WEBAPP_URL = "";
+    const dbPerf = { days: null, updated: "", error: null };
+
+    async function loadDbPerf() {
+      if (!DB_PERF_WEBAPP_URL) { dbPerf.error = "연동 전"; renderDbPerfTable(); return; }
+      try {
+        const res = await fetch(DB_PERF_WEBAPP_URL);
+        const body = await res.json();
+        if (!body.ok) throw new Error(body.message || "응답 오류");
+        dbPerf.days = body.days || [];
+        dbPerf.updated = body.updated || "";
+        dbPerf.error = null;
+      } catch (err) {
+        dbPerf.days = null;
+        dbPerf.error = (err && err.message) || String(err);
+      }
+      renderDbPerfTable();
+    }
+
+    function renderDbPerfTable() {
+      const { start, end } = workPeriod();
+      const tbody = $("dbPerfTable").querySelector("tbody");
+      const tfoot = $("dbPerfTable").querySelector("tfoot");
+      const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
+      if (!dbPerf.days) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:16px;">${dbPerf.error ? `DB 실적을 불러오지 못했습니다 (${escapeHtml(dbPerf.error)})` : "불러오는 중…"}</td></tr>`;
+        tfoot.innerHTML = "";
+        $("dbPerfSub").textContent = "";
+        return;
+      }
+      const days = dbPerf.days.filter((d) => d.date >= start && d.date <= end);
+      const firstDate = dbPerf.days.length ? dbPerf.days[0].date : null;
+      // 시트에 데이터가 시작되기 전 기간까지 포함하면 '—'로 미수집을 구분
+      const before = !firstDate || end < firstDate;
+      tbody.innerHTML = days.length
+        ? days.map((d) => `<tr><td class="wct-name">${md(d.date)}</td><td>${nf.format(d.ob)}</td><td>${nf.format(d.usim)}</td><td>${nf.format(d.opened)}</td></tr>`).join("")
+        : `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:16px;">${before ? "—" : "선택한 기간의 DB 실적이 없습니다"}</td></tr>`;
+      const sum = (k) => days.reduce((a, d) => a + d[k], 0);
+      tfoot.innerHTML = days.length ? `<tr><td class="wct-name">합계</td><td>${nf.format(sum("ob"))}</td><td>${nf.format(sum("usim"))}</td><td>${nf.format(sum("opened"))}</td></tr>` : "";
+      const partial = firstDate && start < firstDate && end >= firstDate ? ` · ${md(firstDate)}부터 집계` : "";
+      $("dbPerfSub").textContent = `${dbPerf.updated ? dbPerf.updated.replace(/^Last updated:\s*/i, "시트 갱신 ") : ""}${partial}`;
+    }
+
     function render() {
+      renderDbPerfTable();
       const data = renderWorkCounselorTable();
       setStatus(`${data.start} ~ ${data.end} · 상담사 ${data.counselors.length}명 · ${new Date().toLocaleString("ko-KR")} 갱신`);
     }
@@ -8155,6 +8216,7 @@
       loadDmComplaints();
       loadPhoneComplaints().then(phoneComplaintRender);
       syncSheetsOnOpen(init());
+      loadDbPerf();
     }
     phoneComplaintRender();
     initManualForm();
