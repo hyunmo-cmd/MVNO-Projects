@@ -6058,6 +6058,8 @@
       { title: "전산처리", src: "admin", cols: [{ label: "건수", drill: true, value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
       { title: "채널톡", src: "chat", cols: [{ label: "건수", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
       { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
+      // 총 근무시간 = 통화 + 후처리 + 전산처리 + 채널톡 + 개통 시간 (src 없음 → 출처 하나라도 수집됐으면 표시)
+      { title: "총 근무시간", src: null, cols: [{ label: "합계", time: true, value: (s) => callMinutes(s) + s.after.minutes + s.admin.minutes + s.chat.minutes + s.open.minutes }] },
     ];
     const WORK_SOURCES = { call: ["call_in", "call_out"], after: ["after"], admin: ["admin"], chat: ["chat"], open: ["open"] };
     const workTableOpen = new Set(); // 펼친 상담사 — 기간을 바꿔도 유지되고 새 기간 기준으로 다시 그린다
@@ -6124,6 +6126,7 @@
 
       // 조회 기간 중 일부만 수집된 출처 → 머리글에 수집 범위 표시
       const partialNote = (src) => {
+        if (!src) return "";
         const c = data.cov[src];
         if (!covers(c, data.start, data.end)) return "";
         const head = c.from > data.start ? `${md(c.from)}~` : "";
@@ -6133,7 +6136,8 @@
       // name: 상담사(합계 행은 ""), drill 열은 누르면 상세 팝업
       const cellsFor = (sums, from, to, workDays, name) => WORK_TABLE_GROUPS.map((g) => g.cols.map((col, i) => {
         const cls = i === 0 ? ' class="wct-group-start"' : "";
-        if (!covers(data.cov[g.src], from, to)) return `<td${cls}><span class="wct-na">—</span></td>`;
+        const covered = g.src ? covers(data.cov[g.src], from, to) : Object.values(data.cov).some((c) => covers(c, from, to));
+        if (!covered) return `<td${cls}><span class="wct-na">—</span></td>`;
         const v = col.value(sums, workDays);
         const text = col.time ? fmtHms(v) : col.pct ? `${v.toFixed(1)}%` : nf.format(v);
         const body = col.drill && v
