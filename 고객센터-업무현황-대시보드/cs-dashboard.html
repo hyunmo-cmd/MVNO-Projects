@@ -5791,6 +5791,7 @@
       { key: "call_in",  label: "수신",   name: "통화(수신)", color: "#2563EB" },
       { key: "call_out", label: "발신",   name: "통화(발신)", color: "#7C3AED" },
       { key: "after",    label: "후처리", name: "후처리",     color: "#0891B2", dash: [6, 4] },
+      { key: "admin",    label: "전산처리", name: "전산처리", color: "#4B5563" },
       { key: "chat",     label: "채널톡", name: "채널톡",     color: "#059669" },
       { key: "open",     label: "개통",   name: "개통",       color: "#D97706" },
     ];
@@ -5820,7 +5821,7 @@
     const RECORD_WORK_TYPES = {
       open: (r) => r.main === "개통 업무" && (r.sub === "온라인 개통" || r.sub === "오프라인 개통"),
     };
-    const SHEET_WORK_TYPES = new Set(["call_in", "call_out", "chat", "open"]);
+    const SHEET_WORK_TYPES = new Set(["call_in", "call_out", "chat", "open", "admin"]);
     const sheetWork = { rows: [], syncedAt: null, error: null };
     const workView = { metric: "count", view: "daily" };
 
@@ -6014,10 +6015,10 @@
     //  - 통화: 수신 + 발신 건수 / 후처리: 기존 후처리 시간 / 채널톡·개통: 건수 + 총 시간 (모두 합계, 평균 아님)
     //  - 출처별 실제 수집 기간(workCoverage) 밖의 날짜는 '—'(미수집), 기간 안인데 실적이 없으면 0
     //  - 조회 기간 일부만 수집된 출처는 머리글에 수집 범위를 표시해 전체 합계로 보이지 않게 한다
-    //  - 근무 대비: 통화 시간 ÷ (근무일수 × WORK_HOURS_PER_DAY). 근무일수 = 그 상담사의 통화 또는 개통 실적이 있는 날 수
+    //  - 근무 대비: 통화 시간 ÷ (근무일수 × WORK_HOURS_PER_DAY). 근무일수 = 그 상담사의 통화·개통·전산처리 실적이 있는 날 수
     //    (채널톡만 있는 날은 휴일에도 담당자로 잡히는 경우가 있어 제외. 산출 기준은 화면에 표시하지 않는다)
     const WORK_HOURS_PER_DAY = 8;
-    const WORK_DAY_TYPES = ["call_in", "call_out", "open"];
+    const WORK_DAY_TYPES = ["call_in", "call_out", "open", "admin"];
     const callMinutes = (s) => s.call_in.minutes + s.call_out.minutes;
     const WORK_TABLE_GROUPS = [
       { title: "통화", src: "call", cols: [
@@ -6027,10 +6028,11 @@
         { label: "근무 대비", pct: true, value: (s, workDays) => (workDays ? (callMinutes(s) / (workDays * WORK_HOURS_PER_DAY * 60)) * 100 : 0) },
       ] },
       { title: "후처리", src: "after", cols: [{ label: "총 시간", time: true, value: (s) => s.after.minutes }] },
+      { title: "전산처리", src: "admin", cols: [{ label: "건수", value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
       { title: "채널톡", src: "chat", cols: [{ label: "건수", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
       { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
     ];
-    const WORK_SOURCES = { call: ["call_in", "call_out"], after: ["after"], chat: ["chat"], open: ["open"] };
+    const WORK_SOURCES = { call: ["call_in", "call_out"], after: ["after"], admin: ["admin"], chat: ["chat"], open: ["open"] };
     const workTableOpen = new Set(); // 펼친 상담사 — 기간을 바꿔도 유지되고 새 기간 기준으로 다시 그린다
 
     // 출처별 수집 기간 { from, to } (데이터가 전혀 없으면 null)

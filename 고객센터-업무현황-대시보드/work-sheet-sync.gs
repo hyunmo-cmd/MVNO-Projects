@@ -14,6 +14,7 @@
  *     - 시간 열이 없어 건수만 보낸다(대시보드가 건당 시간으로 환산).
  *   개통  (날짜 · 상담사 · 구분 · 건수 · 소요시간(분))
  *     - 구분 '개통 업무'·'수동 개통'을 모두 개통으로 합산한다.
+ *   전산처리 업무  (개통과 같은 양식) → work_type 'admin'. 항목(원문)은 쓰지 않고 건수·소요시간만 합산한다.
  *
  * 상담사 이름은 전송 직전에 김*옥 형태로 마스킹된다. 고객 정보는 읽지도 보내지도 않는다.
  *
@@ -38,6 +39,7 @@
 var GENESYS_PREFIX = '제네시스_';
 var CHANNEL_SHEET = '채널톡';
 var OPEN_SHEET = '개통';
+var ADMIN_SHEET = '전산처리 업무';
 var LOG_SHEET_NAME = '동기화 로그';
 var SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 웹 앱 호출 간 최소 간격
 
@@ -187,23 +189,23 @@ function readWorkSheet_() {
     }
   }
 
-  // ── 개통 ──
-  var op = ss.getSheetByName(OPEN_SHEET);
-  if (!op) errors.push('"' + OPEN_SHEET + '" 탭이 없습니다.');
-  else {
-    var t3 = readTable_(op, ['날짜', '상담사', '건수', '소요시간(분)']);
-    if (t3.error) errors.push(OPEN_SHEET + ': ' + t3.error);
-    else t3.rows.forEach(function (row) {
-      var line = OPEN_SHEET + ' ' + row.line + '행';
+  // ── 개통 · 전산처리 (같은 양식: 날짜 · 상담사 · 건수 · 소요시간(분)) ──
+  [{ tab: OPEN_SHEET, type: 'open', required: true }, { tab: ADMIN_SHEET, type: 'admin', required: false }].forEach(function (src) {
+    var sh = ss.getSheetByName(src.tab);
+    if (!sh) { if (src.required) errors.push('"' + src.tab + '" 탭이 없습니다.'); return; }
+    var t3 = readTable_(sh, ['날짜', '상담사', '건수', '소요시간(분)']);
+    if (t3.error) return errors.push(src.tab + ': ' + t3.error);
+    t3.rows.forEach(function (row) {
+      var line = src.tab + ' ' + row.line + '행';
       var name = norm_(row.text['상담사']);
       var date = toDateKey_(row.raw['날짜'], row.text['날짜'], tz);
       if (!date) return errors.push(line + ': 날짜 형식 오류 (' + row.text['날짜'] + ')');
       if (!name) return errors.push(line + ': 상담사가 비어 있습니다.');
       var cnt = toNumber_(row.text['건수']), min = toNumber_(row.text['소요시간(분)']);
       if (cnt === null || min === null || cnt < 0 || min < 0) return errors.push(line + ': 건수·소요시간 형식 오류');
-      add(date, name, 'open', Math.round(cnt), Math.round(min * 60));
+      add(date, name, src.type, Math.round(cnt), Math.round(min * 60));
     });
-  }
+  });
 
   var rows = Object.keys(totals).sort().map(function (key) {
     var p = key.split('|');
@@ -261,7 +263,7 @@ function maskName_(name) {
 function summarize_(rows) {
   var t = {};
   rows.forEach(function (r) { t[r.work_type] = (t[r.work_type] || 0) + r.count; });
-  return '수신 ' + (t.call_in || 0) + '건, 발신 ' + (t.call_out || 0) + '건, 채널톡 ' + (t.chat || 0) + '건, 개통 ' + (t.open || 0) + '건';
+  return '수신 ' + (t.call_in || 0) + '건, 발신 ' + (t.call_out || 0) + '건, 채널톡 ' + (t.chat || 0) + '건, 개통 ' + (t.open || 0) + '건, 전산처리 ' + (t.admin || 0) + '건';
 }
 
 function writeLog_(status, rowCount, message) {
