@@ -34,6 +34,8 @@
  *   대시보드가 열릴 때 doGet 이 호출되어 syncWorkDaily 와 같은 동기화를 한다.
  *   응답은 성공 여부와 행 수뿐이며 시트 데이터는 돌려주지 않는다.
  *   여러 명이 동시에 열어도 SYNC_MIN_INTERVAL_MS 안에 이미 동기화했으면 건너뛴다.
+ *   ?view=admin&start=&end= 로 부르면 동기화 없이 전산처리 항목 내역(날짜·상담사(마스킹)·항목·건수·분)만 돌려준다.
+ *   코드를 고친 뒤에는 배포 관리 > 편집 > 버전: 새 버전 으로 다시 배포해야 웹 앱에 반영된다.
  */
 
 var GENESYS_PREFIX = '제네시스_';
@@ -65,7 +67,13 @@ function previewWorkDaily() {
 function syncWorkDaily() { sync_(false); }
 
 // 웹 앱 진입점: 대시보드 접속 시 호출. 동시 실행·잦은 호출은 건너뛴다.
-function doGet() {
+//   ?view=admin&start=yyyy-MM-dd&end=yyyy-MM-dd : 동기화 없이 전산처리 항목 내역만 돌려준다(팝업용)
+function doGet(e) {
+  var p = (e && e.parameter) || {};
+  if (p.view === 'admin') {
+    try { return json_({ ok: true, items: readAdminItems_(p.start, p.end) }); }
+    catch (err) { return json_({ ok: false, message: String(err) }); }
+  }
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return json_({ ok: true, skipped: 'running' });
   try {
@@ -212,6 +220,31 @@ function readWorkSheet_() {
     return { date: p[0], agent: p[1], work_type: p[2], count: totals[key].count, seconds: totals[key].seconds };
   });
   return { rows: rows, errors: errors, notes: notes };
+}
+
+// 전산처리 항목 내역 (팝업용): [{ date, agent(마스킹), item, count, minutes }] — 고객 정보 없음
+function readAdminItems_(start, end) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(ADMIN_SHEET);
+  if (!sh) return [];
+  var tz = ss.getSpreadsheetTimeZone();
+  var t = readTable_(sh, ['날짜', '상담사', '건수', '소요시간(분)']);
+  if (t.error) throw new Error(ADMIN_SHEET + ': ' + t.error);
+  var out = [];
+  t.rows.forEach(function (row) {
+    var date = toDateKey_(row.raw['날짜'], row.text['날짜'], tz);
+    var name = norm_(row.text['상담사']);
+    if (!date || !name) return;
+    if ((start && date < start) || (end && date > end)) return;
+    out.push({
+      date: date,
+      agent: maskName_(name),
+      item: norm_(row.text['항목(원문)']) || '(항목 없음)',
+      count: Math.round(toNumber_(row.text['건수']) || 0),
+      minutes: toNumber_(row.text['소요시간(분)']) || 0,
+    });
+  });
+  return out;
 }
 
 // 1~5행에서 필수 헤더가 모두 있는 행을 찾아, 이후 행을 { line, raw{헤더:값}, text{헤더:표시값} } 로 돌려준다.

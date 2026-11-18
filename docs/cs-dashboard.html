@@ -1026,6 +1026,11 @@
     #workCounselorTable tr.wct-day td { background: var(--bg); color: var(--text-2); font-size: 12px; }
     #workCounselorTable tr.wct-day td.wct-name { padding-left: 34px; color: var(--muted); }
     #workCounselorTable .wct-na { color: var(--muted); }
+    #workCounselorTable .wct-drill { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+    #workCounselorTable .wct-drill:hover { text-decoration-style: solid; }
+    #adminModalTable th, #adminModalTable td { font-variant-numeric: tabular-nums; }
+    #adminModalTable td.num, #adminModalTable th.num { text-align: right; white-space: nowrap; }
+    #adminModalTable tfoot td { font-weight: 700; border-top: 1px solid var(--border); background: var(--bg); }
     #workCounselorTable .wct-partial { display: block; font-size: 10px; font-weight: 500; color: #D97706; }
     .wct-sub { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 6px; }
     @media (max-width: 1100px) { .kpis--5 { grid-template-columns: repeat(3, 1fr); } }
@@ -1275,6 +1280,28 @@
             <tbody></tbody>
             <tfoot></tfoot>
           </table>
+        </div>
+      </div>
+
+      <!-- 전산처리 상세 팝업: 상담사 표의 전산처리 건수를 누르면 시트의 항목(원문) 내역을 보여준다 -->
+      <div class="cmp-modal-overlay" id="adminModalOverlay" style="display:none">
+        <div class="cmp-modal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+          <div class="cmp-modal-header">
+            <div>
+              <h3 class="cmp-modal-title" id="adminModalTitle">전산처리 상세</h3>
+              <p class="cmp-modal-sub" id="adminModalSub"></p>
+            </div>
+            <button type="button" class="cmp-modal-close" id="adminModalCloseBtn" aria-label="닫기">×</button>
+          </div>
+          <div class="cmp-modal-toolbar">
+            <div class="call-view-toggle" role="tablist" aria-label="보기">
+              <button type="button" class="active" data-admin-view="item">항목별</button>
+              <button type="button" data-admin-view="list">일자별</button>
+            </div>
+          </div>
+          <div class="cmp-modal-body">
+            <table class="complaint-table" id="adminModalTable"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+          </div>
         </div>
       </div>
 
@@ -6028,7 +6055,7 @@
         { label: "근무 대비", pct: true, value: (s, workDays) => (workDays ? (callMinutes(s) / (workDays * WORK_HOURS_PER_DAY * 60)) * 100 : 0) },
       ] },
       { title: "후처리", src: "after", cols: [{ label: "총 시간", time: true, value: (s) => s.after.minutes }] },
-      { title: "전산처리", src: "admin", cols: [{ label: "건수", value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
+      { title: "전산처리", src: "admin", cols: [{ label: "건수", drill: true, value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
       { title: "채널톡", src: "chat", cols: [{ label: "건수", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
       { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
     ];
@@ -6103,11 +6130,16 @@
         const tail = c.to < data.expectedEnd ? `~${md(c.to)}` : "";
         return head || tail ? `<span class="wct-partial">${head && tail ? `${md(c.from)}~${md(c.to)}` : head || tail} 집계</span>` : "";
       };
-      const cellsFor = (sums, from, to, workDays) => WORK_TABLE_GROUPS.map((g) => g.cols.map((col, i) => {
+      // name: 상담사(합계 행은 ""), drill 열은 누르면 상세 팝업
+      const cellsFor = (sums, from, to, workDays, name) => WORK_TABLE_GROUPS.map((g) => g.cols.map((col, i) => {
         const cls = i === 0 ? ' class="wct-group-start"' : "";
         if (!covers(data.cov[g.src], from, to)) return `<td${cls}><span class="wct-na">—</span></td>`;
         const v = col.value(sums, workDays);
-        return `<td${cls}>${col.time ? fmtHms(v) : col.pct ? `${v.toFixed(1)}%` : nf.format(v)}</td>`;
+        const text = col.time ? fmtHms(v) : col.pct ? `${v.toFixed(1)}%` : nf.format(v);
+        const body = col.drill && v
+          ? `<button type="button" class="wct-drill" data-drill-name="${escapeHtml(name)}" data-drill-from="${from}" data-drill-to="${to}" title="상세 보기">${text}</button>`
+          : text;
+        return `<td${cls}>${body}</td>`;
       }).join("")).join("");
 
       const table = $("workCounselorTable");
@@ -6119,13 +6151,13 @@
       table.querySelector("tbody").innerHTML = data.counselors.length
         ? data.counselors.map((c) => {
             const open = workTableOpen.has(c.name);
-            const row = `<tr><td class="wct-name"><button type="button" class="wct-toggle" data-wct-name="${escapeHtml(c.name)}" aria-expanded="${open}" title="일별 내역">${open ? "▼" : "▶"}</button>${escapeHtml(c.name)}</td>${cellsFor(c.sums, data.start, data.end, c.workDays)}</tr>`;
-            const days = open ? c.days.map((d) => `<tr class="wct-day"><td class="wct-name">${md(d.date)}</td>${cellsFor(d.sums, d.date, d.date, 1)}</tr>`).join("") : "";
+            const row = `<tr><td class="wct-name"><button type="button" class="wct-toggle" data-wct-name="${escapeHtml(c.name)}" aria-expanded="${open}" title="일별 내역">${open ? "▼" : "▶"}</button>${escapeHtml(c.name)}</td>${cellsFor(c.sums, data.start, data.end, c.workDays, c.name)}</tr>`;
+            const days = open ? c.days.map((d) => `<tr class="wct-day"><td class="wct-name">${md(d.date)}</td>${cellsFor(d.sums, d.date, d.date, 1, c.name)}</tr>`).join("") : "";
             return row + days;
           }).join("")
         : `<tr><td colspan="${colCount}" style="color:var(--muted);text-align:center;padding:16px;">선택한 기간의 데이터가 없습니다</td></tr>`;
       table.querySelector("tfoot").innerHTML = data.counselors.length
-        ? `<tr><td class="wct-name">합계 (${data.counselors.length}명)</td>${cellsFor(data.total, data.start, data.end, data.totalWorkDays)}</tr>`
+        ? `<tr><td class="wct-name">합계 (${data.counselors.length}명)</td>${cellsFor(data.total, data.start, data.end, data.totalWorkDays, "")}</tr>`
         : "";
       const period = data.start === data.end ? md(data.start) : `${data.start.slice(0, 4)}.${md(data.start)} ~ ${md(data.end)}`;
       $("workTableSub").textContent = `${period} 누적 · 상담사를 펼치면 일별 내역`;
@@ -6255,12 +6287,95 @@
     }
 
     $("workCounselorTable").addEventListener("click", (e) => {
+      const drill = e.target.closest(".wct-drill");
+      if (drill) { openAdminModal(drill.dataset.drillName, drill.dataset.drillFrom, drill.dataset.drillTo); return; }
       const btn = e.target.closest(".wct-toggle");
       if (!btn) return;
       const name = btn.dataset.wctName;
       if (workTableOpen.has(name)) workTableOpen.delete(name); else workTableOpen.add(name);
       renderWorkCounselorTable();
     });
+
+    // ── 전산처리 상세 팝업: 업무 현황 시트 웹 앱(?view=admin)에서 항목(원문) 내역을 받아온다 ──
+    // 받는 값: 날짜 · 상담사(마스킹) · 항목 · 건수 · 분. 같은 기간은 다시 열어도 한 번만 요청한다.
+    const adminItemCache = new Map();
+    const adminModal = { name: "", from: "", to: "", view: "item", items: null, error: null };
+
+    async function fetchAdminItems(from, to) {
+      const key = `${from}|${to}`;
+      if (!adminItemCache.has(key)) {
+        adminItemCache.set(key, (async () => {
+          const res = await fetch(`${WORK_SYNC_WEBAPP_URL}?view=admin&start=${from}&end=${to}`);
+          const body = await res.json();
+          if (!body.ok || !Array.isArray(body.items)) throw new Error(body.message || "웹 앱이 항목 내역을 지원하지 않습니다 (새 버전 배포 필요)");
+          return body.items;
+        })().catch((err) => { adminItemCache.delete(key); throw err; }));
+      }
+      return adminItemCache.get(key);
+    }
+
+    async function openAdminModal(name, from, to) {
+      Object.assign(adminModal, { name, from, to, items: null, error: null });
+      const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
+      $("adminModalTitle").textContent = `${name || "전체 상담사"} · 전산처리 상세`;
+      $("adminModalSub").textContent = from === to ? md(from) : `${md(from)} ~ ${md(to)}`;
+      $("adminModalOverlay").style.display = "flex";
+      renderAdminModal();
+      try {
+        const all = await fetchAdminItems(from, to);
+        if (adminModal.name !== name || adminModal.from !== from || adminModal.to !== to) return; // 그 사이 다른 칸을 연 경우
+        adminModal.items = all.filter((r) => !name || r.agent === name);
+      } catch (err) {
+        adminModal.error = (err && err.message) || String(err);
+      }
+      renderAdminModal();
+    }
+
+    function renderAdminModal() {
+      const table = $("adminModalTable");
+      const head = table.querySelector("thead"), body = table.querySelector("tbody"), foot = table.querySelector("tfoot");
+      const showAgent = !adminModal.name;
+      const items = adminModal.items;
+      if (!items) {
+        head.innerHTML = ""; foot.innerHTML = "";
+        body.innerHTML = `<tr><td style="color:var(--muted);text-align:center;padding:24px;">${adminModal.error ? `불러오지 못했습니다 (${escapeHtml(adminModal.error)})` : "불러오는 중…"}</td></tr>`;
+        return;
+      }
+      const totalCount = items.reduce((a, r) => a + r.count, 0);
+      const totalMin = items.reduce((a, r) => a + r.minutes, 0);
+      if (adminModal.view === "item") {
+        const map = new Map();
+        items.forEach((r) => {
+          const g = map.get(r.item) || { item: r.item, count: 0, minutes: 0, days: new Set() };
+          g.count += r.count; g.minutes += r.minutes; g.days.add(r.date);
+          map.set(r.item, g);
+        });
+        const rows = [...map.values()].sort((a, b) => b.count - a.count || b.minutes - a.minutes);
+        head.innerHTML = `<tr><th>항목</th><th class="num">건수</th><th class="num">총 시간</th><th class="num">일수</th></tr>`;
+        body.innerHTML = rows.length
+          ? rows.map((g) => `<tr><td>${escapeHtml(g.item)}</td><td class="num">${nf.format(g.count)}</td><td class="num">${fmtHms(g.minutes)}</td><td class="num">${g.days.size}</td></tr>`).join("")
+          : `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px;">내역이 없습니다</td></tr>`;
+        foot.innerHTML = `<tr><td>합계 (${rows.length}개 항목)</td><td class="num">${nf.format(totalCount)}</td><td class="num">${fmtHms(totalMin)}</td><td></td></tr>`;
+      } else {
+        const rows = [...items].sort((a, b) => a.date.localeCompare(b.date) || a.agent.localeCompare(b.agent, "ko"));
+        const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
+        head.innerHTML = `<tr><th>일자</th>${showAgent ? "<th>상담사</th>" : ""}<th>항목</th><th class="num">건수</th><th class="num">시간</th></tr>`;
+        body.innerHTML = rows.length
+          ? rows.map((r) => `<tr><td>${md(r.date)}</td>${showAgent ? `<td>${escapeHtml(r.agent)}</td>` : ""}<td>${escapeHtml(r.item)}</td><td class="num">${nf.format(r.count)}</td><td class="num">${fmtHms(r.minutes)}</td></tr>`).join("")
+          : `<tr><td colspan="${showAgent ? 5 : 4}" style="color:var(--muted);text-align:center;padding:24px;">내역이 없습니다</td></tr>`;
+        foot.innerHTML = `<tr><td colspan="${showAgent ? 3 : 2}">합계</td><td class="num">${nf.format(totalCount)}</td><td class="num">${fmtHms(totalMin)}</td></tr>`;
+      }
+    }
+
+    document.querySelectorAll("[data-admin-view]").forEach((b) => b.addEventListener("click", () => {
+      adminModal.view = b.dataset.adminView;
+      document.querySelectorAll("[data-admin-view]").forEach((x) => x.classList.toggle("active", x === b));
+      renderAdminModal();
+    }));
+    const closeAdminModal = () => { $("adminModalOverlay").style.display = "none"; };
+    $("adminModalCloseBtn").addEventListener("click", closeAdminModal);
+    $("adminModalOverlay").addEventListener("click", (e) => { if (e.target === $("adminModalOverlay")) closeAdminModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("adminModalOverlay").style.display !== "none") closeAdminModal(); });
 
     function canvasSetup(canvas) {
       const rect = canvas.parentElement.getBoundingClientRect();
