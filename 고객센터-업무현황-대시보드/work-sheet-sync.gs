@@ -35,6 +35,7 @@
  *   응답은 성공 여부와 행 수뿐이며 시트 데이터는 돌려주지 않는다.
  *   여러 명이 동시에 열어도 SYNC_MIN_INTERVAL_MS 안에 이미 동기화했으면 건너뛴다.
  *   ?view=admin&start=&end= 로 부르면 동기화 없이 전산처리 항목 내역(날짜·상담사(마스킹)·항목·건수·분)만 돌려준다.
+ *   ?view=chat&start=&end= 로 부르면 동기화 없이 채널톡 문의 유형(tags) 집계(날짜·상담사(마스킹)·유형·건수)만 돌려준다.
  *   코드를 고친 뒤에는 배포 관리 > 편집 > 버전: 새 버전 으로 다시 배포해야 웹 앱에 반영된다.
  */
 
@@ -68,10 +69,15 @@ function syncWorkDaily() { sync_(false); }
 
 // 웹 앱 진입점: 대시보드 접속 시 호출. 동시 실행·잦은 호출은 건너뛴다.
 //   ?view=admin&start=yyyy-MM-dd&end=yyyy-MM-dd : 동기화 없이 전산처리 항목 내역만 돌려준다(팝업용)
+//   ?view=chat&start=yyyy-MM-dd&end=yyyy-MM-dd  : 동기화 없이 채널톡 문의 유형 집계만 돌려준다(팝업용)
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (p.view === 'admin') {
     try { return json_({ ok: true, items: readAdminItems_(p.start, p.end) }); }
+    catch (err) { return json_({ ok: false, message: String(err) }); }
+  }
+  if (p.view === 'chat') {
+    try { return json_({ ok: true, items: readChatTags_(p.start, p.end) }); }
     catch (err) { return json_({ ok: false, message: String(err) }); }
   }
   var lock = LockService.getScriptLock();
@@ -245,6 +251,43 @@ function readAdminItems_(start, end) {
     });
   });
   return out;
+}
+
+// 채널톡 문의 유형 집계 (팝업용): [{ date, agent(마스킹), tag, count }] — 고객 정보 없음
+//   동기화와 같은 기준(같은 id 1번만, 참여 상담사마다 1건)으로 세고, 상담 1건에 유형이 여럿이면 유형마다 1건씩 센다.
+//   유형이 없는 상담은 '(유형 없음)'으로 센다.
+function readChatTags_(start, end) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(CHANNEL_SHEET);
+  if (!sh) return [];
+  var tz = ss.getSpreadsheetTimeZone();
+  var t = readTable_(sh, ['managedAt', 'managerIds']);
+  if (t.error) throw new Error(CHANNEL_SHEET + ': ' + t.error);
+  var seen = {}, totals = {};
+  t.rows.forEach(function (row) {
+    var id = norm_(row.text['id']);
+    if (id) { if (seen[id]) return; seen[id] = true; }
+    var date = toDateKey_(row.raw['managedAt'], row.text['managedAt'], tz);
+    if (!date) return;
+    if ((start && date < start) || (end && date > end)) return;
+    var tags = String(row.text['tags'] || '').split(',').map(norm_).filter(Boolean);
+    if (!tags.length) tags = ['(유형 없음)'];
+    var uniq = {};
+    tags = tags.filter(function (g) { if (uniq[g]) return false; uniq[g] = true; return true; });
+    String(row.text['managerIds']).split(/[,\s]+/).filter(Boolean).forEach(function (mid) {
+      var name = CHANNEL_MANAGERS[mid];
+      if (!name) return;
+      var agent = maskName_(name);
+      tags.forEach(function (tag) {
+        var key = date + '|' + agent + '|' + tag;
+        totals[key] = (totals[key] || 0) + 1;
+      });
+    });
+  });
+  return Object.keys(totals).map(function (key) {
+    var p = key.split('|');
+    return { date: p[0], agent: p[1], tag: p.slice(2).join('|'), count: totals[key] };
+  });
 }
 
 // 1~5행에서 필수 헤더가 모두 있는 행을 찾아, 이후 행을 { line, raw{헤더:값}, text{헤더:표시값} } 로 돌려준다.

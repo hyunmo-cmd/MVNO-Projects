@@ -1063,161 +1063,14 @@
 
     <!-- Tab Navigation -->
     <nav class="tab-nav" aria-label="탭 메뉴">
-      <button class="tab-btn active" data-tab="input" type="button">업무 입력</button>
-      <button class="tab-btn" data-tab="status" type="button">업무 현황</button>
+      <button class="tab-btn active" data-tab="status" type="button">업무 현황</button>
       <button class="tab-btn" data-tab="complaint" type="button">민원 관리</button>
       <button class="tab-btn" data-tab="call" type="button">통화 현황</button>
       <button class="tab-btn" data-tab="db" type="button">DB 실적</button>
     </nav>
 
-    <!-- ══ Tab 1: 업무 입력 ══════════════════════════════════ -->
-    <div class="tab-panel" id="tab-input">
-      <div class="input-panel">
-        <div class="input-subtabs" role="tablist" aria-label="업무 입력 방식">
-          <button class="input-subtab-btn active" data-input-tab="ai" type="button">AI 입력</button>
-          <button class="input-subtab-btn" data-input-tab="upload" type="button">파일 업로드</button>
-          <button class="input-subtab-btn" data-input-tab="manual" type="button">직접 입력</button>
-        </div>
-
-        <div class="input-subtab-panel hidden" id="inputSubtab-upload">
-          <p class="input-section-title">파일 업로드 <span class="badge">유선 상담 · 채널톡 · 1:1 문의</span></p>
-          <div class="upload-grid">
-            <div class="upload-slot">
-              <p class="upload-slot-title">유선 문의 CSV <span class="upload-slot-ext">.csv</span></p>
-              <label class="upload-dropzone" id="phoneDropzone">
-                <svg class="upload-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span class="upload-dropzone-text">클릭하거나 파일을 끌어다 놓으세요</span>
-                <input id="phoneFile" type="file" accept=".csv,text/csv">
-              </label>
-              <div class="upload-file-row">
-                <div class="upload-filename" id="phoneFileName">파일을 선택해주세요</div>
-                <button id="phoneClearBtn" class="upload-file-clear" type="button" title="파일 취소" style="display:none">×</button>
-              </div>
-              <div class="preview-wrap" id="phonePreviewWrap">
-                <div class="preview-label">미리보기 (최대 5행)</div>
-                <div class="preview-scroll"><table class="preview-table" id="phonePreviewTable"></table></div>
-              </div>
-            </div>
-            <div class="upload-slot">
-              <p class="upload-slot-title">채널톡 Excel <span class="upload-slot-ext">.xlsx</span></p>
-              <label class="upload-dropzone" id="channelDropzone">
-                <svg class="upload-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span class="upload-dropzone-text">클릭하거나 파일을 끌어다 놓으세요</span>
-                <input id="channelFile" type="file" accept=".xlsx">
-              </label>
-              <label class="upload-password-label">파일 암호 <small>(암호가 걸려 있는 경우)</small>
-                <input id="channelPassword" type="password" placeholder="암호를 입력하세요" autocomplete="off">
-              </label>
-              <div class="upload-file-row">
-                <div class="upload-filename" id="channelFileName">파일을 선택해주세요</div>
-                <button id="channelClearBtn" class="upload-file-clear" type="button" title="파일 취소" style="display:none">×</button>
-              </div>
-              <div class="preview-wrap" id="channelPreviewWrap">
-                <div class="preview-label">미리보기 (최대 5행)</div>
-                <div class="preview-scroll"><table class="preview-table" id="channelPreviewTable"></table></div>
-              </div>
-            </div>
-            <div class="upload-slot">
-              <p class="upload-slot-title">1:1 문의 Excel <span class="upload-slot-ext">.xlsx</span></p>
-              <label class="upload-dropzone" id="dmWorkDropzone">
-                <svg class="upload-dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span class="upload-dropzone-text">클릭하거나 파일을 끌어다 놓으세요</span>
-                <input id="dmWorkFile" type="file" accept=".xlsx">
-              </label>
-              <div class="upload-file-row">
-                <div class="upload-filename" id="dmWorkFileName">파일을 선택해주세요</div>
-                <button id="dmWorkClearBtn" class="upload-file-clear" type="button" title="파일 취소" style="display:none">×</button>
-              </div>
-              <div class="preview-wrap" id="dmWorkPreviewWrap">
-                <div class="preview-label">미리보기 (최대 5행)</div>
-                <div class="preview-scroll"><table class="preview-table" id="dmWorkPreviewTable"></table></div>
-              </div>
-            </div>
-          </div>
-          <div class="upload-actions">
-            <button class="apply-btn" id="applyBtn" type="button">반영하기</button>
-            <div class="upload-msg" id="uploadMsg"></div>
-          </div>
-        </div>
-
-        <div class="input-subtab-panel" id="inputSubtab-ai">
-          <p class="input-section-title">AI 자연어 분석 <span class="badge badge--ai">자동</span></p>
-          <p class="ai-desc">단톡방 업무 보고를 그대로 붙여넣으면 AI가 자동으로 분석합니다.<br>날짜·상담사명이 포함되어 있으면 자동 인식하고, 애매한 경우에는 확인을 요청합니다.</p>
-
-          <div class="ai-input-wrap">
-            <textarea id="aiTextInput" class="ai-textarea" rows="6" placeholder="예시:
-김순옥 6/27 업무보고
-가입확인서 발급 3건
-유심변경 2건
-해지 1건 30분
-오프라인 개통 2건 60분"></textarea>
-            <div class="ai-actions">
-              <button class="btn btn-primary" id="aiAnalyzeBtn" type="button">분석하기</button>
-              <button class="btn btn-ghost" id="aiClearBtn" type="button">초기화</button>
-              <span class="ai-hint">날짜(예: 6/27)와 상담사 이름이 포함되면 자동으로 인식합니다.</span>
-            </div>
-          </div>
-
-          <div id="aiResultArea" style="display:none;margin-top:16px">
-            <div class="ai-result-header">
-              <div>
-                <span class="ai-result-title">분석 결과</span>
-                <span id="aiResultStats" class="ai-stats"></span>
-              </div>
-              <button class="btn btn-ghost btn-sm" id="aiAddRowBtn" type="button">+ 행 추가</button>
-            </div>
-
-            <div class="ai-result-table-wrap">
-              <table class="ai-result-table">
-                <thead>
-                  <tr>
-                    <th style="width:26px"></th>
-                    <th>날짜</th>
-                    <th>상담사</th>
-                    <th>대분류</th>
-                    <th>소분류</th>
-                    <th style="width:60px">건수</th>
-                    <th style="width:70px">시간(분)</th>
-                    <th style="width:32px"></th>
-                  </tr>
-                </thead>
-                <tbody id="aiResultBody"></tbody>
-              </table>
-            </div>
-
-            <div class="ai-result-footer">
-              <span id="aiResultWarning" class="ai-warning"></span>
-              <button class="btn btn-primary" id="aiConfirmBtn" type="button">대시보드에 반영</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="input-subtab-panel hidden" id="inputSubtab-manual">
-          <p class="input-section-title">직접 입력 <span class="badge">수동</span></p>
-          <div class="manual-form">
-            <label>날짜<input id="manualDate" type="date"></label>
-            <label>상담사<select id="manualCounselor">
-              <option value="">선택</option>
-              <option value="김순옥">김순옥</option>
-              <option value="진수진">진수진</option>
-              <option value="박재혁">박재혁</option>
-            </select></label>
-            <label>대분류<select id="manualMain">
-              <option value="">선택</option>
-            </select></label>
-            <label>소분류<select id="manualSub">
-              <option value="">선택</option>
-            </select></label>
-            <label>건수<input id="manualCount" type="number" min="1" placeholder="0"></label>
-            <label>시간(분)<input id="manualMinutes" type="number" min="0" placeholder="0"></label>
-            <button class="manual-add-btn" id="manualAddBtn" type="button">추가</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ══ Tab 2: 업무 현황 ══════════════════════════════════ -->
-    <div class="tab-panel hidden" id="tab-status">
+    <div class="tab-panel" id="tab-status">
 
       <!-- Filter Bar: 조회 기간 (기본 이번 달) -->
       <section class="filter-bar" aria-label="필터">
@@ -1295,7 +1148,7 @@
           </div>
           <div class="cmp-modal-toolbar">
             <div class="call-view-toggle" role="tablist" aria-label="보기">
-              <button type="button" class="active" data-admin-view="item">항목별</button>
+              <button type="button" class="active" data-admin-view="item" id="adminModalItemTab">항목별</button>
               <button type="button" data-admin-view="list">일자별</button>
             </div>
           </div>
@@ -6055,8 +5908,8 @@
         { label: "근무 대비", pct: true, value: (s, workDays) => (workDays ? (callMinutes(s) / (workDays * WORK_HOURS_PER_DAY * 60)) * 100 : 0) },
       ] },
       { title: "후처리", src: "after", cols: [{ label: "총 시간", time: true, value: (s) => s.after.minutes }] },
-      { title: "전산처리", src: "admin", cols: [{ label: "건수", drill: true, value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
-      { title: "채널톡", src: "chat", cols: [{ label: "건수", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
+      { title: "전산처리", src: "admin", cols: [{ label: "건수", drill: "admin", value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
+      { title: "채널톡", src: "chat", cols: [{ label: "건수", drill: "chat", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
       { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
       // 총 근무시간 = 통화 + 후처리 + 전산처리 + 채널톡 + 개통 시간 (src 없음 → 출처 하나라도 수집됐으면 표시)
       { title: "총 근무시간", src: null, cols: [{ label: "합계", time: true, value: (s) => callMinutes(s) + s.after.minutes + s.admin.minutes + s.chat.minutes + s.open.minutes }] },
@@ -6141,7 +5994,7 @@
         const v = col.value(sums, workDays);
         const text = col.time ? fmtHms(v) : col.pct ? `${v.toFixed(1)}%` : nf.format(v);
         const body = col.drill && v
-          ? `<button type="button" class="wct-drill" data-drill-name="${escapeHtml(name)}" data-drill-from="${from}" data-drill-to="${to}" title="상세 보기">${text}</button>`
+          ? `<button type="button" class="wct-drill" data-drill-kind="${col.drill}" data-drill-name="${escapeHtml(name)}" data-drill-from="${from}" data-drill-to="${to}" title="상세 보기">${text}</button>`
           : text;
         return `<td${cls}>${body}</td>`;
       }).join("")).join("");
@@ -6292,7 +6145,7 @@
 
     $("workCounselorTable").addEventListener("click", (e) => {
       const drill = e.target.closest(".wct-drill");
-      if (drill) { openAdminModal(drill.dataset.drillName, drill.dataset.drillFrom, drill.dataset.drillTo); return; }
+      if (drill) { openAdminModal(drill.dataset.drillKind, drill.dataset.drillName, drill.dataset.drillFrom, drill.dataset.drillTo, Number(drill.textContent.replace(/[^0-9]/g, "")) || 0); return; }
       const btn = e.target.closest(".wct-toggle");
       if (!btn) return;
       const name = btn.dataset.wctName;
@@ -6300,34 +6153,42 @@
       renderWorkCounselorTable();
     });
 
-    // ── 전산처리 상세 팝업: 업무 현황 시트 웹 앱(?view=admin)에서 항목(원문) 내역을 받아온다 ──
-    // 받는 값: 날짜 · 상담사(마스킹) · 항목 · 건수 · 분. 같은 기간은 다시 열어도 한 번만 요청한다.
+    // ── 상세 팝업 (전산처리 · 채널톡): 업무 현황 시트 웹 앱에서 내역을 받아온다 ──
+    //   admin (?view=admin): 날짜 · 상담사(마스킹) · 항목(원문) · 건수 · 분
+    //   chat  (?view=chat) : 날짜 · 상담사(마스킹) · 문의 유형(tags) · 건수 — 상담 1건에 유형이 여럿이면 유형마다 1건
+    // 같은 종류·기간은 다시 열어도 한 번만 요청한다.
+    const DRILL_KINDS = {
+      admin: { title: "전산처리 상세", itemLabel: "항목", itemTab: "항목별", timed: true, label: (r) => r.item },
+      chat: { title: "채널톡 문의 유형", itemLabel: "문의 유형", itemTab: "유형별", timed: false, label: (r) => r.tag },
+    };
     const adminItemCache = new Map();
-    const adminModal = { name: "", from: "", to: "", view: "item", items: null, error: null };
+    const adminModal = { kind: "admin", name: "", from: "", to: "", total: 0, view: "item", items: null, error: null };
 
-    async function fetchAdminItems(from, to) {
-      const key = `${from}|${to}`;
+    async function fetchDrillItems(kind, from, to) {
+      const key = `${kind}|${from}|${to}`;
       if (!adminItemCache.has(key)) {
         adminItemCache.set(key, (async () => {
-          const res = await fetch(`${WORK_SYNC_WEBAPP_URL}?view=admin&start=${from}&end=${to}`);
+          const res = await fetch(`${WORK_SYNC_WEBAPP_URL}?view=${kind}&start=${from}&end=${to}`);
           const body = await res.json();
-          if (!body.ok || !Array.isArray(body.items)) throw new Error(body.message || "웹 앱이 항목 내역을 지원하지 않습니다 (새 버전 배포 필요)");
+          if (!body.ok || !Array.isArray(body.items)) throw new Error(body.message || "웹 앱이 이 내역을 지원하지 않습니다 (새 버전 배포 필요)");
           return body.items;
         })().catch((err) => { adminItemCache.delete(key); throw err; }));
       }
       return adminItemCache.get(key);
     }
 
-    async function openAdminModal(name, from, to) {
-      Object.assign(adminModal, { name, from, to, items: null, error: null });
+    async function openAdminModal(kind, name, from, to, total) {
+      const k = DRILL_KINDS[kind] || DRILL_KINDS.admin;
+      Object.assign(adminModal, { kind, name, from, to, total, items: null, error: null });
       const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
-      $("adminModalTitle").textContent = `${name || "전체 상담사"} · 전산처리 상세`;
+      $("adminModalTitle").textContent = `${name || "전체 상담사"} · ${k.title}`;
       $("adminModalSub").textContent = from === to ? md(from) : `${md(from)} ~ ${md(to)}`;
+      $("adminModalItemTab").textContent = k.itemTab;
       $("adminModalOverlay").style.display = "flex";
       renderAdminModal();
       try {
-        const all = await fetchAdminItems(from, to);
-        if (adminModal.name !== name || adminModal.from !== from || adminModal.to !== to) return; // 그 사이 다른 칸을 연 경우
+        const all = await fetchDrillItems(kind, from, to);
+        if (adminModal.kind !== kind || adminModal.name !== name || adminModal.from !== from || adminModal.to !== to) return; // 그 사이 다른 칸을 연 경우
         adminModal.items = all.filter((r) => !name || r.agent === name);
       } catch (err) {
         adminModal.error = (err && err.message) || String(err);
@@ -6336,38 +6197,47 @@
     }
 
     function renderAdminModal() {
+      const k = DRILL_KINDS[adminModal.kind] || DRILL_KINDS.admin;
       const table = $("adminModalTable");
       const head = table.querySelector("thead"), body = table.querySelector("tbody"), foot = table.querySelector("tfoot");
       const showAgent = !adminModal.name;
       const items = adminModal.items;
+      const sub = $("adminModalSub");
+      const period = sub.textContent.split(" · ")[0];
+      sub.textContent = k.timed || !items ? period : `${period} · 상담 ${nf.format(adminModal.total)}건 · 유형이 여럿인 상담은 유형마다 1건씩 셉니다`;
       if (!items) {
         head.innerHTML = ""; foot.innerHTML = "";
         body.innerHTML = `<tr><td style="color:var(--muted);text-align:center;padding:24px;">${adminModal.error ? `불러오지 못했습니다 (${escapeHtml(adminModal.error)})` : "불러오는 중…"}</td></tr>`;
         return;
       }
       const totalCount = items.reduce((a, r) => a + r.count, 0);
-      const totalMin = items.reduce((a, r) => a + r.minutes, 0);
+      const totalMin = items.reduce((a, r) => a + (r.minutes || 0), 0);
+      const timeTh = k.timed ? '<th class="num">총 시간</th>' : "";
+      const empty = (cols) => `<tr><td colspan="${cols}" style="color:var(--muted);text-align:center;padding:24px;">내역이 없습니다</td></tr>`;
       if (adminModal.view === "item") {
         const map = new Map();
         items.forEach((r) => {
-          const g = map.get(r.item) || { item: r.item, count: 0, minutes: 0, days: new Set() };
-          g.count += r.count; g.minutes += r.minutes; g.days.add(r.date);
-          map.set(r.item, g);
+          const label = k.label(r);
+          const g = map.get(label) || { label, count: 0, minutes: 0, days: new Set() };
+          g.count += r.count; g.minutes += r.minutes || 0; g.days.add(r.date);
+          map.set(label, g);
         });
         const rows = [...map.values()].sort((a, b) => b.count - a.count || b.minutes - a.minutes);
-        head.innerHTML = `<tr><th>항목</th><th class="num">건수</th><th class="num">총 시간</th><th class="num">일수</th></tr>`;
+        const pct = (n) => (totalCount ? `${((n / totalCount) * 100).toFixed(1)}%` : "");
+        head.innerHTML = `<tr><th>${k.itemLabel}</th><th class="num">건수</th>${k.timed ? timeTh : '<th class="num">비율</th>'}<th class="num">일수</th></tr>`;
         body.innerHTML = rows.length
-          ? rows.map((g) => `<tr><td>${escapeHtml(g.item)}</td><td class="num">${nf.format(g.count)}</td><td class="num">${fmtHms(g.minutes)}</td><td class="num">${g.days.size}</td></tr>`).join("")
-          : `<tr><td colspan="4" style="color:var(--muted);text-align:center;padding:24px;">내역이 없습니다</td></tr>`;
-        foot.innerHTML = `<tr><td>합계 (${rows.length}개 항목)</td><td class="num">${nf.format(totalCount)}</td><td class="num">${fmtHms(totalMin)}</td><td></td></tr>`;
+          ? rows.map((g) => `<tr><td>${escapeHtml(g.label)}</td><td class="num">${nf.format(g.count)}</td><td class="num">${k.timed ? fmtHms(g.minutes) : pct(g.count)}</td><td class="num">${g.days.size}</td></tr>`).join("")
+          : empty(4);
+        foot.innerHTML = `<tr><td>합계 (${rows.length}개 ${k.itemLabel})</td><td class="num">${nf.format(totalCount)}</td><td class="num">${k.timed ? fmtHms(totalMin) : ""}</td><td></td></tr>`;
       } else {
-        const rows = [...items].sort((a, b) => a.date.localeCompare(b.date) || a.agent.localeCompare(b.agent, "ko"));
+        const rows = [...items].sort((a, b) => a.date.localeCompare(b.date) || a.agent.localeCompare(b.agent, "ko") || b.count - a.count);
         const md = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}`;
-        head.innerHTML = `<tr><th>일자</th>${showAgent ? "<th>상담사</th>" : ""}<th>항목</th><th class="num">건수</th><th class="num">시간</th></tr>`;
+        const cols = (showAgent ? 4 : 3) + (k.timed ? 1 : 0);
+        head.innerHTML = `<tr><th>일자</th>${showAgent ? "<th>상담사</th>" : ""}<th>${k.itemLabel}</th><th class="num">건수</th>${k.timed ? '<th class="num">시간</th>' : ""}</tr>`;
         body.innerHTML = rows.length
-          ? rows.map((r) => `<tr><td>${md(r.date)}</td>${showAgent ? `<td>${escapeHtml(r.agent)}</td>` : ""}<td>${escapeHtml(r.item)}</td><td class="num">${nf.format(r.count)}</td><td class="num">${fmtHms(r.minutes)}</td></tr>`).join("")
-          : `<tr><td colspan="${showAgent ? 5 : 4}" style="color:var(--muted);text-align:center;padding:24px;">내역이 없습니다</td></tr>`;
-        foot.innerHTML = `<tr><td colspan="${showAgent ? 3 : 2}">합계</td><td class="num">${nf.format(totalCount)}</td><td class="num">${fmtHms(totalMin)}</td></tr>`;
+          ? rows.map((r) => `<tr><td>${md(r.date)}</td>${showAgent ? `<td>${escapeHtml(r.agent)}</td>` : ""}<td>${escapeHtml(k.label(r))}</td><td class="num">${nf.format(r.count)}</td>${k.timed ? `<td class="num">${fmtHms(r.minutes)}</td>` : ""}</tr>`).join("")
+          : empty(cols);
+        foot.innerHTML = `<tr><td colspan="${showAgent ? 3 : 2}">합계</td><td class="num">${nf.format(totalCount)}</td>${k.timed ? `<td class="num">${fmtHms(totalMin)}</td>` : ""}</tr>`;
       }
     }
 
@@ -6889,184 +6759,6 @@
       });
     });
     $("resetBtn").addEventListener("click", () => setFilters() || applyFilters());
-    function clearPhoneFile() {
-      $("phoneFile").value = "";
-      $("phoneFileName").textContent = "파일을 선택해주세요";
-      $("phoneClearBtn").style.display = "none";
-      renderPreview(null, "phonePreviewTable", "phonePreviewWrap");
-      pending.phone = null;
-    }
-    function clearChannelFile() {
-      $("channelFile").value = "";
-      $("channelFileName").textContent = "파일을 선택해주세요";
-      $("channelClearBtn").style.display = "none";
-      renderPreview(null, "channelPreviewTable", "channelPreviewWrap");
-      pending.channel = null;
-    }
-
-    $("phoneClearBtn").addEventListener("click", () => { clearPhoneFile(); showUploadMsg("", ""); });
-    $("channelClearBtn").addEventListener("click", () => { clearChannelFile(); showUploadMsg("", ""); });
-
-    $("phoneFile").addEventListener("change", async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      $("phoneFileName").textContent = file.name;
-      $("phoneClearBtn").style.display = "inline-flex";
-      try {
-        const newRows = parsePhoneConsultationCsv(await file.text());
-        if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. 처리건수가 0인 행은 제외됩니다.");
-        pending.phone = { rows: newRows, name: file.name };
-        renderPreview(newRows, "phonePreviewTable", "phonePreviewWrap");
-        showUploadMsg("success", `유선 문의 CSV 로드 완료 (${nf.format(newRows.length)}건) — 반영하기 버튼을 눌러 적용하세요.`);
-      } catch (error) {
-        pending.phone = null;
-        renderPreview(null, "phonePreviewTable", "phonePreviewWrap");
-        showUploadMsg("error", `유선 CSV 오류: ${error.message}`);
-      }
-    });
-    $("channelFile").addEventListener("change", async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      $("channelFileName").textContent = file.name;
-      $("channelClearBtn").style.display = "inline-flex";
-      try {
-        const password = $("channelPassword").value || undefined;
-        const newRows = parseChannelTalkXlsx(await file.arrayBuffer(), password);
-        if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. firstAnsweredAt이 비어 있는 행은 제외됩니다.");
-        pending.channel = { rows: newRows, name: file.name };
-        renderPreview(newRows, "channelPreviewTable", "channelPreviewWrap");
-        showUploadMsg("success", `채널톡 Excel 로드 완료 (${nf.format(newRows.length)}건) — 반영하기 버튼을 눌러 적용하세요.`);
-      } catch (error) {
-        pending.channel = null;
-        renderPreview(null, "channelPreviewTable", "channelPreviewWrap");
-        showUploadMsg("error", `채널톡 Excel 오류: ${error.message}`);
-      }
-    });
-    $("dmWorkFile").addEventListener("change", async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      $("dmWorkFileName").textContent = file.name;
-      $("dmWorkClearBtn").style.display = "inline-flex";
-      try {
-        // 업무 입력 탭은 날짜+상담사별 합산 건수만 필요하고, mergeUploadedRows가
-        // 같은 (날짜·상담사·소분류) 조합을 덮어쓰는 방식이라 재업로드 시 자동으로 갱신된다.
-        const parsed = parseOneToOneXlsx(await file.arrayBuffer());
-        const newRows = parsed.dailyTotals.map(g => ({
-          dateText: g.date, date: parseDate(g.date), month: monthLabel(parseDate(g.date)),
-          counselor: g.counselor, main: "고객 상담 업무", sub: "1:1 문의", count: g.count, minutes: 0, source: "one_to_one_excel"
-        }));
-        if (!newRows.length) throw new Error("처리 가능한 데이터가 없습니다. (처리 완료 · 상담사 매핑된 행 없음)");
-        pending.dm = { rows: newRows, name: file.name, summary: parsed.summary };
-        renderPreview(newRows, "dmWorkPreviewTable", "dmWorkPreviewWrap");
-        const s = parsed.summary;
-        showUploadMsg("success", `1:1 문의 Excel 로드 완료 (전체 ${nf.format(s.totalRows)}행 · 처리대상 ${nf.format(s.validRows)}건 · 접수제외 ${nf.format(s.receptionExcluded)} · 미매핑 ${nf.format(s.unmappedCounselor)}) — 반영하기 버튼을 눌러 적용하세요.`);
-      } catch (error) {
-        pending.dm = null;
-        renderPreview(null, "dmWorkPreviewTable", "dmWorkPreviewWrap");
-        showUploadMsg("error", `1:1 문의 Excel 오류: ${error.message}`);
-      }
-    });
-
-    // 파일 업로드 드롭존: 클릭은 label-input 연결로 처리되고, 드래그&드롭만 여기서 보강한다
-    function wireUploadDropzone(dropzoneId, inputId) {
-      const zone = $(dropzoneId);
-      const input = $(inputId);
-      ["dragenter", "dragover"].forEach(evt => zone.addEventListener(evt, e => {
-        e.preventDefault(); e.stopPropagation(); zone.classList.add("dragover");
-      }));
-      ["dragleave", "drop"].forEach(evt => zone.addEventListener(evt, e => {
-        e.preventDefault(); e.stopPropagation(); zone.classList.remove("dragover");
-      }));
-      zone.addEventListener("drop", e => {
-        const files = e.dataTransfer?.files;
-        if (!files || !files.length) return;
-        input.files = files;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-    }
-    wireUploadDropzone("phoneDropzone", "phoneFile");
-    wireUploadDropzone("channelDropzone", "channelFile");
-    wireUploadDropzone("dmWorkDropzone", "dmWorkFile");
-
-    $("applyBtn").addEventListener("click", async () => {
-      if (!pending.phone && !pending.channel && !pending.dm) {
-        showUploadMsg("error", "반영할 파일이 없습니다. 파일을 먼저 선택해주세요.");
-        return;
-      }
-      const btn = $("applyBtn");
-      btn.disabled = true;
-      try {
-        const labels = [];
-        if (pending.phone) {
-          await mergeUploadedRows(pending.phone.rows, "유선 상담");
-          const followupRows = pending.phone.rows.map((r) => ({
-            ...r,
-            sub: "후처리(전화 상담)",
-            minutes: r.count * 1,
-            source: "auto_followup"
-          }));
-          await mergeUploadedRows(followupRows, "후처리(전화 상담)");
-          labels.push(`유선 문의: ${pending.phone.name}`);
-          pending.phone = null;
-        }
-        if (pending.channel) {
-          await mergeUploadedRows(pending.channel.rows, "채널톡");
-          labels.push(`채널톡: ${pending.channel.name}`);
-          pending.channel = null;
-        }
-        if (pending.dm) {
-          await mergeUploadedRows(pending.dm.rows, "1:1 문의");
-          labels.push(`1:1 문의: ${pending.dm.name}`);
-          pending.dm = null;
-        }
-        setFilters();
-        applyFilters();
-        showUploadMsg("success", `반영 완료: ${labels.join(", ")}`);
-        setStatus(`업로드 반영 · ${nf.format(state.rows.length)}개 행 · ${dataRangeText(state.rows)}`);
-      } catch (error) {
-        showUploadMsg("error", `반영 오류: ${error.message}`);
-      } finally {
-        btn.disabled = false;
-      }
-    });
-    // AI 입력 이벤트
-    $("aiAnalyzeBtn").addEventListener("click", () => {
-      const text = $("aiTextInput").value.trim();
-      if (!text) { alert("업무 보고 내용을 입력해주세요."); return; }
-      const rows = analyzeReport(text);
-      if (!rows.length) {
-        alert("분석할 업무 내용이 없습니다.\n건수(예: 3건)가 포함된 항목을 입력해주세요.");
-        return;
-      }
-      renderAiResults(rows);
-    });
-    $("aiClearBtn").addEventListener("click", () => {
-      $("aiTextInput").value = "";
-      $("aiResultArea").style.display = "none";
-      aiPendingRows = [];
-    });
-    $("aiAddRowBtn").addEventListener("click", aiAddRow);
-    $("aiConfirmBtn").addEventListener("click", confirmAiResults);
-
-    // 직접 입력
-    function initManualForm() {
-      $("manualDate").value = new Date().toISOString().slice(0, 10);
-      const mainSel = $("manualMain");
-      Object.keys(MANUAL_CATEGORIES).forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m; opt.textContent = m;
-        mainSel.appendChild(opt);
-      });
-    }
-    $("manualMain").addEventListener("change", () => {
-      const subSel = $("manualSub");
-      subSel.innerHTML = '<option value="">선택</option>';
-      (MANUAL_CATEGORIES[$("manualMain").value] || []).forEach(s => {
-        const opt = document.createElement("option");
-        opt.value = s; opt.textContent = s;
-        subSel.appendChild(opt);
-      });
-    });
     // "최근 입력 내역"은 별도 저장소 없이 state.rows 중 source==="manual"인
     // 행에서 바로 뽑아 보여준다 — Supabase가 유일한 저장소이므로 항상 최신 상태.
     function renderManualLog() {
@@ -7099,42 +6791,6 @@
       renderManualLog();
       applyFilters();
     }
-    $("manualAddBtn").addEventListener("click", async () => {
-      const dateText = $("manualDate").value;
-      const counselor = $("manualCounselor").value;
-      const main = $("manualMain").value;
-      const sub = $("manualSub").value;
-      const count = parseInt($("manualCount").value) || 0;
-      const minutes = parseInt($("manualMinutes").value) || 0;
-      if (!dateText || !counselor || !main || !sub || !count) {
-        alert("날짜, 상담사, 대분류, 소분류, 건수를 모두 입력해주세요.");
-        return;
-      }
-      const displayCounselor = MANUAL_COUNSELORS[counselor] || counselor;
-      const d = parseDate(dateText);
-      const draft = {
-        dateText,
-        date: d,
-        month: d ? monthLabel(d) : "",
-        counselor: displayCounselor,
-        main, sub, count, minutes,
-        source: "manual"
-      };
-      const btn = $("manualAddBtn");
-      btn.disabled = true;
-      const { data, error } = await insertWorkRecords([draft]);
-      btn.disabled = false;
-      if (error || !data.length) {
-        alert(saveFailMessage(error));
-        return;
-      }
-      state.rows.push({ ...draft, _id: data[0].id });
-      renderManualLog();
-      applyFilters();
-      $("manualCount").value = "";
-      $("manualMinutes").value = "";
-    });
-
     // ══ 민원 관리 탭 ═══════════════════════════════════════
 
     const PHONE_COMPLAINT_KEY = "mvno-phone-complaint-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
@@ -8392,15 +8048,6 @@
       });
     });
 
-    // 업무 입력 탭: AI 입력 / 파일 업로드 / 직접 입력 서브탭 전환
-    document.querySelectorAll(".input-subtab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.inputTab;
-        document.querySelectorAll(".input-subtab-btn").forEach((b) => b.classList.toggle("active", b === btn));
-        document.querySelectorAll(".input-subtab-panel").forEach((p) => p.classList.toggle("hidden", p.id !== `inputSubtab-${target}`));
-      });
-    });
-
     // 접속 시 Apps Script 웹 앱에 시트 → Supabase 동기화를 요청하고, 새로 반영되면 화면을 다시 그린다.
     // (5분 안에 이미 동기화됐으면 웹 앱이 건너뛰고 skipped 를 돌려준다. 주소가 비어 있으면 요청하지 않음)
     const WORK_SYNC_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyDPQJeKT-UrF_3ZQaV0JrjsuGHz-JMUxEtP6-JnexumRm4S9oFbnEBNX3-qx6qDFU/exec";
@@ -8437,7 +8084,6 @@
       loadDbPerf();
     }
     phoneComplaintRender();
-    initManualForm();
     initCallTab();
     window.addEventListener("resize", () => { render(); renderCall(); });
     bootstrap();
