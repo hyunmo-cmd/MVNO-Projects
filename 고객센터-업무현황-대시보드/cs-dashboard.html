@@ -6155,7 +6155,7 @@
 
     // ── 상세 팝업 (전산처리 · 채널톡): 업무 현황 시트 웹 앱에서 내역을 받아온다 ──
     //   admin (?view=admin): 날짜 · 상담사(마스킹) · 항목(원문) · 건수 · 분
-    //   chat  (?view=chat) : 날짜 · 상담사(마스킹) · 문의 유형(tags) · 건수 — 상담 1건에 유형이 여럿이면 유형마다 1건
+    //   chat  (?view=chat) : 날짜 · 상담사(마스킹) · 문의 유형(tags 맨 앞 1개) · 건수
     // 같은 종류·기간은 다시 열어도 한 번만 요청한다.
     const DRILL_KINDS = {
       admin: { title: "전산처리 상세", itemLabel: "항목", itemTab: "항목별", timed: true, label: (r) => r.item },
@@ -6202,9 +6202,6 @@
       const head = table.querySelector("thead"), body = table.querySelector("tbody"), foot = table.querySelector("tfoot");
       const showAgent = !adminModal.name;
       const items = adminModal.items;
-      const sub = $("adminModalSub");
-      const period = sub.textContent.split(" · ")[0];
-      sub.textContent = k.timed || !items ? period : `${period} · 상담 ${nf.format(adminModal.total)}건 · 유형이 여럿인 상담은 유형마다 1건씩 셉니다`;
       if (!items) {
         head.innerHTML = ""; foot.innerHTML = "";
         body.innerHTML = `<tr><td style="color:var(--muted);text-align:center;padding:24px;">${adminModal.error ? `불러오지 못했습니다 (${escapeHtml(adminModal.error)})` : "불러오는 중…"}</td></tr>`;

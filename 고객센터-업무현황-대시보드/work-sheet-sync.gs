@@ -254,7 +254,7 @@ function readAdminItems_(start, end) {
 }
 
 // 채널톡 문의 유형 집계 (팝업용): [{ date, agent(마스킹), tag, count }] — 고객 정보 없음
-//   동기화와 같은 기준(같은 id 1번만, 참여 상담사마다 1건)으로 세고, 상담 1건에 유형이 여럿이면 유형마다 1건씩 센다.
+//   동기화와 같은 기준(같은 id 1번만, 참여 상담사마다 1건)으로 세고, 유형이 여럿이면 맨 앞 유형만 쓴다.
 //   유형이 없는 상담은 '(유형 없음)'으로 센다.
 function readChatTags_(start, end) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -270,18 +270,12 @@ function readChatTags_(start, end) {
     var date = toDateKey_(row.raw['managedAt'], row.text['managedAt'], tz);
     if (!date) return;
     if ((start && date < start) || (end && date > end)) return;
-    var tags = String(row.text['tags'] || '').split(',').map(norm_).filter(Boolean);
-    if (!tags.length) tags = ['(유형 없음)'];
-    var uniq = {};
-    tags = tags.filter(function (g) { if (uniq[g]) return false; uniq[g] = true; return true; });
+    var tag = String(row.text['tags'] || '').split(',').map(norm_).filter(Boolean)[0] || '(유형 없음)';
     String(row.text['managerIds']).split(/[,\s]+/).filter(Boolean).forEach(function (mid) {
       var name = CHANNEL_MANAGERS[mid];
       if (!name) return;
-      var agent = maskName_(name);
-      tags.forEach(function (tag) {
-        var key = date + '|' + agent + '|' + tag;
-        totals[key] = (totals[key] || 0) + 1;
-      });
+      var key = date + '|' + maskName_(name) + '|' + tag;
+      totals[key] = (totals[key] || 0) + 1;
     });
   });
   return Object.keys(totals).map(function (key) {
