@@ -5741,7 +5741,14 @@
         if (type === "open" && sheetOpen.has(`${r.dateText}|${r.counselor}`)) return;
         if (type) fromRecords.push({ dateText: r.dateText, counselor: r.counselor, type, count: r.count || 0, minutes: r.minutes || 0 });
       });
-      return [...fromRecords, ...sheetWork.rows, ...afterCallItems(sheetWork.rows)];
+      return [...fromRecords, ...sheetWork.rows, ...afterCallItems(sheetWork.rows), ...planItems()];
+    }
+
+    // 요금제 유치: OB 청약대기 트래킹(DB 실적 웹 앱)의 개통완료 건수(개통일자 기준)를 OB 아르바이트 실적으로 넣는다.
+    // 트래킹 시트에는 상담사 열이 없어 OB 담당(PLAN_AGENT) 한 줄로 묶는다. 추이 그래프·카드에는 넣지 않고 상담사 표에만 쓴다.
+    const PLAN_AGENT = "OB 아르바이트";
+    function planItems() {
+      return (dbPerf.days || []).filter((d) => d.opened > 0).map((d) => ({ dateText: d.date, counselor: PLAN_AGENT, type: "plan", count: d.opened, minutes: 0 }));
     }
 
     function renderWorkSyncInfo() {
@@ -5798,6 +5805,7 @@
     function sumByWorkType(rows) {
       const out = {};
       WORK_TYPES.forEach((w) => { out[w.key] = { count: 0, minutes: 0 }; });
+      out.plan = { count: 0, minutes: 0 }; // 요금제 유치 (상담사 표 전용)
       rows.forEach((r) => {
         if (!out[r.type]) return;
         out[r.type].count += r.count || 0;
@@ -5914,10 +5922,11 @@
       { title: "전산처리", src: "admin", cols: [{ label: "건수", drill: "admin", value: (s) => s.admin.count }, { label: "총 시간", time: true, value: (s) => s.admin.minutes }] },
       { title: "채널톡", src: "chat", cols: [{ label: "건수", drill: "chat", value: (s) => s.chat.count }, { label: "총 시간", time: true, value: (s) => s.chat.minutes }] },
       { title: "개통", src: "open", cols: [{ label: "건수", value: (s) => s.open.count }, { label: "총 시간", time: true, value: (s) => s.open.minutes }] },
+      { title: "요금제 유치", src: "plan", cols: [{ label: "건수", value: (s) => s.plan.count }] },
       // 총 근무시간 = 통화 + 후처리 + 전산처리 + 채널톡 + 개통 시간 (src 없음 → 출처 하나라도 수집됐으면 표시)
       { title: "총 근무시간", src: null, cols: [{ label: "합계", time: true, value: (s) => callMinutes(s) + s.after.minutes + s.admin.minutes + s.chat.minutes + s.open.minutes }] },
     ];
-    const WORK_SOURCES = { call: ["call_in", "call_out"], after: ["after"], admin: ["admin"], chat: ["chat"], open: ["open"] };
+    const WORK_SOURCES = { call: ["call_in", "call_out"], after: ["after"], admin: ["admin"], chat: ["chat"], open: ["open"], plan: ["plan"] };
     const workTableOpen = new Set(); // 펼친 상담사 — 기간을 바꿔도 유지되고 새 기간 기준으로 다시 그린다
 
     // 출처별 수집 기간 { from, to } (데이터가 전혀 없으면 null)
@@ -5927,6 +5936,9 @@
         const dates = items.filter((r) => types.includes(r.type)).map((r) => r.dateText).sort();
         cov[src] = dates.length ? { from: dates[0], to: dates[dates.length - 1] } : null;
       });
+      // 요금제 유치는 실적 있는 날만 행이 생기므로 수집 기간은 트래킹 데이터 전체 기간으로 잡는다
+      const pd = (dbPerf.days || []).map((d) => d.date).sort();
+      cov.plan = pd.length ? { from: pd[0], to: pd[pd.length - 1] } : null;
       return cov;
     }
 
@@ -6080,6 +6092,7 @@
       }
       if (dbView.range === "all") setDbRange("all"); // 전체 범위는 데이터를 받은 뒤 확정
       else renderDbPerfTable();
+      try { renderWorkCounselorTable(); } catch (e) { /* 업무 현황 초기화 전 */ }
     }
 
     function renderDbPerfTable() {
