@@ -5,7 +5,9 @@
  * 원본 탭을 그대로 읽어 날짜 × 상담사 × 업무 단위로 합산한 뒤 전송한다. 탭 양식은 바꿀 필요 없음.
  *
  *   제네시스_<이름>  (Genesys 상담원 성능 상세, 하루 1행)
- *     간격 시작(날짜) · 상담원 이름 · 응답됨(=수신 건수) · 발신(=발신 건수) · 총 대화(ms)
+ *     간격 시작(날짜) · 응답됨(=수신 건수) · 발신(=발신 건수) · 총 대화(ms)
+ *     - OUTBOUND_TABS(OB 아르바이트)는 발신 = 처리 − 응답됨 으로 센다.
+ *     - 상담사 이름은 탭 이름(제네시스_ 뒤)을 쓴다. 예: 제네시스_OB 아르바이트 → 'OB 아르바이트'(사람 이름이 아니라 가리지 않음)
  *     - 총 대화 시간은 수신·발신 구분이 없어 건수 비율로 나눈다.
  *     - 새 상담사가 오면 '제네시스_이름' 탭을 추가하기만 하면 자동으로 읽는다.
  *   채널톡  (채팅 목록, 채팅 1건 = 1행)
@@ -16,7 +18,7 @@
  *     - 구분 '개통 업무'·'수동 개통'을 모두 개통으로 합산한다.
  *   전산처리 업무  (개통과 같은 양식) → work_type 'admin'. 항목(원문)은 쓰지 않고 건수·소요시간만 합산한다.
  *
- * 상담사 이름은 전송 직전에 김*옥 형태로 마스킹된다. 고객 정보는 읽지도 보내지도 않는다.
+ * 상담사 이름은 실명 그대로 보낸다(2026-11 마스킹 해제). 고객 정보는 읽지도 보내지도 않는다.
  *
  * 스크립트 속성(프로젝트 설정 > 스크립트 속성)에 등록:
  *   SYNC_URL           = https://<프로젝트ref>.supabase.co/functions/v1/sheet-sync
@@ -34,8 +36,8 @@
  *   대시보드가 열릴 때 doGet 이 호출되어 syncWorkDaily 와 같은 동기화를 한다.
  *   응답은 성공 여부와 행 수뿐이며 시트 데이터는 돌려주지 않는다.
  *   여러 명이 동시에 열어도 SYNC_MIN_INTERVAL_MS 안에 이미 동기화했으면 건너뛴다.
- *   ?view=admin&start=&end= 로 부르면 동기화 없이 전산처리 항목 내역(날짜·상담사(마스킹)·항목·건수·분)만 돌려준다.
- *   ?view=chat&start=&end= 로 부르면 동기화 없이 채널톡 문의 유형(tags) 집계(날짜·상담사(마스킹)·유형·건수)만 돌려준다.
+ *   ?view=admin&start=&end= 로 부르면 동기화 없이 전산처리 항목 내역(날짜·상담사·항목·건수·분)만 돌려준다.
+ *   ?view=chat&start=&end= 로 부르면 동기화 없이 채널톡 문의 유형(tags) 집계(날짜·상담사·유형·건수)만 돌려준다.
  *   코드를 고친 뒤에는 배포 관리 > 편집 > 버전: 새 버전 으로 다시 배포해야 웹 앱에 반영된다.
  */
 
@@ -45,6 +47,8 @@ var OPEN_SHEET = '개통';
 var ADMIN_SHEET = '전산처리 업무';
 var LOG_SHEET_NAME = '동기화 로그';
 var SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 웹 앱 호출 간 최소 간격
+// 발신 업무 위주 탭(제네시스_ 뒤 이름). 발신 = 처리 − 응답됨 으로 센다. 나머지 상담사는 '발신' 열 그대로.
+var OUTBOUND_TABS = ['OB 아르바이트'];
 
 // 채널톡 상담사 ID → 이름. 새 상담사가 오면 여기에 추가한다.
 var CHANNEL_MANAGERS = {
@@ -165,12 +169,18 @@ function readWorkSheet_() {
     var seen = {};
     t.rows.forEach(function (row) {
       var line = tab + ' ' + row.line + '행';
-      var name = norm_(row.text['상담원 이름']) || tab.slice(GENESYS_PREFIX.length);
+      // 이름은 탭 이름(제네시스_뒤)을 쓴다. 'OB 아르바이트'처럼 Genesys 계정명(교육생_02)과 다른 경우가 있어서.
+      var name = norm_(tab.slice(GENESYS_PREFIX.length)) || norm_(row.text['상담원 이름']);
       var date = toDateKey_(row.raw['간격 시작'], row.text['간격 시작'], tz);
       if (!date) return errors.push(line + ': 날짜 형식 오류 (' + row.text['간격 시작'] + ')');
       if (seen[date]) return errors.push(line + ': ' + date + ' 중복 (' + seen[date] + '행과 같은 날짜)');
       seen[date] = row.line;
       var inCnt = toNumber_(row.text['응답됨']), outCnt = toNumber_(row.text['발신']);
+      // 발신 위주 탭(OB 아르바이트)은 '발신' 열에 캠페인 통화가 빠지는 날이 있어 처리 − 응답됨 으로 센다.
+      if (OUTBOUND_TABS.indexOf(name) !== -1) {
+        var handled = toNumber_(row.text['처리']);
+        if (handled !== null && inCnt !== null && handled >= inCnt) outCnt = handled - inCnt;
+      }
       var talkMs = toNumber_(String(row.raw['총 대화']));
       if (inCnt === null || outCnt === null || talkMs === null) return errors.push(line + ': 숫자 형식 오류');
       var talkSec = Math.round(talkMs / 1000);
@@ -228,7 +238,7 @@ function readWorkSheet_() {
   return { rows: rows, errors: errors, notes: notes };
 }
 
-// 전산처리 항목 내역 (팝업용): [{ date, agent(마스킹), item, count, minutes }] — 고객 정보 없음
+// 전산처리 항목 내역 (팝업용): [{ date, agent, item, count, minutes }] — 고객 정보 없음
 function readAdminItems_(start, end) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName(ADMIN_SHEET);
@@ -253,7 +263,7 @@ function readAdminItems_(start, end) {
   return out;
 }
 
-// 채널톡 문의 유형 집계 (팝업용): [{ date, agent(마스킹), tag, count }] — 고객 정보 없음
+// 채널톡 문의 유형 집계 (팝업용): [{ date, agent, tag, count }] — 고객 정보 없음
 //   동기화와 같은 기준(같은 id 1번만, 참여 상담사마다 1건)으로 세고, 유형이 여럿이면 맨 앞 유형만 쓴다.
 //   유형이 없는 상담은 '(유형 없음)'으로 센다.
 function readChatTags_(start, end) {
@@ -323,12 +333,8 @@ function toDateKey_(raw, text, tz) {
   return y + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
 }
 
-// 대시보드와 같은 마스킹 규칙: 2글자 → 김*, 3글자 이상 → 김*옥 (이미 *가 있으면 그대로)
-function maskName_(name) {
-  if (name.indexOf('*') !== -1 || name.length <= 1) return name;
-  if (name.length === 2) return name[0] + '*';
-  return name[0] + new Array(name.length - 1).join('*') + name[name.length - 1];
-}
+// 마스킹 해제(2026-11): 상담사 이름을 실명 그대로 보낸다. 호출부 호환용으로 함수 이름만 남겨 둔다.
+function maskName_(name) { return name; }
 
 function summarize_(rows) {
   var t = {};

@@ -4841,11 +4841,14 @@
     const SAVED_ROWS = JSON.parse(document.getElementById("saved-data").textContent || "[]");
     const CHART_COLORS = ["#2563EB","#059669","#D97706","#DC2626","#7C3AED","#EC4899","#0891B2","#84CC16"];
     const colors = CHART_COLORS;
-    const PHONE_COUNSELOR_MAP = { "진수진": "진*진", "김순옥": "김*옥", "박재혁": "박*혁" };
-    const CHANNEL_COUNSELOR_MAP = { "623139": "김*옥", "623618": "진*진", "670617": "박*혁" };
+    // 상담사 이름은 실명으로 표시한다. 예전에 가려서 저장된 이름(김*옥 등)은 읽어들일 때 realName 으로 실명으로 바꾼다.
+    const REAL_NAMES = { "김*옥": "김순옥", "진*진": "진수진", "박*혁": "박재혁", "민*영": "민지영" };
+    const realName = (n) => REAL_NAMES[n] || n;
+    const PHONE_COUNSELOR_MAP = { "진수진": "진수진", "김순옥": "김순옥", "박재혁": "박재혁", "민지영": "민지영" };
+    const CHANNEL_COUNSELOR_MAP = { "623139": "김순옥", "623618": "진수진", "670617": "박재혁", "695140": "민지영" };
     const MANUAL_STORAGE_KEY = "mvno-manual-rows-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
     const UPLOAD_STORAGE_KEY = "mvno-upload-rows-v1"; // 레거시 로컬 캐시 키 — 마이그레이션 용도로만 참조
-    const MANUAL_COUNSELORS = { "김순옥": "김*옥", "진수진": "진*진", "박재혁": "박*혁" };
+    const MANUAL_COUNSELORS = { "김순옥": "김순옥", "진수진": "진수진", "박재혁": "박재혁", "민지영": "민지영" };
     const MANUAL_CATEGORIES = {
       "고객 상담 업무": ["1:1문의", "유선 상담", "채널톡"],
       "개통 업무": ["온라인 개통", "오프라인 개통", "알뜰폰 접수", "너겟 접수"],
@@ -5605,7 +5608,7 @@
           date,
           dateText: r.date,
           month: monthLabel(date),
-          counselor: r.agent,
+          counselor: realName(r.agent),
           main: r.major_category,
           sub: r.minor_category,
           count: r.count,
@@ -5717,7 +5720,7 @@
           .map((r) => {
             const count = Number(r.count) || 0;
             const minutes = r.work_type === "chat" ? count * chatMinutesPer(String(r.date).slice(0, 10)) : (Number(r.seconds) || 0) / 60;
-            return { dateText: String(r.date).slice(0, 10), counselor: r.agent, type: r.work_type, count, minutes };
+            return { dateText: String(r.date).slice(0, 10), counselor: realName(r.agent), type: r.work_type, count, minutes };
           });
         const synced = data.map((r) => r.synced_at).filter(Boolean).sort();
         sheetWork.syncedAt = synced.length ? synced[synced.length - 1] : null;
@@ -6189,7 +6192,7 @@
       try {
         const all = await fetchDrillItems(kind, from, to);
         if (adminModal.kind !== kind || adminModal.name !== name || adminModal.from !== from || adminModal.to !== to) return; // 그 사이 다른 칸을 연 경우
-        adminModal.items = all.filter((r) => !name || r.agent === name);
+        adminModal.items = all.map((r) => ({ ...r, agent: realName(r.agent) })).filter((r) => !name || r.agent === name);
       } catch (err) {
         adminModal.error = (err && err.message) || String(err);
       }
@@ -6573,6 +6576,7 @@
     }
 
     function loadRows(rows, sourceLabel) {
+      rows.forEach((r) => { r.counselor = realName(r.counselor); });
       state.rows = rows;
       document.getElementById("loadErrorPanel")?.remove();
       setFilters();
@@ -6846,7 +6850,7 @@
     async function loadDmComplaints() {
       try {
         const data = await fetchAllRows("complaint_records", (q) => q.eq("channel", "1:1문의"));
-        dmComplaintState.records = data.map((r) => ({ date: r.date, counselor: r.agent, type: r.inquiry_type, count: r.count }));
+        dmComplaintState.records = data.map((r) => ({ date: r.date, counselor: realName(r.agent), type: r.inquiry_type, count: r.count }));
       } catch (err) {
         console.warn("1:1문의 데이터 조회 실패:", err.message);
         dmComplaintState.records = [];
@@ -7081,19 +7085,16 @@
     async function loadPhoneComplaints() {
       try {
         const data = await fetchAllRows("complaint_records", (q) => q.eq("channel", "유선 상담"));
-        phoneComplaintState.records = data.map((r) => ({ date: r.date, agent: r.agent, type: r.inquiry_type, count: r.count }));
+        phoneComplaintState.records = data.map((r) => ({ date: r.date, agent: realName(r.agent), type: r.inquiry_type, count: r.count }));
       } catch (err) {
         console.warn("유선 문의 데이터 조회 실패:", err.message);
         phoneComplaintState.records = [];
       }
     }
 
+    // 마스킹 해제: 이름을 그대로 쓴다 (호출부 호환용으로 이름만 유지)
     function maskAgentName(name) {
-      const s = (name || "").trim();
-      if (!s) return "";
-      if (s.length <= 1) return s;
-      if (s.length === 2) return s[0] + "*";
-      return s[0] + "*".repeat(s.length - 2) + s[s.length - 1];
+      return realName((name || "").trim());
     }
 
     function calcCallDuration(startVal, endVal) {
