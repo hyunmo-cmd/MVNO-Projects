@@ -5691,9 +5691,11 @@
         ? { types: ["call_in", "call_out"], minutes: 1 }
         : { types: ["call_in"], minutes: AFTER_CALL_MINUTES };
     }
+    // 후처리를 잡지 않는 담당자 (OB 아르바이트는 발신 통화만 하고 후처리 근무가 없다)
+    const NO_AFTER_CALL_AGENTS = new Set(["OB 아르바이트"]);
     function afterCallItems(rows) {
       return rows
-        .filter((r) => afterCallRule(r.dateText).types.includes(r.type))
+        .filter((r) => !NO_AFTER_CALL_AGENTS.has(r.counselor) && afterCallRule(r.dateText).types.includes(r.type))
         .map((r) => ({ dateText: r.dateText, counselor: r.counselor, type: "after", count: r.count, minutes: r.count * afterCallRule(r.dateText).minutes }));
     }
     const CHAT_MINUTES = 5;       // 2026-10 까지: 채널톡 1건당 상담 시간(분) — 시트에 시간 열이 없어 건수로 산출
