@@ -7,6 +7,8 @@
  *   제네시스_<이름>  (Genesys 상담원 성능 상세, 하루 1행)
  *     간격 시작(날짜) · 응답됨(=수신 건수) · 발신(=발신 건수) · 총 대화(ms)
  *     - OUTBOUND_TABS(OB 아르바이트)는 발신 = 처리 − 응답됨 으로 센다.
+ *     - 탭이 대화 내역 형식(통화 1건 = 1행: 날짜 · 기간 · 방향 · 큐)이면 방향=발신 이고
+ *       큐에 CONVERSATION_QUEUE_KEYWORD('알뜰폰')가 들어간 통화만 발신 1건, 통화시간 = 기간(밀리초)으로 센다.
  *     - 상담사 이름은 탭 이름(제네시스_ 뒤)을 쓴다. 예: 제네시스_OB 아르바이트 → 'OB 아르바이트'(사람 이름이 아니라 가리지 않음)
  *     - 총 대화 시간은 수신·발신 구분이 없어 건수 비율로 나눈다.
  *     - 새 상담사가 오면 '제네시스_이름' 탭을 추가하기만 하면 자동으로 읽는다.
@@ -49,6 +51,8 @@ var LOG_SHEET_NAME = '동기화 로그';
 var SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 웹 앱 호출 간 최소 간격
 // 발신 업무 위주 탭(제네시스_ 뒤 이름). 발신 = 처리 − 응답됨 으로 센다. 나머지 상담사는 '발신' 열 그대로.
 var OUTBOUND_TABS = ['OB 아르바이트'];
+// 대화 내역 형식 탭(통화 1건 = 1행)에서 실적으로 셀 큐 이름 키워드 (예: Q_1833_2640_알뜰폰)
+var CONVERSATION_QUEUE_KEYWORD = '알뜰폰';
 
 // 채널톡 상담사 ID → 이름. 새 상담사가 오면 여기에 추가한다.
 var CHANNEL_MANAGERS = {
@@ -165,7 +169,12 @@ function readWorkSheet_() {
   genesysTabs.forEach(function (sheet) {
     var tab = sheet.getName();
     var t = readTable_(sheet, ['간격 시작', '상담원 이름', '응답됨', '발신', '총 대화']);
-    if (t.error) return errors.push(tab + ': ' + t.error);
+    if (t.error) {
+      // 통화 1건 = 1행 형식(대화 내역 내보내기)이면 그쪽으로 읽는다
+      var conv = readTable_(sheet, ['날짜', '기간', '방향', '큐']);
+      if (conv.error) return errors.push(tab + ': ' + t.error);
+      return readConversationTab_(tab, conv, tz, add, errors, notes);
+    }
     var seen = {};
     t.rows.forEach(function (row) {
       var line = tab + ' ' + row.line + '행';
@@ -236,6 +245,27 @@ function readWorkSheet_() {
     return { date: p[0], agent: p[1], work_type: p[2], count: totals[key].count, seconds: totals[key].seconds };
   });
   return { rows: rows, errors: errors, notes: notes };
+}
+
+// 대화 내역 형식 탭 (통화 1건 = 1행: 날짜 · 기간(ms) · 방향 · 큐 · 대화 ID …)
+//   방향 = 발신 이고 큐 이름에 CONVERSATION_QUEUE_KEYWORD 가 들어간 통화만 발신 실적으로 센다.
+//   통화시간 = 기간(밀리초, 예: 11822 → 12초). 같은 대화 ID 는 1번만 센다.
+function readConversationTab_(tab, t, tz, add, errors, notes) {
+  var name = norm_(tab.slice(GENESYS_PREFIX.length));
+  var seen = {}, dup = 0, skipped = 0;
+  t.rows.forEach(function (row) {
+    var line = tab + ' ' + row.line + '행';
+    var id = norm_(row.text['대화 ID']);
+    if (id) { if (seen[id]) { dup++; return; } seen[id] = true; }
+    if (norm_(row.text['방향']) !== '발신' || norm_(row.text['큐']).indexOf(CONVERSATION_QUEUE_KEYWORD) === -1) { skipped++; return; }
+    var date = toDateKey_(row.raw['날짜'], row.text['날짜'], tz);
+    if (!date) return errors.push(line + ': 날짜 형식 오류 (' + row.text['날짜'] + ')');
+    var ms = toNumber_(String(row.raw['기간']));
+    if (ms === null || ms < 0) return errors.push(line + ': 기간 형식 오류 (' + row.text['기간'] + ')');
+    add(date, name, 'call_out', 1, Math.round(ms / 1000));
+  });
+  if (dup) notes.push(tab + ': 같은 대화 ID 중복 ' + dup + '행은 1번만 셌습니다.');
+  if (skipped) notes.push(tab + ': ' + CONVERSATION_QUEUE_KEYWORD + ' 큐 발신이 아닌 ' + skipped + '건은 제외했습니다.');
 }
 
 // 전산처리 항목 내역 (팝업용): [{ date, agent, item, count, minutes }] — 고객 정보 없음
