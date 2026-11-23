@@ -9,6 +9,7 @@
  *     - OUTBOUND_TABS(OB 아르바이트)는 발신 = 처리 − 응답됨 으로 센다.
  *     - 탭이 대화 내역 형식(통화 1건 = 1행: 날짜 · 기간 · 방향 · 큐)이면 방향=발신 이고
  *       큐에 CONVERSATION_QUEUE_KEYWORD('알뜰폰')가 들어간 통화만 발신 1건, 통화시간 = 기간(밀리초)으로 센다.
+ *       11/2 ~ 11/9(알뜰폰 큐 지정 전)는 큐 빈칸 발신도 센다(CONVERSATION_BLANK_QUEUE_UNTIL).
  *     - 상담사 이름은 탭 이름(제네시스_ 뒤)을 쓴다. 예: 제네시스_OB 아르바이트 → 'OB 아르바이트'(사람 이름이 아니라 가리지 않음)
  *     - 총 대화 시간은 수신·발신 구분이 없어 건수 비율로 나눈다.
  *     - 새 상담사가 오면 '제네시스_이름' 탭을 추가하기만 하면 자동으로 읽는다.
@@ -53,6 +54,9 @@ var SYNC_MIN_INTERVAL_MS = 5 * 60 * 1000; // 웹 앱 호출 간 최소 간격
 var OUTBOUND_TABS = ['OB 아르바이트'];
 // 대화 내역 형식 탭(통화 1건 = 1행)에서 실적으로 셀 큐 이름 키워드 (예: Q_1833_2640_알뜰폰)
 var CONVERSATION_QUEUE_KEYWORD = '알뜰폰';
+// 알뜰폰 큐가 지정되기 전(2026-11-02 ~ 11-09)에는 같은 OB 발신이 큐 빈칸으로 잡혀 있어, 이 기간의 큐 빈칸 발신도 실적으로 센다.
+var CONVERSATION_START_DATE = '2026-11-02';
+var CONVERSATION_BLANK_QUEUE_UNTIL = '2026-11-09';
 
 // 채널톡 상담사 ID → 이름. 새 상담사가 오면 여기에 추가한다.
 var CHANNEL_MANAGERS = {
@@ -257,9 +261,11 @@ function readConversationTab_(tab, t, tz, add, errors, notes) {
     var line = tab + ' ' + row.line + '행';
     var id = norm_(row.text['대화 ID']);
     if (id) { if (seen[id]) { dup++; return; } seen[id] = true; }
-    if (norm_(row.text['방향']) !== '발신' || norm_(row.text['큐']).indexOf(CONVERSATION_QUEUE_KEYWORD) === -1) { skipped++; return; }
     var date = toDateKey_(row.raw['날짜'], row.text['날짜'], tz);
     if (!date) return errors.push(line + ': 날짜 형식 오류 (' + row.text['날짜'] + ')');
+    var queue = norm_(row.text['큐']);
+    var queueOk = queue.indexOf(CONVERSATION_QUEUE_KEYWORD) !== -1 || (!queue && date <= CONVERSATION_BLANK_QUEUE_UNTIL);
+    if (norm_(row.text['방향']) !== '발신' || !queueOk || date < CONVERSATION_START_DATE) { skipped++; return; }
     var ms = toNumber_(String(row.raw['기간']));
     if (ms === null || ms < 0) return errors.push(line + ': 기간 형식 오류 (' + row.text['기간'] + ')');
     add(date, name, 'call_out', 1, Math.round(ms / 1000));
