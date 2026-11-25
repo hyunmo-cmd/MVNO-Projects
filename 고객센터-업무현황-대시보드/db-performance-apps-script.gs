@@ -4,14 +4,15 @@
  * 대상: '[MVNO] 알뜰폰 OB 청약대기 트래킹' 스프레드시트 (이 스크립트를 그 시트에 설치)
  * '트래킹'(실적)을 읽어 날짜별 건수만 돌려준다. 전화번호·계약번호·재컨텍 내용 등 고객 정보는 읽지도 보내지도 않는다.
  *
- *   인입      : '인입 누적'(로데이터) 계약번호(contract_form_id) MVN{yyyyMMdd}xxxxxx 의 날짜 기준 (같은 계약번호는 1건)
- *   부재 · 고객제외 · 청약대기 : '인입 누적' 상태(final_progress_name) (현재 상태), 인입일 기준
+ *   인입      : '인입 및 개통상태 누적'(로데이터) 계약번호(contract_form_id) MVN{yyyyMMdd}xxxxxx 의 날짜 기준 (같은 계약번호는 1건)
+ *   부재 · 고객제외 · 청약대기 : '인입 및 개통상태 누적' 상태(final_progress_name) (현재 상태), 인입일 기준
  *       부재 = 값에 '부재'가 들어간 것(가망부재1·2·3), 고객제외·청약대기 = 값이 정확히 일치
  *   OB 건수   : OB 일자 기준 1행 = 1건
  *   유심 구매 : 유심구매여부 = Y 인 행, 구매일자 기준 (비어 있으면 OB 일자)
  *   개통완료  : 신청상태에 '개통완료'가 들어간 행(셀프개통완료 등), 개통일자 기준 (비어 있으면 OB 일자)
  *
- * 탭·열 이름은 예전 이름(시트1·시트2, 계약번호·개통상태)도 함께 인식한다.
+ * 탭·열 이름은 예전 이름(시트1·시트2·인입 누적, 계약번호·개통상태)도 함께 인식한다.
+ * 로데이터 탭 이름이 또 바뀌어도 1행에 contract_form_id(계약번호) 열이 있는 탭을 자동으로 찾는다.
  * 헤더는 1~10행 안에서 '신청상태'가 있는 행을 찾아 열 이름으로 읽는다(열 순서가 바뀌어도 됨).
  *
  * 배포: 배포 > 새 배포 > 유형: 웹 앱 / 실행 사용자: 나 / 액세스: 모든 사용자
@@ -22,7 +23,7 @@
 
 // 탭·열 이름 후보 (앞에서부터 먼저 있는 것을 쓴다)
 var DB_SHEET_NAMES = ['트래킹', '시트1'];
-var RAW_SHEET_NAMES = ['인입 누적', '시트2'];
+var RAW_SHEET_NAMES = ['인입 및 개통상태 누적', '인입 누적', '시트2'];
 var RAW_CONTRACT_COLS = ['contract_form_id', '계약번호'];
 var RAW_STATUS_COLS = ['final_progress_name', '개통상태'];
 
@@ -88,7 +89,12 @@ function readDbPerformance_() {
   }
 
   // 인입: 인입 누적 계약번호의 날짜(MVN + yyyyMMdd). 계약번호 자체는 내보내지 않는다.
-  var raw = sheetByNames_(ss, RAW_SHEET_NAMES);
+  // 탭 이름이 목록에 없으면 1행에 계약번호 열(contract_form_id 등)이 있는 탭을 찾아 쓴다.
+  var raw = sheetByNames_(ss, RAW_SHEET_NAMES) || ss.getSheets().filter(function (s) {
+    if (s.getSheetId() === sheet.getSheetId() || s.getLastRow() < 1) return false;
+    return colOf_(s.getRange(1, 1, 1, Math.max(1, s.getLastColumn())).getDisplayValues()[0], RAW_CONTRACT_COLS) !== -1;
+  })[0];
+  if (!raw) throw new Error('인입 로데이터 탭(' + RAW_SHEET_NAMES.join(' / ') + ')을 찾지 못했습니다.');
   if (raw) {
     var rv = raw.getDataRange().getDisplayValues();
     var rh = -1, rc = -1, sc = -1;
