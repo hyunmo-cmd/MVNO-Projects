@@ -17,8 +17,8 @@
  *
  * 연동: 시트 → Supabase(db_perf_daily) → 대시보드
  *   (회사 정책으로 웹 앱 '모든 사용자' 공개가 막혀, 웹 앱 대신 시트가 직접 Supabase 로 보낸다)
- *   1) 프로젝트 설정 > 스크립트 속성 에 2개 추가 (업무 현황 시트 스크립트 속성과 같은 값)
- *        SYNC_URL          = https://qgqyzyrbrmwnvmhiteta.supabase.co/functions/v1/smooth-responder
+ *   1) 프로젝트 설정 > 스크립트 속성 에 2개 추가 (SECRET 은 업무 현황 시트와 같은 값)
+ *        SYNC_URL          = https://qgqyzyrbrmwnvmhiteta.supabase.co/functions/v1/db-perf-sync  (DB 실적 전용 함수 — 코드는 supabase/functions/sheet-sync/index.ts 와 같음)
  *        SHEET_SYNC_SECRET = (업무 현황 시트에 넣어 둔 것과 같은 비밀값)
  *   2) syncDbPerformance ▶ 실행 (처음 1회 권한 승인) — 실행 로그에 'HTTP 200' 이 나오면 성공
  *   3) installDbPerfTrigger ▶ 실행 — 30분마다 자동 전송
