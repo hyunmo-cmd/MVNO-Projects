@@ -15,11 +15,43 @@
  * 로데이터 탭 이름이 또 바뀌어도 1행에 contract_form_id(계약번호) 열이 있는 탭을 자동으로 찾는다.
  * 헤더는 1~10행 안에서 '신청상태'가 있는 행을 찾아 열 이름으로 읽는다(열 순서가 바뀌어도 됨).
  *
- * 배포: 배포 > 새 배포 > 유형: 웹 앱 / 실행 사용자: 나 / 액세스: 모든 사용자
- *       → 웹 앱 URL 을 대시보드 DB_PERF_WEBAPP_URL 에 넣는다.
- *       코드를 고친 뒤에는 배포 관리 > 편집 > 버전: 새 버전 으로 다시 배포해야 반영된다.
+ * 연동: 시트 → Supabase(db_perf_daily) → 대시보드
+ *   (회사 정책으로 웹 앱 '모든 사용자' 공개가 막혀, 웹 앱 대신 시트가 직접 Supabase 로 보낸다)
+ *   1) 프로젝트 설정 > 스크립트 속성 에 2개 추가 (업무 현황 시트 스크립트 속성과 같은 값)
+ *        SYNC_URL          = https://qgqyzyrbrmwnvmhiteta.supabase.co/functions/v1/smooth-responder
+ *        SHEET_SYNC_SECRET = (업무 현황 시트에 넣어 둔 것과 같은 비밀값)
+ *   2) syncDbPerformance ▶ 실행 (처음 1회 권한 승인) — 실행 로그에 'HTTP 200' 이 나오면 성공
+ *   3) installDbPerfTrigger ▶ 실행 — 30분마다 자동 전송
+ *   코드를 고친 뒤에는 저장만 하면 된다(웹 앱 재배포 필요 없음).
  * 확인: previewDbPerformance ▶ 실행 — 실행 로그에 집계 결과가 나온다.
  */
+
+function syncDbPerformance() {
+  var props = PropertiesService.getScriptProperties();
+  var url = props.getProperty('SYNC_URL');
+  var secret = props.getProperty('SHEET_SYNC_SECRET');
+  if (!url || !secret) throw new Error('스크립트 속성 SYNC_URL / SHEET_SYNC_SECRET 이 없습니다.');
+  var r = readDbPerformance_();
+  if (!r.days.length) throw new Error('보낼 데이터가 없습니다.');
+  var res = UrlFetchApp.fetch(url, {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-sync-secret': secret },
+    payload: JSON.stringify({ dataset: 'db_perf', rows: r.days }),
+    muteHttpExceptions: true,
+  });
+  var code = res.getResponseCode();
+  Logger.log('HTTP ' + code + ' ' + res.getContentText().slice(0, 500) + ' · ' + r.days.length + '일');
+  if (code !== 200) throw new Error('전송 실패 HTTP ' + code + ': ' + res.getContentText().slice(0, 300));
+}
+
+function installDbPerfTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'syncDbPerformance') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('syncDbPerformance').timeBased().everyMinutes(30).create();
+  Logger.log('30분 간격 자동 전송 트리거를 등록했습니다.');
+}
 
 // 탭·열 이름 후보 (앞에서부터 먼저 있는 것을 쓴다)
 var DB_SHEET_NAMES = ['트래킹', '시트1'];

@@ -5,6 +5,8 @@
 //     { dataset: "work_daily", rows: [{ date, agent, work_type, count, seconds }], allowShrink?: boolean }
 //   통화 현황 (고객센터-응답률-분석/call-daily-sync-apps-script.gs)
 //     { dataset: "call_daily", rows: [{ date, total_calls, answered, unanswered }], allowShrink?: boolean }
+//   DB 실적 (db-performance-apps-script.gs, 트래킹 시트)
+//     { dataset: "db_perf", rows: [{ date, inflow, absent, excluded, pending, ob, usim, opened }], allowShrink?: boolean }
 // 인증: 헤더 x-sync-secret 이 환경변수 SHEET_SYNC_SECRET 과 같아야 한다.
 //       (JWT 검증은 끄고 배포 — 브라우저용 키가 아니라 공유 비밀값으로만 호출 허용)
 // 동작: 시트 전체 스냅샷을 받아 upsert(같은 날짜·상담사·업무는 값 갱신) 후,
@@ -73,9 +75,35 @@ function validateCallDaily(rows: unknown): { rows: Row[]; errors: string[] } {
   return { rows: out, errors };
 }
 
+const DB_PERF_KEYS = ["inflow", "absent", "excluded", "pending", "ob", "usim", "opened"] as const;
+
+function validateDbPerf(rows: unknown): { rows: Row[]; errors: string[] } {
+  const errors: string[] = [];
+  if (!Array.isArray(rows)) return { rows: [], errors: ["rows 가 배열이 아닙니다."] };
+  const seen = new Set<string>();
+  const out: Row[] = [];
+  rows.forEach((r: any, i) => {
+    const where = `rows[${i}]`;
+    if (!r || typeof r !== "object") return errors.push(`${where}: 객체가 아닙니다.`);
+    const { date } = r;
+    if (typeof date !== "string" || !DATE_RE.test(date) || isNaN(Date.parse(date))) errors.push(`${where}: 날짜 형식 오류 (${date})`);
+    if (seen.has(date)) errors.push(`${where}: 중복 날짜 (${date})`);
+    seen.add(date);
+    const row: Row = { date };
+    for (const k of DB_PERF_KEYS) {
+      const v = r[k] ?? 0;
+      if (!Number.isInteger(v) || v < 0) errors.push(`${where}: ${k} 오류 (${v})`);
+      row[k] = v;
+    }
+    out.push(row);
+  });
+  return { rows: out, errors };
+}
+
 const DATASETS: Record<string, Dataset> = {
   work_daily: { table: "work_daily_sheet", conflict: "date,agent,work_type", validate: validateWorkDaily },
   call_daily: { table: "call_daily", conflict: "date", validate: validateCallDaily },
+  db_perf: { table: "db_perf_daily", conflict: "date", validate: validateDbPerf },
 };
 
 Deno.serve(async (req) => {

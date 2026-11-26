@@ -6045,7 +6045,8 @@
     const DB_PERF_KEYS = ["inflow", "absent", "excluded", "pending", "usim", "opened"]; // OB 는 표시하지 않음(사용자 요청)
     const DB_PERF_LABELS = { inflow: "인입", absent: "부재(최대 3회)", excluded: "고객제외(중복 신청)", pending: "청약대기(유심구매 절차 및 셀프가입 링크 발송)", usim: "유심 구매", opened: "개통완료" };
     const DB_PERF_COLORS = { inflow: ["var(--blue)", "var(--blue-50)"], absent: ["#6B7280", "#F3F4F6"], excluded: ["var(--red)", "var(--red-50)"], pending: ["#7C3AED", "#F5F3FF"], usim: ["#0891B2", "#ECFEFF"], opened: ["var(--green)", "var(--green-50)"] };
-    const DB_PERF_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7JcGRAbSkg4MDGkcwEkHBlA2l64p0HEwl5DXL-SLHRT7ivo1pVBwlo9QwowmrMHw/exec";
+    // DB 실적: 트래킹 시트 Apps Script → Supabase db_perf_daily (웹 앱 공개가 막혀 시트가 직접 보낸다)
+    const DB_PERF_TABLE = "db_perf_daily";
     const dbPerf = { days: null, updated: "", error: null, loading: false };
     const dbView = { range: "thisMonth", start: "", end: "" };
     let dbFp = null, dbFpSuppress = false;
@@ -6075,16 +6076,15 @@
     }
 
     async function loadDbPerf() {
-      if (!DB_PERF_WEBAPP_URL) { dbPerf.error = "연동 전"; renderDbPerfTable(); return; }
       if (dbPerf.loading) return;
       dbPerf.loading = true;
       renderDbPerfTable();
       try {
-        const res = await fetch(DB_PERF_WEBAPP_URL);
-        const body = await res.json();
-        if (!body.ok) throw new Error(body.message || "응답 오류");
-        dbPerf.days = body.days || [];
-        dbPerf.updated = body.updated || "";
+        const rows = await fetchAllRows(DB_PERF_TABLE, (q) => q.order("date", { ascending: true }));
+        const keys = ["inflow", "absent", "excluded", "pending", "ob", "usim", "opened"];
+        dbPerf.days = rows.map((r) => Object.fromEntries([["date", String(r.date).slice(0, 10)], ...keys.map((k) => [k, Number(r[k]) || 0])]));
+        const last = rows.reduce((m, r) => (r.synced_at > m ? r.synced_at : m), "");
+        dbPerf.updated = last ? (() => { const t = new Date(last); return `동기화 ${t.getMonth() + 1}.${t.getDate()} ${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}`; })() : "";
         dbPerf.error = null;
       } catch (err) {
         dbPerf.days = null;
